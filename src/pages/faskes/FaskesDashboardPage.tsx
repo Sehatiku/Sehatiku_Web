@@ -21,12 +21,6 @@ interface Patient {
   age: number
 }
 
-interface Nakes {
-  id: number
-  name: string
-  role: string
-}
-
 interface EscalationAlert {
   id: number
   patient: string
@@ -39,7 +33,7 @@ interface EscalationAlert {
 
 export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void }) {
   const [activeTab, setActiveTab] = useState<'pendaftaran' | 'operasional' | 'eskalasi' | 'dokter'>('operasional')
-  
+
   // Toast State
   const [showToast, setShowToast] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
@@ -90,14 +84,6 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
     { id: 7, name: 'Nurul Fadilah', disease: 'Diabetes', healthScore: 78, status: 'Sehat', cause: 'Pola Makan Baik', age: 41 },
     { id: 8, name: 'Agus Permadi', disease: 'Hipertensi', healthScore: 88, status: 'Sehat', cause: 'Aktivitas Fisik Rutin', age: 55 },
   ])
-  const [nakesList, setNakesList] = useState<Nakes[]>([
-    { id: 1, name: 'Dr. Andi Wijaya, Sp.PD', role: 'Dokter Spesialis' },
-    { id: 2, name: 'Ns. Sari Dewi', role: 'Perawat' },
-    { id: 3, name: 'Dr. Budi Prasetyo', role: 'Dokter Umum' },
-  ])
-  const [showAddNakes, setShowAddNakes] = useState(false)
-  const [newNakesName, setNewNakesName] = useState('')
-  const [newNakesRole, setNewNakesRole] = useState('Dokter Umum')
 
   // Modals States
   const [showBaselineModal, setShowBaselineModal] = useState(false)
@@ -120,15 +106,15 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   }
 
   const getHealthColor = (score: number) => {
-    if (score >= 70) return '#00B894' // Sehat (Green)
-    if (score >= 40) return '#4FC3F7' // Waswas (Blue)
-    return '#7B61FF' // Parah (Purple)
+    if (score >= 70) return '#10B981' // Sehat (Green)
+    if (score >= 40) return '#F59E0B' // Waswas (Yellow)
+    return '#EF4444' // Parah (Red)
   }
 
   const getHealthShadow = (score: number) => {
-    if (score >= 70) return 'rgba(0,184,148,0.28)'
-    if (score >= 40) return 'rgba(79,195,247,0.28)'
-    return 'rgba(123,97,255,0.28)'
+    if (score >= 70) return 'rgba(16,185,129,0.2)'
+    if (score >= 40) return 'rgba(245,158,11,0.2)'
+    return 'rgba(239,68,68,0.2)'
   }
 
   const getHealthTier = (score: number) => {
@@ -138,9 +124,9 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   }
 
   const getStatusStyle = (st: string) => {
-    if (st === 'Parah') return { color: '#7B61FF', bg: 'rgba(123,97,255,0.1)' }
-    if (st === 'Waswas') return { color: '#0288A0', bg: 'rgba(79,195,247,0.15)' }
-    return { color: '#00B894', bg: 'rgba(0,184,148,0.1)' } // Sehat
+    if (st === 'Parah') return { color: '#EF4444', bg: 'rgba(239,68,68,0.08)' }
+    if (st === 'Waswas') return { color: '#D97706', bg: 'rgba(245,158,11,0.1)' }
+    return { color: '#10B981', bg: 'rgba(16,185,129,0.08)' } // Sehat
   }
 
   // Onboarding OCR
@@ -152,19 +138,31 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   }
 
   const handleSubmitPatient = () => {
+    if (!patientName.trim()) {
+      showToastMsg('⚠️ Nama lengkap pasien wajib diisi.');
+      return;
+    }
+    if (!patientNik.trim() || patientNik.length !== 16 || !/^\d+$/.test(patientNik)) {
+      showToastMsg('⚠️ NIK pasien wajib diisi dan harus berupa 16 digit angka.');
+      return;
+    }
+    if (!patientDob) {
+      showToastMsg('⚠️ Tanggal lahir pasien wajib diisi.');
+      return;
+    }
     if (!selectedDoctorId) {
-      showToastMsg('⚠️ Harap pilih dokter penanggung jawab terlebih dahulu.')
-      return
+      showToastMsg('⚠️ Harap pilih dokter penanggung jawab terlebih dahulu.');
+      return;
     }
     const doc = registeredDoctors.find(d => d.id === selectedDoctorId)
     const msg = whatsappCheck
       ? 'Notifikasi login berhasil dikirim ke WhatsApp Pasien/Wali dan ' + (doc ? doc.name : 'Dokter') + '!'
       : 'Pasien berhasil didaftarkan dengan dokter PJ: ' + (doc ? doc.name : '') + '!'
-    
+
     // Add to patient list locally
     const newPatient: Patient = {
       id: Date.now(),
-      name: patientName || 'Ahmad Suharto',
+      name: patientName,
       disease: 'Diabetes',
       healthScore: 78,
       status: 'Sehat',
@@ -186,14 +184,29 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
     setNewDrNik('3271098712850001')
     setNewDrDob('1985-12-07')
     setNewDrSip('SIP/009/DKK/2024')
-    setNewDrPhone('0818-7890-1234')
+    setNewDrPhone('081878901234')
     showToastMsg('✓ OCR Berhasil! Data dokter terisi otomatis dari scan KTP.')
   }
 
   const handleSubmitDoctor = () => {
     if (!newDrName.trim()) { showToastMsg('⚠️ Nama dokter wajib diisi.'); return; }
-    if (!newDrSip.trim())  { showToastMsg('⚠️ Nomor SIP wajib diisi.'); return; }
-    
+    if (!newDrNik.trim() || newDrNik.length !== 16 || !/^\d+$/.test(newDrNik)) {
+      showToastMsg('⚠️ NIK dokter wajib diisi dan harus berupa 16 digit angka.');
+      return;
+    }
+    if (!newDrDob) {
+      showToastMsg('⚠️ Tanggal lahir dokter wajib diisi.');
+      return;
+    }
+    if (!newDrSip.trim()) { showToastMsg('⚠️ Nomor SIP wajib diisi.'); return; }
+
+    // Validate phone number format (must start with 08, 628, or +628, only numbers/plus, length 10-14)
+    const phoneClean = newDrPhone.replace(/[-\s]/g, '');
+    if (!phoneClean.trim() || !/^(08|\+628|628)\d{8,12}$/.test(phoneClean)) {
+      showToastMsg('⚠️ Nomor WhatsApp tidak valid. Gunakan format angka saja (contoh: 08123456789).');
+      return;
+    }
+
     const tagMap: Record<string, string[]> = {
       'Penyakit Dalam': ['dm', 'htn'],
       'Kardiologi': ['htn'],
@@ -213,7 +226,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       tags: tagMap[newDrSpecialty] || ['umum'],
       available: true,
       sip: newDrSip,
-      phone: newDrPhone || '—',
+      phone: phoneClean,
     }
 
     setRegisteredDoctors(prev => [...prev, newDoc])
@@ -225,19 +238,6 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
     setNewDrPhone('')
   }
 
-  const handleAddNakes = () => {
-    if (!newNakesName.trim()) return
-    const item: Nakes = { id: Date.now(), name: newNakesName, role: newNakesRole }
-    setNakesList(prev => [...prev, item])
-    setNewNakesName('')
-    setShowAddNakes(false)
-    showToastMsg(`${newNakesName} berhasil ditambahkan sebagai nakes!`)
-  }
-
-  const handleRemoveNakes = (id: number, name: string) => {
-    setNakesList(prev => prev.filter(x => x.id !== id))
-    showToastMsg(`Akun ${name} berhasil dihapus dari sistem.`)
-  }
 
   const toggleDoctorAvail = (id: number, name: string, current: boolean) => {
     setRegisteredDoctors(prev => prev.map(d => d.id === id ? { ...d, available: !d.available } : d))
@@ -266,10 +266,10 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Inter, sans-serif', background: '#F0F5FA' }}>
-      
+
       {/* ── SIDEBAR ── */}
       <div style={{ width: 256, minWidth: 256, background: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, borderRight: '1px solid #E2EAF2', boxShadow: '1px 0 8px rgba(15,36,68,0.05)' }}>
-        
+
         {/* Logo */}
         <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid #F0F5FA' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -340,7 +340,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
             <span style={{ fontSize: 13, fontWeight: 600, color: activeTab === 'eskalasi' ? '#1565D8' : '#64748B', flex: 1 }}>Notifikasi &amp; Eskalasi</span>
-            <span style={{ background: '#7B61FF', color: '#fff', fontSize: 9, fontWeight: 800, minWidth: 18, height: 18, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>3</span>
+            <span style={{ background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 800, minWidth: 18, height: 18, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>3</span>
           </div>
 
           <div
@@ -367,13 +367,13 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Total Pasien</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: '#1565D8' }}>{patients.length}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: '#FDF5FF', borderRadius: 8, border: '1px solid rgba(123,97,255,0.1)' }}>
-              <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Risiko Bahaya</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#7B61FF' }}>2</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: '#FFF5F5', borderRadius: 8, border: '1px solid rgba(239,68,68,0.12)' }}>
+              <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Kondisi Parah</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#EF4444' }}>2</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: '#F0FDF8', borderRadius: 8, border: '1px solid rgba(0,184,148,0.12)' }}>
-              <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Status Aman</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#00B894' }}>3</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: '#F0FDF8', borderRadius: 8, border: '1px solid rgba(16,185,129,0.12)' }}>
+              <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Kondisi Sehat</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#10B981' }}>3</span>
             </div>
           </div>
         </div>
@@ -393,7 +393,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
       {/* ── MAIN AREA ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-        
+
         {/* Top Header Bar */}
         <div style={{ background: '#fff', borderBottom: '1px solid #E2EAF2', padding: '0 24px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, boxShadow: '0 1px 6px rgba(15,36,68,0.04)' }}>
           <div>
@@ -406,7 +406,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               <div className="anim-blink" style={{ width: 7, height: 7, borderRadius: '50%', background: '#1565D8' }}></div>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#1565D8' }}>Mode: Faskes</span>
             </div>
-            
+
             <div
               onClick={() => setActiveTab('eskalasi')}
               style={{ position: 'relative', width: 38, height: 38, background: '#F0F5FA', border: '1px solid #E2EAF2', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
@@ -414,7 +414,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              <span style={{ position: 'absolute', top: -4, right: -4, background: '#7B61FF', color: '#fff', fontSize: 9, fontWeight: 800, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>3</span>
+              <span style={{ position: 'absolute', top: -4, right: -4, background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 800, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>3</span>
             </div>
 
             <button
@@ -431,7 +431,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
         {/* ── SCROLLABLE TAB CONTENTS ── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px', background: '#F0F5FA' }}>
-          
+
           {/* TAB 1: PENDAFTARAN */}
           {activeTab === 'pendaftaran' && (
             <div className="anim-fadein">
@@ -451,16 +451,16 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                     <div style={{ color: '#fff', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{patients.length}</div>
                     <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: 600, marginTop: 2 }}>Pasien</div>
                   </div>
-                  <div style={{ background: 'rgba(122,201,67,0.2)', border: '1px solid rgba(122,201,67,0.35)', borderRadius: 10, padding: '10px 18px', textAlign: 'center' }}>
-                    <div style={{ color: '#7AC943', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{nakesList.length}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: 600, marginTop: 2 }}>Nakes</div>
+                  <div style={{ background: 'rgba(30,200,165,0.2)', border: '1px solid rgba(30,200,165,0.35)', borderRadius: 10, padding: '10px 18px', textAlign: 'center' }}>
+                    <div style={{ color: '#1EC8A5', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{registeredDoctors.length}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: 600, marginTop: 2 }}>Dokter PJ</div>
                   </div>
                 </div>
               </div>
 
               {/* Form Input + Doctor Selection Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-                
+
                 {/* Form Pasien Baru */}
                 <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -478,7 +478,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                       Scan KTP (OCR)
                     </button>
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div>
                       <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nama Lengkap</label>
@@ -627,19 +627,19 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   <div style={{ fontSize: 32, fontWeight: 800, color: '#1565D8', lineHeight: 1, marginBottom: 3 }}>{patients.length}</div>
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Terdaftar Prolanis</div>
                 </div>
-                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #7B61FF' }}>
+                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #EF4444' }}>
                   <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Kondisi Parah</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: '#7B61FF', lineHeight: 1, marginBottom: 3 }}>2</div>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#EF4444', lineHeight: 1, marginBottom: 3 }}>2</div>
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Perlu Eskalasi</div>
                 </div>
-                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #4FC3F7' }}>
+                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #F59E0B' }}>
                   <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Status Waswas</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: '#0288A0', lineHeight: 1, marginBottom: 3 }}>3</div>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#D97706', lineHeight: 1, marginBottom: 3 }}>3</div>
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Perlu Pemantauan</div>
                 </div>
-                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #00B894' }}>
+                <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #10B981' }}>
                   <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Kondisi Sehat</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: '#00B894', lineHeight: 1, marginBottom: 3 }}>3</div>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#10B981', lineHeight: 1, marginBottom: 3 }}>3</div>
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Kondisi Terkontrol</div>
                 </div>
               </div>
@@ -679,7 +679,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                         return (
                           <tr key={p.id} className="qrow" style={{ borderTop: '1px solid #F0F5FA', transition: 'background 0.12s' }}>
                             <td style={{ padding: '13px 8px 13px 22px', textAlign: 'center' }}>
-                              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, background: i < 2 ? 'rgba(123,97,255,0.12)' : '#F0F5FA', color: i < 2 ? '#7B61FF' : '#94A3B8', fontSize: 12, fontWeight: 800 }}>{i + 1}</div>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, background: i < 2 ? 'rgba(239,68,68,0.12)' : '#F0F5FA', color: i < 2 ? '#EF4444' : '#94A3B8', fontSize: 12, fontWeight: 800 }}>{i + 1}</div>
                             </td>
                             <td style={{ padding: '13px 10px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
@@ -753,61 +753,61 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 </div>
               </div>
 
-              {/* Nakes Management & Baseline Periodik */}
+              {/* BPJS Integration & Baseline Periodik */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                
-                {/* Nakes list */}
+
+                {/* Status Integrasi BPJS P-Care */}
                 <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>Manajemen Nakes</div>
-                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Kelola akun dokter &amp; perawat faskes</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>Integrasi BPJS P-Care</div>
+                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Sinkronisasi berkala data pasien Prolanis</div>
                     </div>
                     <button
-                      onClick={() => setShowAddNakes(!showAddNakes)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#1565D8', color: '#fff', border: 'none', borderRadius: 9, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', boxShadow: '0 3px 10px rgba(21,101,216,0.28)' }}
+                      onClick={() => {
+                        showToastMsg('⏳ Memulai sinkronisasi data dengan BPJS P-Care...');
+                        setTimeout(() => {
+                          showToastMsg('✓ Sinkronisasi berhasil! 8 data pasien Prolanis ter-sync.');
+                        }, 1200);
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#10B981', color: '#fff', border: 'none', borderRadius: 9, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', boxShadow: '0 3px 10px rgba(16,185,129,0.25)' }}
                     >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                      Tambah
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+                      Sync Sekarang
                     </button>
                   </div>
 
-                  {showAddNakes && (
-                    <div style={{ background: '#F8FAFC', borderRadius: 10, padding: 14, marginBottom: 14, border: '1.5px dashed #CBD5E1' }}>
-                      <input
-                        type="text" value={newNakesName} onChange={e => setNewNakesName(e.target.value)}
-                        placeholder="Nama nakes baru..."
-                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #E2EAF2', borderRadius: 8, fontSize: 13, marginBottom: 8, background: '#fff', color: '#0F2444', outline: 'none' }}
-                      />
-                      <select
-                        value={newNakesRole} onChange={e => setNewNakesRole(e.target.value)}
-                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #E2EAF2', borderRadius: 8, fontSize: 13, background: '#fff', color: '#0F2444', marginBottom: 10, outline: 'none' }}
-                      >
-                        <option value="Dokter Umum">Dokter Umum</option>
-                        <option value="Dokter Spesialis">Dokter Spesialis</option>
-                        <option value="Perawat">Perawat</option>
-                        <option value="Bidan">Bidan</option>
-                        <option value="Apoteker">Apoteker</option>
-                      </select>
-                      <button onClick={handleAddNakes} style={{ width: '100%', background: '#00B894', color: '#fff', border: 'none', borderRadius: 8, padding: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: '0 3px 10px rgba(0,184,148,0.25)' }}>Simpan Nakes</button>
+                  {/* PCare status indicators */}
+                  <div style={{ background: '#F8FAFC', borderRadius: 10, padding: '12px 14px', marginBottom: 16, border: '1px solid #EEF2F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 3 }}>Status Koneksi</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#10B981', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#10B981' }} className="anim-blink"></span>
+                        Terhubung ke PCare API
+                      </div>
                     </div>
-                  )}
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 3 }}>Sync Terakhir</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>27 Jun 2026, 22:40 WIB</div>
+                    </div>
+                  </div>
 
-                  {nakesList.map(n => (
-                    <div key={n.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid #F0F5FA' }}>
-                      <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#EEF5FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#1565D8', flexShrink: 0 }}>
-                        {getInitials(n.name)}
+                  {/* Sync Logs preview */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {[
+                      { patient: 'Ahmad Suharto', code: 'PRO-DM-092', time: '5 menit lalu', status: 'Sukses' },
+                      { patient: 'Siti Rahayu', code: 'PRO-HT-087', time: '5 menit lalu', status: 'Sukses' },
+                      { patient: 'Budi Santoso', code: 'PRO-DM-075', time: '12 menit lalu', status: 'Sukses' },
+                    ].map((log, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: idx < 2 ? '1px solid #F0F5FA' : 'none' }}>
+                        <div>
+                          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0F2444' }}>{log.patient}</div>
+                          <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{log.code} · {log.time}</div>
+                        </div>
+                        <span style={{ background: '#F0FDF8', color: '#10B981', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(16,185,129,0.15)' }}>{log.status}</span>
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0F2444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.name}</div>
-                        <div style={{ fontSize: 11, color: '#94A3B8' }}>{n.role}</div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
-                        <span style={{ background: '#F0FDF8', color: '#00B894', fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 10, border: '1px solid rgba(0,184,148,0.15)' }}>Aktif</span>
-                        <button onClick={() => handleRemoveNakes(n.id, n.name)} style={{ background: '#FFF5F5', color: '#EF4444', border: '1.5px solid rgba(239,68,68,0.15)', borderRadius: 7, padding: '5px 9px', fontSize: 11, fontWeight: 600, cursor: 'pointer', borderStyle: 'solid' }}>Hapus</button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
 
                 {/* Baseline Klinis Periodik */}
@@ -815,41 +815,41 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#0F2444', marginBottom: 3 }}>Baseline Klinis Periodik</div>
                   <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 16 }}>Klik "Update Baseline" pada tabel pasien di atas</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-                    <div style={{ background: '#F8F5FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(123,97,255,0.12)' }}>
+                    <div style={{ background: '#FFF5F5', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(239,68,68,0.12)' }}>
                       <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, marginBottom: 3 }}>HbA1c</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#7B61FF' }}>10.2%</div>
-                      <div style={{ fontSize: 9, color: '#7B61FF', marginTop: 1, fontWeight: 600 }}>Kritis &gt;9%</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#EF4444' }}>10.2%</div>
+                      <div style={{ fontSize: 9, color: '#EF4444', marginTop: 1, fontWeight: 600 }}>Kritis &gt;9%</div>
                     </div>
-                    <div style={{ background: '#F0FAFF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(79,195,247,0.15)' }}>
+                    <div style={{ background: '#FFFDF0', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(245,158,11,0.15)' }}>
                       <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, marginBottom: 3 }}>LDL Kolesterol</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#4FC3F7' }}>145 mg/dL</div>
-                      <div style={{ fontSize: 9, color: '#4FC3F7', marginTop: 1, fontWeight: 600 }}>Tinggi &gt;100</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#F59E0B' }}>145 mg/dL</div>
+                      <div style={{ fontSize: 9, color: '#F59E0B', marginTop: 1, fontWeight: 600 }}>Tinggi &gt;100</div>
                     </div>
-                    <div style={{ background: '#F0FDF8', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(0,184,148,0.12)' }}>
+                    <div style={{ background: '#F0FDF8', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(16,185,129,0.12)' }}>
                       <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, marginBottom: 3 }}>eGFR</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#00B894' }}>72 mL/min</div>
-                      <div style={{ fontSize: 9, color: '#00B894', marginTop: 1, fontWeight: 600 }}>Normal ≥60</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#10B981' }}>72 mL/min</div>
+                      <div style={{ fontSize: 9, color: '#10B981', marginTop: 1, fontWeight: 600 }}>Normal ≥60</div>
                     </div>
-                    <div style={{ background: '#EEF5FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(21,101,216,0.1)' }}>
+                    <div style={{ background: '#F0FDF8', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(16,185,129,0.12)' }}>
                       <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, marginBottom: 3 }}>UACR</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1565D8' }}>42 mg/g</div>
-                      <div style={{ fontSize: 9, color: '#1565D8', marginTop: 1, fontWeight: 600 }}>Mikro 30–300</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#10B981' }}>42 mg/g</div>
+                      <div style={{ fontSize: 9, color: '#10B981', marginTop: 1, fontWeight: 600 }}>Mikro 30–300</div>
                     </div>
-                    <div style={{ background: '#F8F5FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(123,97,255,0.12)' }}>
+                    <div style={{ background: '#FFFDF0', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(245,158,11,0.15)' }}>
                       <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, marginBottom: 3 }}>BMI</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#7B61FF' }}>29.3 kg/m²</div>
-                      <div style={{ fontSize: 9, color: '#7B61FF', marginTop: 1, fontWeight: 600 }}>Overweight</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#F59E0B' }}>29.3 kg/m²</div>
+                      <div style={{ fontSize: 9, color: '#F59E0B', marginTop: 1, fontWeight: 600 }}>Overweight</div>
                     </div>
-                    <div style={{ background: '#F8F5FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(123,97,255,0.12)' }}>
+                    <div style={{ background: '#FFF5F5', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(239,68,68,0.12)' }}>
                       <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, marginBottom: 3 }}>Tensi Baseline</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#7B61FF' }}>148/92</div>
-                      <div style={{ fontSize: 9, color: '#7B61FF', marginTop: 1, fontWeight: 600 }}>Grade 1 HTN</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#EF4444' }}>148/92</div>
+                      <div style={{ fontSize: 9, color: '#EF4444', marginTop: 1, fontWeight: 600 }}>Grade 1 HTN</div>
                     </div>
                   </div>
-                  <div style={{ background: '#F0FAFF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(79,195,247,0.15)' }}>
+                  <div style={{ background: '#FFFDF0', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(245,158,11,0.15)' }}>
                     <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, marginBottom: 3 }}>Lingkar Pinggang</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#4FC3F7' }}>94 cm</div>
-                    <div style={{ fontSize: 9, color: '#4FC3F7', marginTop: 1, fontWeight: 600 }}>Risiko ≥90cm (L) / ≥80cm (P)</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#F59E0B' }}>94 cm</div>
+                    <div style={{ fontSize: 9, color: '#F59E0B', marginTop: 1, fontWeight: 600 }}>Risiko ≥90cm (L) / ≥80cm (P)</div>
                   </div>
                 </div>
               </div>
@@ -893,24 +893,28 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#0F2444' }}>Log Eskalasi Klinis</div>
                     <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Histori sinyal kritis &amp; status tindak lanjut tenaga kesehatan</div>
                   </div>
-                  <div style={{ background: '#FDF5FF', border: '1px solid rgba(123,97,255,0.18)', borderRadius: 8, padding: '6px 13px' }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#7B61FF' }}>3 Alert Aktif</span>
+                  <div style={{ background: '#FFF5F5', border: '1px solid rgba(239,68,68,0.18)', borderRadius: 8, padding: '6px 13px' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#EF4444' }}>3 Alert Aktif</span>
                   </div>
                 </div>
 
                 {escalationAlerts.map(alert => {
                   const isFollowedUp = followedUpIds.includes(alert.id)
+                  const alertColor = getHealthColor(alert.healthScore)
+                  const alertBg = alert.healthScore < 40 ? '#FFF5F5' : (alert.healthScore < 70 ? '#FFFDF0' : '#F0FDF8')
+                  const alertBorder = alert.healthScore < 40 ? 'rgba(239,68,68,0.15)' : (alert.healthScore < 70 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)')
+                  
                   return (
                     <div key={alert.id} style={{ padding: '18px 22px', borderBottom: '1px solid #F0F5FA', display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <div style={{ width: 46, height: 46, borderRadius: 12, background: '#FDF5FF', border: '1px solid rgba(123,97,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7B61FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <div style={{ width: 46, height: 46, borderRadius: 12, background: alertBg, border: `1px solid ${alertBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={alertColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
                         </svg>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>{alert.patient}</span>
-                          <span style={{ background: '#FDF5FF', color: '#7B61FF', fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(123,97,255,0.15)' }}>Health: {alert.healthScore}</span>
+                          <span style={{ background: alertBg, color: alertColor, fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20, border: `1px solid ${alertBorder}` }}>Health: {alert.healthScore}</span>
                           <span style={{ background: '#EEF5FF', color: '#1565D8', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(21,101,216,0.12)' }}>{alert.disease}</span>
                         </div>
                         <div style={{ fontSize: 13, color: '#334155', marginBottom: 4, fontWeight: 500 }}>🔴 {alert.trigger}</div>
@@ -918,8 +922,8 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                       </div>
                       <div style={{ flexShrink: 0 }}>
                         {isFollowedUp ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F0FDF8', color: '#00B894', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, border: '1px solid rgba(0,184,148,0.2)', whiteSpace: 'nowrap' }}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00B894" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F0FDF8', color: '#10B981', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, border: '1px solid rgba(16,185,129,0.2)', whiteSpace: 'nowrap' }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
                             Sudah Ditindak
                           </div>
                         ) : (
@@ -928,7 +932,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                               setFollowedUpIds(prev => [...prev, alert.id])
                               showToastMsg(`✓ Tindak lanjut ${alert.patient} dicatat. Pasien akan segera dihubungi oleh nakes.`)
                             }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#7B61FF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 15px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 3px 10px rgba(123,97,255,0.25)' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EF4444', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 15px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 3px 10px rgba(239,68,68,0.25)' }}
                           >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
                             One-Tap Follow Up
@@ -963,7 +967,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: 16 }}>
-                
+
                 {/* Form Registrasi */}
                 <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', height: 'fit-content' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -1118,7 +1122,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               </div>
               <button onClick={() => setShowBaselineModal(false)} style={{ background: '#F0F5FA', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: 16 }}>✕</button>
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 13, marginBottom: 22 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>HbA1c (%)</label>
@@ -1149,7 +1153,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 <input type="text" placeholder="e.g. 130/85" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none' }} />
               </div>
             </div>
-            
+
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowBaselineModal(false)} style={{ padding: '10px 22px', border: '1.5px solid #E2EAF2', borderRadius: 9, background: '#fff', color: '#64748B', fontSize: 13, fontWeight: 600, cursor: 'pointer', borderStyle: 'solid' }}>Batal</button>
               <button
@@ -1170,7 +1174,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       {showProgressModal && progressPatient && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,36,68,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(2px)', padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 18, width: 620, maxWidth: '95vw', boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #E8EEF4', maxHeight: '92vh', overflowY: 'auto' }}>
-            
+
             {/* Modal Header */}
             <div style={{ padding: '22px 26px', borderBottom: '1px solid #F0F5FA', display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{
@@ -1200,12 +1204,12 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   </span>
                 </div>
               </div>
-              
+
               <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 58, height: 58, borderRadius: 15, background: getHealthColor(progressPatient.healthScore), boxShadow: '0 4px 14px rgba(0,0,0,0.12)', flexShrink: 0 }}>
                 <span style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1 }}>{progressPatient.healthScore}</span>
                 <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>Sehat</span>
               </div>
-              
+
               <button onClick={() => setShowProgressModal(false)} style={{ background: '#F0F5FA', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: 16, flexShrink: 0, marginLeft: 8 }}>✕</button>
             </div>
 
@@ -1231,21 +1235,21 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10, height: 130 }}>
                   {(progressPatient.status === 'Sehat'
                     ? [
-                        { month: 'Jan', score: 42 },
-                        { month: 'Feb', score: 50 },
-                        { month: 'Mar', score: 56 },
-                        { month: 'Apr', score: 62 },
-                        { month: 'Mei', score: 65 },
-                        { month: 'Jun', score: progressPatient.healthScore },
-                      ]
+                      { month: 'Jan', score: 42 },
+                      { month: 'Feb', score: 50 },
+                      { month: 'Mar', score: 56 },
+                      { month: 'Apr', score: 62 },
+                      { month: 'Mei', score: 65 },
+                      { month: 'Jun', score: progressPatient.healthScore },
+                    ]
                     : [
-                        { month: 'Jan', score: 42 },
-                        { month: 'Feb', score: 38 },
-                        { month: 'Mar', score: 30 },
-                        { month: 'Apr', score: 22 },
-                        { month: 'Mei', score: 15 },
-                        { month: 'Jun', score: progressPatient.healthScore },
-                      ]
+                      { month: 'Jan', score: 42 },
+                      { month: 'Feb', score: 38 },
+                      { month: 'Mar', score: 30 },
+                      { month: 'Apr', score: 22 },
+                      { month: 'Mei', score: 15 },
+                      { month: 'Jun', score: progressPatient.healthScore },
+                    ]
                   ).map((bar, idx) => {
                     const barColor = getHealthColor(bar.score)
                     return (
