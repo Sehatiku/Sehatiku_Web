@@ -1,15 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { LogoImg } from '../../components/ui/Icons'
-
-interface Doctor {
-  id: number
-  name: string
-  specialty: string
-  tags: string[]
-  available: boolean
-  sip: string
-  phone: string
-}
+import { faskesApi } from '../../lib/api'
+import type { NakesItem, NakesRole } from '../../lib/types'
+import { initials, formatDate } from '../../lib/utils'
 
 interface Patient {
   id: number
@@ -54,24 +47,41 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   const [patientNik, setPatientNik] = useState('')
   const [patientDob, setPatientDob] = useState('')
   const [whatsappCheck, setWhatsappCheck] = useState(false)
-  const [selectedDoctorId, setSelectedDoctorId] = useState<number | null>(null)
-  const [doctorFilter, setDoctorFilter] = useState<'all' | 'dm' | 'htn' | 'umum'>('all')
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null)
 
-  // Phase Registrasi Dokter States
+  // ── Nakes list (fetched from API) ─────────────────────────────────────────
+  const [nakesItems, setNakesItems] = useState<NakesItem[]>([])
+  const [nakesLoading, setNakesLoading] = useState(true)
+  const [nakesError, setNakesError] = useState<string | null>(null)
+
+  useEffect(() => {
+    faskesApi.getNakes()
+      .then(data => { setNakesItems(data); setNakesLoading(false) })
+      .catch(() => { setNakesError('Gagal memuat daftar nakes.'); setNakesLoading(false) })
+  }, [])
+
+  const refreshNakes = () => {
+    setNakesLoading(true)
+    setNakesError(null)
+    faskesApi.getNakes()
+      .then(data => { setNakesItems(data); setNakesLoading(false) })
+      .catch(() => { setNakesError('Gagal memuat daftar nakes.'); setNakesLoading(false) })
+  }
+
+  // ── Form registrasi nakes ──────────────────────────────────────────────────
   const [newDrName, setNewDrName] = useState('')
   const [newDrNik, setNewDrNik] = useState('')
-  const [newDrDob, setNewDrDob] = useState('')
-  const [newDrSip, setNewDrSip] = useState('')
-  const [newDrSpecialty, setNewDrSpecialty] = useState('Penyakit Dalam')
+  const [newDrAlamat, setNewDrAlamat] = useState('')
   const [newDrPhone, setNewDrPhone] = useState('')
-  const [registeredDoctors, setRegisteredDoctors] = useState<Doctor[]>([
-    { id: 1, name: 'Dr. Andi Wijaya, Sp.PD', specialty: 'Penyakit Dalam', tags: ['dm', 'htn'], available: true, sip: 'SIP/001/DKK/2022', phone: '0812-3456-7890' },
-    { id: 2, name: 'Dr. Budi Santoso, Sp.JP', specialty: 'Kardiologi', tags: ['htn'], available: true, sip: 'SIP/002/DKK/2022', phone: '0813-2345-6789' },
-    { id: 3, name: 'Dr. Citra Lestari', specialty: 'Dokter Umum', tags: ['dm', 'htn', 'umum'], available: true, sip: 'SIP/003/DKK/2023', phone: '0814-3456-7891' },
-    { id: 4, name: 'Dr. Hendra Susanto, Sp.N', specialty: 'Neurologi', tags: ['htn'], available: false, sip: 'SIP/004/DKK/2021', phone: '0815-4567-8901' },
-    { id: 5, name: 'Dr. Maya Putri, Sp.GK', specialty: 'Gizi Klinik', tags: ['dm'], available: true, sip: 'SIP/005/DKK/2023', phone: '0816-5678-9012' },
-    { id: 6, name: 'Dr. Reza Firmansyah, Sp.PD', specialty: 'Penyakit Dalam', tags: ['dm', 'htn'], available: true, sip: 'SIP/006/DKK/2022', phone: '0817-6789-0123' },
-  ])
+  const [newDrRole, setNewDrRole] = useState<NakesRole>('dokter')
+  const [newDrUsername, setNewDrUsername] = useState('')
+  const [newDrPassword, setNewDrPassword] = useState('')
+  const [registerLoading, setRegisterLoading] = useState(false)
+  const [registerError, setRegisterError] = useState<string | null>(null)
+
+  // OCR file input ref
+  const ocrInputRef = useRef<HTMLInputElement>(null)
+  const [ocrLoading, setOcrLoading] = useState(false)
 
   // Phase Operasional States
   const [patients, setPatients] = useState<Patient[]>([
@@ -101,10 +111,6 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   ])
 
   // Helper functions
-  const getInitials = (name: string) => {
-    return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
-  }
-
   const getHealthColor = (score: number) => {
     if (score >= 70) return '#10B981' // Sehat (Green)
     if (score >= 40) return '#F59E0B' // Waswas (Yellow)
@@ -154,10 +160,10 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       showToastMsg('⚠️ Harap pilih dokter penanggung jawab terlebih dahulu.');
       return;
     }
-    const doc = registeredDoctors.find(d => d.id === selectedDoctorId)
+    const doc = nakesItems.find(d => d.nakes_id === selectedDoctorId)
     const msg = whatsappCheck
-      ? 'Notifikasi login berhasil dikirim ke WhatsApp Pasien/Wali dan ' + (doc ? doc.name : 'Dokter') + '!'
-      : 'Pasien berhasil didaftarkan dengan dokter PJ: ' + (doc ? doc.name : '') + '!'
+      ? 'Notifikasi login berhasil dikirim ke WhatsApp Pasien/Wali dan ' + (doc ? doc.full_name : 'Dokter') + '!'
+      : 'Pasien berhasil didaftarkan dengan dokter PJ: ' + (doc ? doc.full_name : '') + '!'
 
     // Add to patient list locally
     const newPatient: Patient = {
@@ -178,75 +184,66 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
     setWhatsappCheck(false)
   }
 
-  // Doctor OCR
-  const handleOcrDoctor = () => {
-    setNewDrName('Dr. Fajar Nugroho, Sp.PD')
-    setNewDrNik('3271098712850001')
-    setNewDrDob('1985-12-07')
-    setNewDrSip('SIP/009/DKK/2024')
-    setNewDrPhone('081878901234')
-    showToastMsg('✓ OCR Berhasil! Data dokter terisi otomatis dari scan KTP.')
+  // ── OCR: trigger file picker, then call API ───────────────────────────────
+  const handleOcrFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Reset input so same file can be re-selected if needed
+    e.target.value = ''
+    setOcrLoading(true)
+    try {
+      const result = await faskesApi.ocrKtp(file)
+      setNewDrName(result.full_name)
+      setNewDrNik(result.nik)
+      setNewDrAlamat(result.alamat)
+      showToastMsg('✓ OCR Berhasil! Data nakes terisi otomatis dari scan KTP.')
+    } catch {
+      showToastMsg('⚠️ OCR gagal. Pastikan foto KTP jelas (JPG/PNG, maks 5 MB) dan coba lagi.')
+    } finally {
+      setOcrLoading(false)
+    }
   }
 
-  const handleSubmitDoctor = () => {
-    if (!newDrName.trim()) { showToastMsg('⚠️ Nama dokter wajib diisi.'); return; }
-    if (!newDrNik.trim() || newDrNik.length !== 16 || !/^\d+$/.test(newDrNik)) {
-      showToastMsg('⚠️ NIK dokter wajib diisi dan harus berupa 16 digit angka.');
-      return;
+  const handleSubmitDoctor = async () => {
+    setRegisterError(null)
+    if (!newDrName.trim()) { showToastMsg('⚠️ Nama lengkap wajib diisi.'); return }
+    if (!/^\d{16}$/.test(newDrNik)) { showToastMsg('⚠️ NIK harus 16 digit angka.'); return }
+    if (!newDrAlamat.trim()) { showToastMsg('⚠️ Alamat wajib diisi.'); return }
+    const phoneClean = newDrPhone.replace(/[-\s]/g, '')
+    if (!/^(08|628)\d{8,12}$/.test(phoneClean)) {
+      showToastMsg('⚠️ Nomor WhatsApp tidak valid. Contoh: 08123456789 atau 628123456789.')
+      return
     }
-    if (!newDrDob) {
-      showToastMsg('⚠️ Tanggal lahir dokter wajib diisi.');
-      return;
+    if (newDrUsername.length < 4) { showToastMsg('⚠️ Username minimal 4 karakter.'); return }
+    if (newDrPassword.length < 8) { showToastMsg('⚠️ Password minimal 8 karakter.'); return }
+
+    setRegisterLoading(true)
+    try {
+      await faskesApi.registerNakes({
+        nik: newDrNik,
+        full_name: newDrName.trim(),
+        alamat: newDrAlamat.trim(),
+        phone_number: phoneClean,
+        role: newDrRole,
+        username: newDrUsername.trim(),
+        password: newDrPassword,
+      })
+      showToastMsg(`✓ ${newDrName} berhasil didaftarkan ke sistem Sehatiku!`)
+      // Reset form
+      setNewDrName(''); setNewDrNik(''); setNewDrAlamat(''); setNewDrPhone('')
+      setNewDrUsername(''); setNewDrPassword(''); setNewDrRole('dokter')
+      // Reload list
+      refreshNakes()
+    } catch (err: unknown) {
+      const apiErr = err as { status?: number; body?: { message?: string } }
+      if (apiErr.status === 409) {
+        setRegisterError('NIK atau username sudah terdaftar di sistem.')
+      } else {
+        setRegisterError(apiErr.body?.message ?? 'Terjadi kesalahan server. Coba lagi.')
+      }
+    } finally {
+      setRegisterLoading(false)
     }
-    if (!newDrSip.trim()) { showToastMsg('⚠️ Nomor SIP wajib diisi.'); return; }
-
-    // Validate phone number format (must start with 08, 628, or +628, only numbers/plus, length 10-14)
-    const phoneClean = newDrPhone.replace(/[-\s]/g, '');
-    if (!phoneClean.trim() || !/^(08|\+628|628)\d{8,12}$/.test(phoneClean)) {
-      showToastMsg('⚠️ Nomor WhatsApp tidak valid. Gunakan format angka saja (contoh: 08123456789).');
-      return;
-    }
-
-    const tagMap: Record<string, string[]> = {
-      'Penyakit Dalam': ['dm', 'htn'],
-      'Kardiologi': ['htn'],
-      'Dokter Umum': ['dm', 'htn', 'umum'],
-      'Neurologi': ['htn'],
-      'Gizi Klinik': ['dm'],
-      'Endokrinologi': ['dm'],
-      'Nefrologi': ['dm', 'htn'],
-      'Perawat': ['dm', 'htn', 'umum'],
-      'Bidan': ['umum'],
-    }
-
-    const newDoc: Doctor = {
-      id: Date.now(),
-      name: newDrName,
-      specialty: newDrSpecialty,
-      tags: tagMap[newDrSpecialty] || ['umum'],
-      available: true,
-      sip: newDrSip,
-      phone: phoneClean,
-    }
-
-    setRegisteredDoctors(prev => [...prev, newDoc])
-    showToastMsg(`✓ ${newDrName} berhasil didaftarkan ke sistem Sehatiku!`)
-    setNewDrName('')
-    setNewDrNik('')
-    setNewDrDob('')
-    setNewDrSip('')
-    setNewDrPhone('')
-  }
-
-
-  const toggleDoctorAvail = (id: number, name: string, current: boolean) => {
-    setRegisteredDoctors(prev => prev.map(d => d.id === id ? { ...d, available: !d.available } : d))
-    showToastMsg(`${name} ${current ? 'dinonaktifkan.' : 'diaktifkan kembali.'}`)
-  }
-
-  const handleRemoveDoctor = (id: number, name: string) => {
-    setRegisteredDoctors(prev => prev.filter(d => d.id !== id))
-    showToastMsg(`Akun ${name} dihapus dari sistem.`)
   }
 
   // Modals helpers
@@ -452,7 +449,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                     <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: 600, marginTop: 2 }}>Pasien</div>
                   </div>
                   <div style={{ background: 'rgba(30,200,165,0.2)', border: '1px solid rgba(30,200,165,0.35)', borderRadius: 10, padding: '10px 18px', textAlign: 'center' }}>
-                    <div style={{ color: '#1EC8A5', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{registeredDoctors.length}</div>
+                    <div style={{ color: '#1EC8A5', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{nakesItems.length}</div>
                     <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: 600, marginTop: 2 }}>Dokter PJ</div>
                   </div>
                 </div>
@@ -521,69 +518,47 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                     )}
                   </div>
 
-                  {/* Filter Spesialisasi */}
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-                    {[
-                      { id: 'all', label: 'Semua' },
-                      { id: 'dm', label: 'Diabetes (DM)' },
-                      { id: 'htn', label: 'Hipertensi' },
-                      { id: 'umum', label: 'Umum' },
-                    ].map(f => (
-                      <div
-                        key={f.id}
-                        onClick={() => setDoctorFilter(f.id as any)}
-                        style={{
-                          padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
-                          background: doctorFilter === f.id ? '#1565D8' : '#F0F5FA',
-                          color: doctorFilter === f.id ? '#fff' : '#64748B',
-                          border: `1px solid ${doctorFilter === f.id ? '#1565D8' : '#E2EAF2'}`,
-                        }}
-                      >
-                        {f.label}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Doctor PJ list */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', maxHeight: 240 }}>
-                    {registeredDoctors
-                      .filter(d => doctorFilter === 'all' || d.tags.includes(doctorFilter))
-                      .map(d => {
-                        const isSelected = selectedDoctorId === d.id
-                        return (
-                          <div
-                            key={d.id}
-                            onClick={() => {
-                              if (d.available) {
-                                setSelectedDoctorId(isSelected ? null : d.id)
-                              } else {
-                                showToastMsg('⚠️ Dokter ini sedang tidak tersedia.')
-                              }
-                            }}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 12, padding: '11px 13px', borderRadius: 10, cursor: 'pointer', transition: 'all 0.15s',
-                              border: `1.5px solid ${isSelected ? '#1565D8' : '#E8EEF4'}`,
-                              background: isSelected ? '#EEF5FF' : (d.available ? '#FAFCFF' : '#F8FAFC'),
-                            }}
-                          >
-                            <div style={{ width: 38, height: 38, borderRadius: '50%', background: isSelected ? '#1565D8' : '#EEF5FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: isSelected ? '#fff' : '#1565D8', flexShrink: 0 }}>
-                              {getInitials(d.name)}
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</div>
-                              <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{d.specialty}</div>
-                              <div style={{ fontSize: 10, color: d.available ? '#00B894' : '#94A3B8', marginTop: 2, fontWeight: 600 }}>● {d.available ? 'Tersedia' : 'Tidak Tersedia'}</div>
-                            </div>
-                            {isSelected ? (
-                              <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#1565D8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(21,101,216,0.3)' }}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
-                              </div>
-                            ) : (
-                              <div style={{ width: 24, height: 24, borderRadius: '50%', border: '1.5px solid #E2EAF2', flexShrink: 0 }} />
-                            )}
+                  {/* Doctor PJ list — dari API */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', maxHeight: 260 }}>
+                    {nakesLoading && (
+                      <div style={{ textAlign: 'center', padding: '20px 0', color: '#94A3B8', fontSize: 13 }}>Memuat daftar nakes...</div>
+                    )}
+                    {!nakesLoading && nakesError && (
+                      <div style={{ textAlign: 'center', padding: '16px 0', color: '#EF4444', fontSize: 13 }}>{nakesError}</div>
+                    )}
+                    {!nakesLoading && !nakesError && nakesItems.filter(d => d.status === 'active').length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '16px 0', color: '#94A3B8', fontSize: 13 }}>Belum ada nakes terdaftar.</div>
+                    )}
+                    {!nakesLoading && nakesItems.filter(d => d.status === 'active').map(d => {
+                      const isSelected = selectedDoctorId === d.nakes_id
+                      return (
+                        <div
+                          key={d.nakes_id}
+                          onClick={() => setSelectedDoctorId(isSelected ? null : d.nakes_id)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 12, padding: '11px 13px', borderRadius: 10, cursor: 'pointer', transition: 'all 0.15s',
+                            border: `1.5px solid ${isSelected ? '#1565D8' : '#E8EEF4'}`,
+                            background: isSelected ? '#EEF5FF' : '#FAFCFF',
+                          }}
+                        >
+                          <div style={{ width: 38, height: 38, borderRadius: '50%', background: isSelected ? '#1565D8' : '#EEF5FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: isSelected ? '#fff' : '#1565D8', flexShrink: 0 }}>
+                            {initials(d.full_name)}
                           </div>
-                        )
-                      })}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.full_name}</div>
+                            <div style={{ fontSize: 11, color: '#64748B', marginTop: 1, textTransform: 'capitalize' }}>{d.role}</div>
+                            <div style={{ fontSize: 10, color: '#00B894', marginTop: 2, fontWeight: 600 }}>● Aktif</div>
+                          </div>
+                          {isSelected ? (
+                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#1565D8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(21,101,216,0.3)' }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
+                            </div>
+                          ) : (
+                            <div style={{ width: 24, height: 24, borderRadius: '50%', border: '1.5px solid #E2EAF2', flexShrink: 0 }} />
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -684,7 +659,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                             <td style={{ padding: '13px 10px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
                                 <div style={{ width: 36, height: 36, borderRadius: 10, background: p.healthScore < 40 ? 'rgba(123,97,255,0.1)' : (p.healthScore < 70 ? 'rgba(79,195,247,0.12)' : 'rgba(0,184,148,0.1)'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: color, flexShrink: 0 }}>
-                                  {getInitials(p.name)}
+                                  {initials(p.name)}
                                 </div>
                                 <div>
                                   <div style={{ fontSize: 13, fontWeight: 600, color: '#0F2444', whiteSpace: 'nowrap' }}>{p.name}</div>
@@ -961,8 +936,8 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, lineHeight: 1.5 }}>Daftarkan dokter dan tenaga kesehatan yang berpraktik di faskes ini sebagai pengguna platform Sehatiku</div>
                 </div>
                 <div style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 10, padding: '10px 20px', textAlign: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
-                  <div style={{ color: '#fff', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{registeredDoctors.filter(d => d.available).length}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: 600, marginTop: 2 }}>Dokter Aktif</div>
+                  <div style={{ color: '#fff', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{nakesItems.filter(d => d.status === 'active').length}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: 600, marginTop: 2 }}>Nakes Aktif</div>
                 </div>
               </div>
 
@@ -970,29 +945,52 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
                 {/* Form Registrasi */}
                 <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', height: 'fit-content' }}>
+                  {/* Hidden file input for OCR */}
+                  <input
+                    ref={ocrInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    style={{ display: 'none' }}
+                    onChange={handleOcrFileChange}
+                  />
+
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>Form Registrasi Dokter</div>
-                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Input data dokter baru ke sistem</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>Form Registrasi Nakes</div>
+                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Daftarkan dokter, kader, atau admin baru</div>
                     </div>
                     <button
-                      onClick={handleOcrDoctor}
-                      style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#EEF5FF', border: '1.5px dashed #1565D8', borderRadius: 9, padding: '8px 13px', cursor: 'pointer', color: '#1565D8', fontSize: 12, fontWeight: 600 }}
+                      onClick={() => ocrInputRef.current?.click()}
+                      disabled={ocrLoading}
+                      style={{ display: 'flex', alignItems: 'center', gap: 7, background: ocrLoading ? '#F0F5FA' : '#EEF5FF', border: '1.5px dashed #1565D8', borderRadius: 9, padding: '8px 13px', cursor: ocrLoading ? 'not-allowed' : 'pointer', color: '#1565D8', fontSize: 12, fontWeight: 600 }}
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1565D8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 7H5v3M16 7h3v3M8 17H5v-3M16 17h3v-3" />
-                      </svg>
-                      Scan KTP
+                      {ocrLoading ? (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1565D8" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                          <circle cx="12" cy="12" r="10" strokeOpacity="0.25" /><path d="M12 2a10 10 0 0 1 10 10" />
+                        </svg>
+                      ) : (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1565D8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 7H5v3M16 7h3v3M8 17H5v-3M16 17h3v-3" />
+                        </svg>
+                      )}
+                      {ocrLoading ? 'Memproses...' : 'Scan KTP'}
                     </button>
                   </div>
 
+                  {/* Error banner */}
+                  {registerError && (
+                    <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '10px 13px', marginBottom: 14, fontSize: 12, color: '#DC2626', fontWeight: 500 }}>
+                      {registerError}
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nama Lengkap &amp; Gelar</label>
+                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nama Lengkap</label>
                       <input
                         type="text" value={newDrName} onChange={e => setNewDrName(e.target.value)}
-                        placeholder="Dr. Nama Lengkap, Sp.XX"
-                        style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none' }}
+                        placeholder="Nama sesuai KTP"
+                        style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -1001,98 +999,142 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                         <input
                           type="text" value={newDrNik} onChange={e => setNewDrNik(e.target.value)}
                           placeholder="16 digit NIK"
-                          style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', fontFamily: 'monospace', letterSpacing: '1px' }}
+                          maxLength={16}
+                          style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', fontFamily: 'monospace', letterSpacing: '1px', boxSizing: 'border-box' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tanggal Lahir</label>
-                        <input
-                          type="date" value={newDrDob} onChange={e => setNewDrDob(e.target.value)}
-                          style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none' }}
-                        />
+                        <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Role</label>
+                        <select
+                          value={newDrRole}
+                          onChange={e => setNewDrRole(e.target.value as NakesRole)}
+                          style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', boxSizing: 'border-box' }}
+                        >
+                          <option value="dokter">Dokter</option>
+                          <option value="kader">Kader</option>
+                          <option value="admin">Admin</option>
+                        </select>
                       </div>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nomor SIP (Surat Izin Praktik)</label>
+                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Alamat Lengkap</label>
                       <input
-                        type="text" value={newDrSip} onChange={e => setNewDrSip(e.target.value)}
-                        placeholder="SIP/123/DKK/2024"
-                        style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', fontFamily: 'monospace' }}
+                        type="text" value={newDrAlamat} onChange={e => setNewDrAlamat(e.target.value)}
+                        placeholder="Alamat sesuai KTP (terisi otomatis via OCR)"
+                        style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Spesialisasi</label>
-                      <select
-                        value={newDrSpecialty} onChange={e => setNewDrSpecialty(e.target.value)}
-                        style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none' }}
-                      >
-                        <option value="Penyakit Dalam">Sp.PD — Penyakit Dalam</option>
-                        <option value="Kardiologi">Sp.JP — Kardiologi &amp; Jantung</option>
-                        <option value="Dokter Umum">Dokter Umum</option>
-                        <option value="Neurologi">Sp.N — Neurologi</option>
-                        <option value="Gizi Klinik">Sp.GK — Gizi Klinik</option>
-                        <option value="Endokrinologi">Sp.PD-KEMD — Endokrinologi</option>
-                        <option value="Nefrologi">Sp.PD-KGH — Nefrologi</option>
-                        <option value="Perawat">Ns. — Perawat</option>
-                        <option value="Bidan">Bidan</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nomor WhatsApp (Notifikasi)</label>
+                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nomor WhatsApp</label>
                       <input
                         type="text" value={newDrPhone} onChange={e => setNewDrPhone(e.target.value)}
-                        placeholder="08xxxxxxxxxx"
-                        style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none' }}
+                        placeholder="08xxxxxxxxxx atau 628xxxxxxxxxx"
+                        style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', boxSizing: 'border-box' }}
                       />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Username</label>
+                        <input
+                          type="text" value={newDrUsername} onChange={e => setNewDrUsername(e.target.value)}
+                          placeholder="Min 4 karakter"
+                          style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>
+                        <input
+                          type="password" value={newDrPassword} onChange={e => setNewDrPassword(e.target.value)}
+                          placeholder="Min 8 karakter"
+                          style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #E2EAF2', borderRadius: 9, fontSize: 13, color: '#0F2444', background: '#FAFCFF', outline: 'none', boxSizing: 'border-box' }}
+                        />
+                      </div>
                     </div>
                     <button
                       onClick={handleSubmitDoctor}
-                      style={{ width: '100%', background: '#1565D8', color: '#fff', border: 'none', borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 14px rgba(21,101,216,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 2 }}
+                      disabled={registerLoading}
+                      style={{ width: '100%', background: registerLoading ? '#A0A9C5' : '#1565D8', color: '#fff', border: 'none', borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 700, cursor: registerLoading ? 'not-allowed' : 'pointer', boxShadow: registerLoading ? 'none' : '0 3px 14px rgba(21,101,216,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 2 }}
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
-                      Daftarkan Dokter ke Sistem
+                      {registerLoading ? (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}>
+                            <circle cx="12" cy="12" r="10" strokeOpacity="0.25" /><path d="M12 2a10 10 0 0 1 10 10" />
+                          </svg>
+                          Mendaftarkan...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
+                          Daftarkan Nakes ke Sistem
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
 
-                {/* List Dokter Terdaftar */}
+                {/* List Nakes Terdaftar */}
                 <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', overflow: 'hidden' }}>
                   <div style={{ padding: '16px 20px', borderBottom: '1px solid #F0F5FA', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>Daftar Dokter Terdaftar</div>
-                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Dokter aktif yang dapat dipilih saat mendaftarkan pasien</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>Daftar Nakes Terdaftar</div>
+                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>{nakesItems.length} nakes · {nakesItems.filter(n => n.status === 'active').length} aktif</div>
                     </div>
+                    <button
+                      onClick={refreshNakes}
+                      disabled={nakesLoading}
+                      style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#F0F5FA', border: '1px solid #E2EAF2', borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 600, color: '#64748B', cursor: nakesLoading ? 'not-allowed' : 'pointer' }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+                      Refresh
+                    </button>
                   </div>
                   <div style={{ overflowY: 'auto', maxHeight: 520 }}>
-                    {registeredDoctors.map(doc => (
-                      <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 20px', borderBottom: '1px solid #F0F5FA' }}>
-                        <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#EEF5FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#1565D8', flexShrink: 0 }}>
-                          {getInitials(doc.name)}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
-                            <span style={{ background: '#EEF5FF', color: '#1565D8', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10 }}>{doc.specialty}</span>
-                            <span style={{ fontSize: 10, color: '#94A3B8' }}>SIP: {doc.sip}</span>
-                          </div>
-                          <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{doc.phone}</div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                          <span
-                            onClick={() => toggleDoctorAvail(doc.id, doc.name, doc.available)}
-                            style={{
-                              background: doc.available ? '#F0FDF8' : '#F8FAFC',
-                              color: doc.available ? '#00B894' : '#94A3B8',
-                              border: `1.5px solid ${doc.available ? 'rgba(0,184,148,0.2)' : '#E2EAF2'}`,
-                              fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, cursor: 'pointer', borderStyle: 'solid'
-                            }}
-                          >
-                            {doc.available ? 'Tersedia' : 'Tidak Tersedia'}
-                          </span>
-                          <button onClick={() => handleRemoveDoctor(doc.id, doc.name)} style={{ background: '#FFF5F5', color: '#EF4444', border: '1.5px solid rgba(239,68,68,0.15)', borderRadius: 7, padding: '6px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', borderStyle: 'solid' }}>Hapus</button>
-                        </div>
+                    {nakesLoading && (
+                      <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8', fontSize: 13 }}>Memuat daftar nakes...</div>
+                    )}
+                    {!nakesLoading && nakesError && (
+                      <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                        <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 12 }}>{nakesError}</div>
+                        <button onClick={refreshNakes} style={{ background: '#EEF5FF', color: '#1565D8', border: '1px solid rgba(21,101,216,0.18)', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Coba Lagi</button>
                       </div>
-                    ))}
+                    )}
+                    {!nakesLoading && !nakesError && nakesItems.length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8', fontSize: 13 }}>Belum ada nakes terdaftar. Gunakan form di sebelah kiri untuk mendaftarkan nakes baru.</div>
+                    )}
+                    {!nakesLoading && nakesItems.map(doc => {
+                      const isActive = doc.status === 'active'
+                      const roleColors: Record<string, { bg: string; color: string }> = {
+                        dokter: { bg: '#EEF5FF', color: '#1565D8' },
+                        kader: { bg: '#F0FDF8', color: '#059669' },
+                        admin: { bg: '#FFF7ED', color: '#D97706' },
+                      }
+                      const rc = roleColors[doc.role] ?? roleColors.dokter
+                      return (
+                        <div key={doc.nakes_id} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 20px', borderBottom: '1px solid #F0F5FA', opacity: isActive ? 1 : 0.55 }}>
+                          <div style={{ width: 42, height: 42, borderRadius: '50%', background: rc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: rc.color, flexShrink: 0 }}>
+                            {initials(doc.full_name)}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.full_name}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
+                              <span style={{ ...rc, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'capitalize' }}>{doc.role}</span>
+                              <span style={{ fontSize: 10, color: '#94A3B8' }}>@{doc.username}</span>
+                            </div>
+                            <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{doc.phone_number} · Terdaftar {formatDate(doc.enrolled_at)}</div>
+                          </div>
+                          <div style={{ flexShrink: 0 }}>
+                            <span style={{
+                              background: isActive ? '#F0FDF8' : '#F8FAFC',
+                              color: isActive ? '#00B894' : '#94A3B8',
+                              border: `1.5px solid ${isActive ? 'rgba(0,184,148,0.2)' : '#E2EAF2'}`,
+                              fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                            }}>
+                              {isActive ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -1182,7 +1224,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 background: progressPatient.disease === 'Diabetes' ? 'rgba(21,101,216,0.08)' : 'rgba(79,195,247,0.12)',
                 color: progressPatient.disease === 'Diabetes' ? '#1565D8' : '#0277BD',
               }}>
-                {getInitials(progressPatient.name)}
+                {initials(progressPatient.name)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#0F2444', letterSpacing: '-0.3px' }}>{progressPatient.name}</div>
