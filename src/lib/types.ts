@@ -154,3 +154,34 @@ export interface PatientQueueResponse {
   data: PatientQueueItem[]
   paging: Paging
 }
+
+// ─── Faskes Patients ──────────────────────────────────────────────────────────
+
+export interface FaskesPatientItem {
+  patient_id: string
+  full_name: string
+  nik: string
+  sex: 'male' | 'female'
+  age: number
+  disease_type: DiseaseType
+  phone_number: string
+  companion_name: string
+  companion_phone: string
+  status: 'active' | 'inactive'
+  enrolled_at: string
+}
+
+export interface FaskesPatientResponse {
+  data: FaskesPatientItem[]
+  paging: Paging
+}
+
+// ─── Nakes Status Update ──────────────────────────────────────────────────────
+
+export interface UpdateNakesStatusResult {
+  nakes_id: string
+  full_name: string
+  status: NakesStatus
+}
+
+
