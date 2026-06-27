@@ -8,7 +8,7 @@ export default function AktorSection({ onLoginClick }: { onLoginClick: (r: 'fask
     'Input baseline klinis & overview faskes',
   ]
   const dokterItems = [
-    'Antrean prioritas pasien berbasis Risk Score',
+    'Antrean prioritas pasien berbasis Health Score',
     'Tren harian gula darah & tensi + atribusi AI',
     'Tindak lanjut & umpan balik model satu ketuk',
   ]
