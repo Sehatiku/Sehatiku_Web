@@ -458,33 +458,6 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 </div>
               </div>
 
-              {/* Progress Flow */}
-              <div style={{ background: '#fff', borderRadius: 12, padding: '16px 22px', marginBottom: 18, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', display: 'flex', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1565D8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0, boxShadow: '0 2px 8px rgba(21,101,216,0.35)' }}>1</div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0F2444' }}>Data Pasien</div>
-                    <div style={{ fontSize: 10, color: '#94A3B8' }}>Identitas &amp; OCR KTP</div>
-                  </div>
-                </div>
-                <div style={{ flex: '0 0 40px', height: 2, background: 'linear-gradient(90deg,#1565D8,#7B61FF)', borderRadius: 2, margin: '0 6px' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#7B61FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0, boxShadow: '0 2px 8px rgba(123,97,255,0.35)' }}>2</div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0F2444' }}>Dokter PJ</div>
-                    <div style={{ fontSize: 10, color: '#94A3B8' }}>Assign penanggung jawab</div>
-                  </div>
-                </div>
-                <div style={{ flex: '0 0 40px', height: 2, background: 'linear-gradient(90deg,#7B61FF,#00B894)', borderRadius: 2, margin: '0 6px' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#E2EAF2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>3</div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>Kirim Akses</div>
-                    <div style={{ fontSize: 10, color: '#CBD5E1' }}>WhatsApp &amp; SMS</div>
-                  </div>
-                </div>
-              </div>
-
               {/* Form Input + Doctor Selection Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 
