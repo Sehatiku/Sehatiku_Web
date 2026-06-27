@@ -42,7 +42,7 @@ export default function HeroSection({ onLoginClick }: { onLoginClick: () => void
             fontSize: 16.5, lineHeight: 1.68, color: 'rgb(90,102,120)',
             margin: '0 0 32px', maxWidth: 500,
           }}>
-            Sehatiku melengkapi Prolanis dengan lapisan pemantauan harian — dari registrasi &amp; OCR KTP, baseline klinis, antrean prioritas berbasis Risk Score, hingga eskalasi otomatis via WhatsApp &amp; SMS.
+            Sehatiku melengkapi Prolanis dengan lapisan pemantauan harian — dari registrasi &amp; OCR KTP, baseline klinis, antrean prioritas berbasis Health Score, hingga eskalasi otomatis via WhatsApp &amp; SMS.
           </p>
 
           {/* CTA buttons */}

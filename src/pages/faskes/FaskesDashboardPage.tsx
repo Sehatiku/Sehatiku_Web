@@ -15,7 +15,7 @@ interface Patient {
   id: number
   name: string
   disease: string
-  riskScore: number
+  healthScore: number
   status: string
   cause: string
   age: number
@@ -31,7 +31,7 @@ interface EscalationAlert {
   id: number
   patient: string
   disease: string
-  riskScore: number
+  healthScore: number
   trigger: string
   time: string
   sent: string
@@ -81,14 +81,14 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
   // Phase Operasional States
   const [patients, setPatients] = useState<Patient[]>([
-    { id: 1, name: 'Ahmad Suharto', disease: 'Diabetes', riskScore: 92, status: 'Bahaya', cause: 'HbA1c Tinggi', age: 58 },
-    { id: 2, name: 'Siti Rahayu', disease: 'Hipertensi', riskScore: 87, status: 'Bahaya', cause: 'Asupan Natrium Tinggi', age: 62 },
-    { id: 3, name: 'Budi Santoso', disease: 'Diabetes', riskScore: 75, status: 'Waswas', cause: 'Kurang Tidur', age: 45 },
-    { id: 4, name: 'Dewi Lestari', disease: 'Hipertensi', riskScore: 68, status: 'Waswas', cause: 'BMI Tinggi', age: 53 },
-    { id: 5, name: 'Rini Handayani', disease: 'Diabetes', riskScore: 52, status: 'Waswas', cause: 'Gula Darah Tidak Stabil', age: 49 },
-    { id: 6, name: 'Hasan Basri', disease: 'Hipertensi', riskScore: 34, status: 'Aman', cause: 'Tekanan Darah Terkontrol', age: 67 },
-    { id: 7, name: 'Nurul Fadilah', disease: 'Diabetes', riskScore: 28, status: 'Aman', cause: 'Pola Makan Baik', age: 41 },
-    { id: 8, name: 'Agus Permadi', disease: 'Hipertensi', riskScore: 18, status: 'Aman', cause: 'Aktivitas Fisik Rutin', age: 55 },
+    { id: 1, name: 'Ahmad Suharto', disease: 'Diabetes', healthScore: 8, status: 'Parah', cause: 'HbA1c Tinggi', age: 58 },
+    { id: 2, name: 'Siti Rahayu', disease: 'Hipertensi', healthScore: 13, status: 'Parah', cause: 'Asupan Natrium Tinggi', age: 62 },
+    { id: 3, name: 'Budi Santoso', disease: 'Diabetes', healthScore: 45, status: 'Waswas', cause: 'Kurang Tidur', age: 45 },
+    { id: 4, name: 'Dewi Lestari', disease: 'Hipertensi', healthScore: 52, status: 'Waswas', cause: 'BMI Tinggi', age: 53 },
+    { id: 5, name: 'Rini Handayani', disease: 'Diabetes', healthScore: 62, status: 'Waswas', cause: 'Gula Darah Tidak Stabil', age: 49 },
+    { id: 6, name: 'Hasan Basri', disease: 'Hipertensi', healthScore: 72, status: 'Sehat', cause: 'Tekanan Darah Terkontrol', age: 67 },
+    { id: 7, name: 'Nurul Fadilah', disease: 'Diabetes', healthScore: 78, status: 'Sehat', cause: 'Pola Makan Baik', age: 41 },
+    { id: 8, name: 'Agus Permadi', disease: 'Hipertensi', healthScore: 88, status: 'Sehat', cause: 'Aktivitas Fisik Rutin', age: 55 },
   ])
   const [nakesList, setNakesList] = useState<Nakes[]>([
     { id: 1, name: 'Dr. Andi Wijaya, Sp.PD', role: 'Dokter Spesialis' },
@@ -109,9 +109,9 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   const [followedUpIds, setFollowedUpIds] = useState<number[]>([])
   const [showPushAlert, setShowPushAlert] = useState(true)
   const [escalationAlerts] = useState<EscalationAlert[]>([
-    { id: 1, patient: 'Ahmad Suharto', disease: 'Diabetes', riskScore: 92, trigger: 'HbA1c: 10.2% — Melewati Batas Kritis', time: '08:42 WIB', sent: 'WA + SMS terkirim' },
-    { id: 2, patient: 'Siti Rahayu', disease: 'Hipertensi', riskScore: 87, trigger: 'Tekanan Darah: 175/110 mmHg — Krisis Hipertensi', time: '09:15 WIB', sent: 'WA + SMS terkirim' },
-    { id: 3, patient: 'Budi Santoso', disease: 'Diabetes', riskScore: 75, trigger: 'Gula Darah Puasa: 285 mg/dL — Di Atas Normal', time: '10:30 WIB', sent: 'WA terkirim' },
+    { id: 1, patient: 'Ahmad Suharto', disease: 'Diabetes', healthScore: 8, trigger: 'HbA1c: 10.2% — Melewati Batas Kritis', time: '08:42 WIB', sent: 'WA + SMS terkirim' },
+    { id: 2, patient: 'Siti Rahayu', disease: 'Hipertensi', healthScore: 13, trigger: 'Tekanan Darah: 175/110 mmHg — Krisis Hipertensi', time: '09:15 WIB', sent: 'WA + SMS terkirim' },
+    { id: 3, patient: 'Budi Santoso', disease: 'Diabetes', healthScore: 45, trigger: 'Gula Darah Puasa: 285 mg/dL — Di Atas Normal', time: '10:30 WIB', sent: 'WA terkirim' },
   ])
 
   // Helper functions
@@ -119,28 +119,28 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
     return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
   }
 
-  const getRiskColor = (score: number) => {
-    if (score >= 80) return '#7B61FF'
-    if (score >= 50) return '#4FC3F7'
-    return '#00B894'
+  const getHealthColor = (score: number) => {
+    if (score >= 70) return '#00B894' // Sehat (Green)
+    if (score >= 40) return '#4FC3F7' // Waswas (Blue)
+    return '#7B61FF' // Parah (Purple)
   }
 
-  const getRiskShadow = (score: number) => {
-    if (score >= 80) return 'rgba(123,97,255,0.28)'
-    if (score >= 50) return 'rgba(79,195,247,0.28)'
-    return 'rgba(0,184,148,0.28)'
+  const getHealthShadow = (score: number) => {
+    if (score >= 70) return 'rgba(0,184,148,0.28)'
+    if (score >= 40) return 'rgba(79,195,247,0.28)'
+    return 'rgba(123,97,255,0.28)'
   }
 
-  const getRiskTier = (score: number) => {
-    if (score >= 80) return 'Kritis'
-    if (score >= 50) return 'Sedang'
-    return 'Rendah'
+  const getHealthTier = (score: number) => {
+    if (score >= 70) return 'Tinggi (Sehat)'
+    if (score >= 40) return 'Sedang (Waswas)'
+    return 'Rendah (Parah)'
   }
 
   const getStatusStyle = (st: string) => {
-    if (st === 'Bahaya') return { color: '#7B61FF', bg: 'rgba(123,97,255,0.1)' }
+    if (st === 'Parah') return { color: '#7B61FF', bg: 'rgba(123,97,255,0.1)' }
     if (st === 'Waswas') return { color: '#0288A0', bg: 'rgba(79,195,247,0.15)' }
-    return { color: '#00B894', bg: 'rgba(0,184,148,0.1)' }
+    return { color: '#00B894', bg: 'rgba(0,184,148,0.1)' } // Sehat
   }
 
   // Onboarding OCR
@@ -166,8 +166,8 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       id: Date.now(),
       name: patientName || 'Ahmad Suharto',
       disease: 'Diabetes',
-      riskScore: 78,
-      status: 'Waswas',
+      healthScore: 78,
+      status: 'Sehat',
       cause: 'HbA1c Tinggi (Baseline Baru)',
       age: 58
     }
@@ -628,7 +628,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Terdaftar Prolanis</div>
                 </div>
                 <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #7B61FF' }}>
-                  <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Risiko Bahaya</div>
+                  <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Kondisi Parah</div>
                   <div style={{ fontSize: 32, fontWeight: 800, color: '#7B61FF', lineHeight: 1, marginBottom: 3 }}>2</div>
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Perlu Eskalasi</div>
                 </div>
@@ -638,7 +638,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Perlu Pemantauan</div>
                 </div>
                 <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #E8EEF4', borderTop: '3px solid #00B894' }}>
-                  <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Status Aman</div>
+                  <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Kondisi Sehat</div>
                   <div style={{ fontSize: 32, fontWeight: 800, color: '#00B894', lineHeight: 1, marginBottom: 3 }}>3</div>
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>Kondisi Terkontrol</div>
                 </div>
@@ -649,7 +649,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 <div style={{ padding: '16px 22px', borderBottom: '1px solid #F0F5FA', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#0F2444' }}>Antrian Prioritas Pasien</div>
-                    <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Diurutkan otomatis berdasarkan Risk Score tertinggi — terendah</div>
+                    <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Diurutkan otomatis berdasarkan Health Score terendah — tertinggi</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#F0F5FA', border: '1px solid #E2EAF2', borderRadius: 8, padding: '7px 13px' }}>
                     <div className="anim-blink" style={{ width: 7, height: 7, borderRadius: '50%', background: '#1565D8' }}></div>
@@ -664,7 +664,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                         <th style={{ padding: '10px 8px 10px 22px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', width: 54 }}>Rank</th>
                         <th style={{ padding: '10px 10px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pasien</th>
                         <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Penyakit</th>
-                        <th style={{ padding: '10px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', width: 150 }}>Risk Score</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px', width: 150 }}>Health Score</th>
                         <th style={{ padding: '10px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
                         <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Faktor Penyebab Utama</th>
                         <th style={{ padding: '10px 14px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aksi</th>
@@ -673,9 +673,9 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                     <tbody>
                       {patients.map((p, i) => {
                         const style = getStatusStyle(p.status)
-                        const color = getRiskColor(p.riskScore)
-                        const shadow = getRiskShadow(p.riskScore)
-                        const tier = getRiskTier(p.riskScore)
+                        const color = getHealthColor(p.healthScore)
+                        const shadow = getHealthShadow(p.healthScore)
+                        const tier = getHealthTier(p.healthScore)
                         return (
                           <tr key={p.id} className="qrow" style={{ borderTop: '1px solid #F0F5FA', transition: 'background 0.12s' }}>
                             <td style={{ padding: '13px 8px 13px 22px', textAlign: 'center' }}>
@@ -683,7 +683,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                             </td>
                             <td style={{ padding: '13px 10px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                                <div style={{ width: 36, height: 36, borderRadius: 10, background: p.riskScore >= 80 ? 'rgba(123,97,255,0.1)' : (p.riskScore >= 50 ? 'rgba(79,195,247,0.12)' : 'rgba(0,184,148,0.1)'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: color, flexShrink: 0 }}>
+                                <div style={{ width: 36, height: 36, borderRadius: 10, background: p.healthScore < 40 ? 'rgba(123,97,255,0.1)' : (p.healthScore < 70 ? 'rgba(79,195,247,0.12)' : 'rgba(0,184,148,0.1)'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: color, flexShrink: 0 }}>
                                   {getInitials(p.name)}
                                 </div>
                                 <div>
@@ -704,11 +704,11 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                             <td style={{ padding: '13px 14px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
                                 <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: color, boxShadow: `0 3px 10px ${shadow}`, flexShrink: 0 }}>
-                                  <span style={{ color: '#fff', fontSize: 15, fontWeight: 800 }}>{p.riskScore}</span>
+                                  <span style={{ color: '#fff', fontSize: 15, fontWeight: 800 }}>{p.healthScore}</span>
                                 </div>
                                 <div style={{ flex: 1, minWidth: 48 }}>
                                   <div style={{ height: 6, borderRadius: 4, background: '#EEF2F7', overflow: 'hidden' }}>
-                                    <div style={{ height: '100%', width: `${p.riskScore}%`, borderRadius: 4, background: color }}></div>
+                                    <div style={{ height: '100%', width: `${p.healthScore}%`, borderRadius: 4, background: color }}></div>
                                   </div>
                                   <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 600, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{tier}</div>
                                 </div>
@@ -749,7 +749,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 22px', borderTop: '1px solid #F0F5FA', background: '#FCFDFE' }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
-                  <span style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.4 }}>Risk Score bersifat <strong style={{ color: '#64748B', fontWeight: 700 }}>indikatif — bukan diagnosis medis</strong>. Keputusan klinis tetap pada penilaian tenaga kesehatan.</span>
+                  <span style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.4 }}>Health Score bersifat <strong style={{ color: '#64748B', fontWeight: 700 }}>indikatif — bukan diagnosis medis</strong>. Keputusan klinis tetap pada penilaian tenaga kesehatan.</span>
                 </div>
               </div>
 
@@ -866,8 +866,8 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                     <div style={{ width: 50, height: 50, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 24, border: '1px solid rgba(255,255,255,0.3)' }}>🚨</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 10, color: 'rgba(254,226,226,0.8)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', marginBottom: 5 }}>Simulasi Push Alert · WhatsApp &amp; SMS</div>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', marginBottom: 7, lineHeight: 1.3 }}>⚠️ ESKALASI KRITIS: Ahmad Suharto — Risk Score 92</div>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 16 }}>Pasien Diabetes melewati ambang risiko kritis. HbA1c mencapai <strong style={{ color: '#FACC15' }}>10.2%</strong>. Notifikasi WA &amp; SMS otomatis terkirim ke nakes penanggung jawab. <strong style={{ color: '#fff' }}>Tindak lanjut diperlukan segera.</strong></div>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', marginBottom: 7, lineHeight: 1.3 }}>⚠️ ESKALASI KRITIS: Ahmad Suharto — Health Score 8</div>
+                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 16 }}>Pasien Diabetes melewati ambang batas kesehatan kritis. HbA1c mencapai <strong style={{ color: '#FACC15' }}>10.2%</strong>. Notifikasi WA &amp; SMS otomatis terkirim ke nakes penanggung jawab. <strong style={{ color: '#fff' }}>Tindak lanjut diperlukan segera.</strong></div>
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                         <button onClick={() => setShowPushAlert(false)} style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.9)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', borderStyle: 'solid' }}>Tutup Alert</button>
                         <button
@@ -910,7 +910,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 14, fontWeight: 700, color: '#0F2444' }}>{alert.patient}</span>
-                          <span style={{ background: '#FDF5FF', color: '#7B61FF', fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(123,97,255,0.15)' }}>Risk: {alert.riskScore}</span>
+                          <span style={{ background: '#FDF5FF', color: '#7B61FF', fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(123,97,255,0.15)' }}>Health: {alert.healthScore}</span>
                           <span style={{ background: '#EEF5FF', color: '#1565D8', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(21,101,216,0.12)' }}>{alert.disease}</span>
                         </div>
                         <div style={{ fontSize: 13, color: '#334155', marginBottom: 4, fontWeight: 500 }}>🔴 {alert.trigger}</div>
@@ -1201,9 +1201,9 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 </div>
               </div>
               
-              <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 58, height: 58, borderRadius: 15, background: getRiskColor(progressPatient.riskScore), boxShadow: '0 4px 14px rgba(0,0,0,0.12)', flexShrink: 0 }}>
-                <span style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1 }}>{progressPatient.riskScore}</span>
-                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>Risk</span>
+              <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 58, height: 58, borderRadius: 15, background: getHealthColor(progressPatient.healthScore), boxShadow: '0 4px 14px rgba(0,0,0,0.12)', flexShrink: 0 }}>
+                <span style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1 }}>{progressPatient.healthScore}</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>Sehat</span>
               </div>
               
               <button onClick={() => setShowProgressModal(false)} style={{ background: '#F0F5FA', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: 16, flexShrink: 0, marginLeft: 8 }}>✕</button>
@@ -1213,15 +1213,15 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             <div style={{ padding: '22px 26px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2444' }}>Tren Risk Score</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2444' }}>Tren Health Score</div>
                   <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>6 bulan terakhir</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#F8FAFC', border: '1px solid #EEF2F7', borderRadius: 9, padding: '6px 12px' }}>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: progressPatient.status === 'Aman' ? '#00B894' : '#EF4444' }}>
-                    {progressPatient.status === 'Aman' ? '-24' : '+18'}
+                  <span style={{ fontSize: 18, fontWeight: 800, color: progressPatient.status === 'Sehat' ? '#00B894' : '#EF4444' }}>
+                    {progressPatient.status === 'Sehat' ? '+24' : '-18'}
                   </span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: progressPatient.status === 'Aman' ? '#00B894' : '#EF4444' }}>
-                    {progressPatient.status === 'Aman' ? 'Membaik' : 'Memburuk'}
+                  <span style={{ fontSize: 11, fontWeight: 700, color: progressPatient.status === 'Sehat' ? '#00B894' : '#EF4444' }}>
+                    {progressPatient.status === 'Sehat' ? 'Membaik' : 'Memburuk'}
                   </span>
                 </div>
               </div>
@@ -1229,19 +1229,31 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               {/* Monthly progress bars */}
               <div style={{ background: '#FAFBFE', border: '1px solid #EEF2F7', borderRadius: 13, padding: '18px 16px 12px', marginBottom: 22 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10, height: 130 }}>
-                  {[
-                    { month: 'Jan', score: progressPatient.status === 'Aman' ? 58 : 74 },
-                    { month: 'Feb', score: progressPatient.status === 'Aman' ? 50 : 76 },
-                    { month: 'Mar', score: progressPatient.status === 'Aman' ? 44 : 80 },
-                    { month: 'Apr', score: progressPatient.status === 'Aman' ? 38 : 78 },
-                    { month: 'Mei', score: progressPatient.status === 'Aman' ? 35 : 85 },
-                    { month: 'Jun', score: progressPatient.riskScore },
-                  ].map((bar, idx) => {
-                    const barColor = getRiskColor(bar.score)
+                  {(progressPatient.status === 'Sehat'
+                    ? [
+                        { month: 'Jan', score: 42 },
+                        { month: 'Feb', score: 50 },
+                        { month: 'Mar', score: 56 },
+                        { month: 'Apr', score: 62 },
+                        { month: 'Mei', score: 65 },
+                        { month: 'Jun', score: progressPatient.healthScore },
+                      ]
+                    : [
+                        { month: 'Jan', score: 42 },
+                        { month: 'Feb', score: 38 },
+                        { month: 'Mar', score: 30 },
+                        { month: 'Apr', score: 22 },
+                        { month: 'Mei', score: 15 },
+                        { month: 'Jun', score: progressPatient.healthScore },
+                      ]
+                  ).map((bar, idx) => {
+                    const barColor = getHealthColor(bar.score)
                     return (
-                      <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: '#475569', marginBottom: 6 }}>{bar.score}</div>
-                        <div style={{ width: '100%', maxWidth: 34, height: `${bar.score}%`, background: barColor, borderRadius: '7px 7px 3px 3px' }}></div>
+                      <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', flex: 1, width: '100%' }}>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: '#475569', marginBottom: 6 }}>{bar.score}</div>
+                          <div style={{ width: '100%', maxWidth: 34, height: `${bar.score}%`, background: barColor, borderRadius: '7px 7px 3px 3px' }}></div>
+                        </div>
                         <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, marginTop: 8 }}>{bar.month}</div>
                       </div>
                     )
@@ -1275,7 +1287,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2444', marginBottom: 14 }}>Riwayat Kunjungan</div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {[
-                  { date: '18 Jun 2026', title: 'Kontrol rutin — membaik', note: `Risk Score turun signifikan sejak pendaftaran. Terapi dilanjutkan.`, color: '#00B894' },
+                  { date: '18 Jun 2026', title: 'Kontrol rutin — membaik', note: `Health Score meningkat signifikan sejak pendaftaran. Terapi dilanjutkan.`, color: '#00B894' },
                   { date: '20 Mei 2026', title: 'Update baseline klinis', note: 'Hasil laboratorium menunjukkan perbaikan parameter klinis.', color: '#1565D8' },
                   { date: '15 Apr 2026', title: 'Edukasi gizi & aktivitas', note: 'Konsultasi dengan ahli gizi faskes untuk pola makan rendah garam/karbo.', color: '#4FC3F7' },
                 ].map((t, idx) => (

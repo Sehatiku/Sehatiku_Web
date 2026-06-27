@@ -38,10 +38,10 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
   const panelTitle   = isDr ? 'Dashboard Klinis Dokter' : 'Dashboard Admin Faskes'
   const panelDesc    = isDr
     ? 'Pantau antrean prioritas pasien Anda, telaah tren harian & faktor risiko, lalu tindak lanjuti — dalam satu layar klinis.'
-    : 'Kelola registrasi pasien & dokter, pantau antrian prioritas berbasis Risk Score, dan tanggapi eskalasi klinis — semua dalam satu tempat.'
+    : 'Kelola registrasi pasien & dokter, pantau antrian prioritas berbasis Health Score, dan tanggapi eskalasi klinis — semua dalam satu tempat.'
   const features = isDr
-    ? ['Antrean prioritas pasien berbasis Risk Score', 'Tren harian gula darah & tensi + atribusi AI', 'Tindak lanjut & umpan balik model satu ketuk']
-    : ['Registrasi pasien & dokter dengan OCR KTP', 'Antrian prioritas otomatis berbasis Risk Score', 'Eskalasi otomatis via WhatsApp & SMS real-time']
+    ? ['Antrean prioritas pasien berbasis Health Score', 'Tren harian gula darah & tensi + atribusi AI', 'Tindak lanjut & umpan balik model satu ketuk']
+    : ['Registrasi pasien & dokter dengan OCR KTP', 'Antrian prioritas otomatis berbasis Health Score', 'Eskalasi otomatis via WhatsApp & SMS real-time']
   const formTitle    = isDr ? 'Masuk sebagai Dokter' : 'Masuk ke Akun Faskes'
   const formSub      = isDr
     ? 'Gunakan kredensial yang dikirim faskes Anda via WhatsApp'
