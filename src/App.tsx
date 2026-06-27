@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './index.css'
+import FaskesDashboardPage from './pages/faskes/FaskesDashboardPage'
 
 /* ─────────────── COLOR TOKENS (exact from Sehatiku.html) ─────────────── */
 // Background page:  rgb(245, 243, 255)   = #F5F3FF
@@ -706,7 +707,7 @@ function Footer() {
 }
 
 /* ─────────────── LOGIN PAGE (full-screen, 2-col layout from reference) ─────────────── */
-function LoginModal({ isOpen, onClose, defaultRole = 'faskes' }: { isOpen: boolean; onClose: () => void; defaultRole?: 'faskes' | 'dokter' }) {
+function LoginModal({ isOpen, onClose, defaultRole = 'faskes', onLoginSuccess }: { isOpen: boolean; onClose: () => void; defaultRole?: 'faskes' | 'dokter'; onLoginSuccess: (role: 'faskes' | 'dokter') => void }) {
   const [role, setRole] = useState<'faskes' | 'dokter'>(defaultRole)
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
@@ -920,6 +921,7 @@ function LoginModal({ isOpen, onClose, defaultRole = 'faskes' }: { isOpen: boole
           {/* Submit */}
           <button
             id="btn-submit-login"
+            onClick={() => onLoginSuccess(role)}
             style={{
               width: '100%', background: accentBg, color: '#fff', border: 'none',
               borderRadius: 11, padding: '14px', fontSize: 15, fontWeight: 700,
@@ -956,11 +958,32 @@ function LoginModal({ isOpen, onClose, defaultRole = 'faskes' }: { isOpen: boole
 
 /* ─────────────── APP ROOT ─────────────── */
 export default function App() {
-  const [loginOpen, setLoginOpen] = useState(false)
+  const [screen, setScreen] = useState<'landing' | 'login' | 'dashboard' | 'dokter'>('landing')
   const [loginRole, setLoginRole] = useState<'faskes' | 'dokter'>('faskes')
 
   const openLogin = (role: 'faskes' | 'dokter' = 'faskes') => {
-    setLoginRole(role); setLoginOpen(true)
+    setLoginRole(role); setScreen('login')
+  }
+
+  if (screen === 'dashboard') {
+    return <FaskesDashboardPage onLogout={() => setScreen('landing')} />
+  }
+
+  if (screen === 'dokter') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center', background: '#F0F5FA', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ background: '#fff', padding: 40, borderRadius: 20, boxShadow: '0 4px 20px rgba(15,36,68,0.08)', textAlign: 'center', maxWidth: 400 }}>
+          <h2 style={{ color: '#0F2444', fontWeight: 800, fontSize: 22, marginBottom: 12 }}>Dashboard Dokter</h2>
+          <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>Selamat datang di Akses Klinis Dokter. Modul ini sedang dikembangkan (Fase FE-2).</p>
+          <button
+            onClick={() => setScreen('landing')}
+            style={{ background: '#14B9A0', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(20,185,160,0.25)' }}
+          >
+            Keluar ke Beranda
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -974,7 +997,12 @@ export default function App() {
         <KontakSection onLoginClick={() => openLogin('faskes')} />
       </main>
       <Footer />
-      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} defaultRole={loginRole} />
+      <LoginModal
+        isOpen={screen === 'login'}
+        onClose={() => setScreen('landing')}
+        defaultRole={loginRole}
+        onLoginSuccess={(role) => setScreen(role === 'faskes' ? 'dashboard' : 'dokter')}
+      />
     </div>
   )
 }
