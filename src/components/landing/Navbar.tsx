@@ -1,0 +1,86 @@
+import { useState, useEffect } from 'react'
+import { C } from '../../lib/constants'
+import { Arr, LogoImg } from '../ui/Icons'
+
+export default function Navbar({ onLoginClick }: { onLoginClick: () => void }) {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 8)
+    window.addEventListener('scroll', fn)
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+
+  return (
+    <nav style={{
+      position: 'sticky', top: 0, zIndex: 50,
+      backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+      background: 'rgba(245,243,255,0.82)',
+      borderBottom: `1px solid rgb(236,234,248)`,
+      padding: '12px 44px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      transition: 'box-shadow 0.2s',
+      boxShadow: scrolled ? '0 2px 16px rgba(99,102,241,0.08)' : 'none',
+    }}>
+      {/* Brand */}
+      <button
+        onClick={() => scrollTo('sec-hero')}
+        style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        <LogoImg size={34} />
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px', color: C.wordmark }}>
+            sehat<span style={{ color: '#895CF6' }}>iku</span>
+          </div>
+          <span style={{
+            fontSize: 9, fontWeight: 700, color: C.primary,
+            background: 'rgb(238,240,254)',
+            border: `1px solid rgba(99,102,241,0.16)`,
+            padding: '3px 8px', borderRadius: 20,
+            textTransform: 'uppercase', letterSpacing: '0.6px',
+          }}>Prolanis PTM</span>
+        </div>
+      </button>
+
+      {/* Nav */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {[
+          { label: 'Beranda', id: 'sec-hero' },
+          { label: 'Alur Kerja', id: 'sec-fitur' },
+          { label: 'Faskes & Dokter', id: 'sec-aktor' },
+          { label: 'Tentang', id: 'sec-tentang' },
+        ].map(item => (
+          <button
+            key={item.id}
+            onClick={() => scrollTo(item.id)}
+            style={{
+              background: 'none', border: 'none', fontFamily: 'inherit',
+              fontSize: 13.5, fontWeight: 600, color: C.navText,
+              cursor: 'pointer', padding: '8px 13px', borderRadius: 8, transition: '0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.07)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+          >
+            {item.label}
+          </button>
+        ))}
+        <button
+          id="btn-masuk-navbar"
+          onClick={onLoginClick}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12,
+            background: C.primary, color: '#fff', border: 'none',
+            borderRadius: 10, padding: '10px 20px', fontSize: 13.5, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit', transition: '0.15s',
+            filter: 'drop-shadow(rgba(99,102,241,0.28) 0px 4px 14px)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#4f52d8'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = C.primary; e.currentTarget.style.transform = 'none' }}
+        >
+          Masuk <Arr sz={15} col="white" />
+        </button>
+      </div>
+    </nav>
+  )
+}
