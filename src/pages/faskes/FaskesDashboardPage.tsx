@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { LogoImg } from '../../components/ui/Icons'
 
 interface Doctor {
   id: number
@@ -272,13 +273,11 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
         {/* Logo */}
         <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid #F0F5FA' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#00B894,#00A382)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,184,148,0.3)' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-            </div>
+            <LogoImg size={34} />
             <div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#0F2444', letterSpacing: '-0.4px', lineHeight: 1 }}>sehatiku</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#0F2444', letterSpacing: '-0.4px', lineHeight: 1 }}>
+                sehat<span style={{ color: '#895CF6' }}>iku</span>
+              </div>
               <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', marginTop: 1 }}>Admin Faskes</div>
             </div>
           </div>
@@ -436,7 +435,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           {/* TAB 1: PENDAFTARAN */}
           {activeTab === 'pendaftaran' && (
             <div className="anim-fadein">
-              <div style={{ background: 'linear-gradient(130deg,#1565D8 0%,#0D47A1 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(21,101,216,0.2)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ background: 'linear-gradient(130deg, #1A2066 0%, #262F8A 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(26,32,102,0.18)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', right: -20, top: -30, width: 150, height: 150, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
                 <div style={{ width: 46, height: 46, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -445,7 +444,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 </div>
                 <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
                   <div style={{ color: '#fff', fontSize: 15, fontWeight: 700, marginBottom: 4 }}>RS Umum Sejahtera — Akun Faskes Aktif di Sehatiku ✓</div>
-                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 1.6 }}>Terdaftar sebagai Mitra Prolanis resmi BPJS Kesehatan. Status: <strong style={{ color: '#7AC943' }}>AKTIF</strong> · {patients.length} pasien Prolanis terdaftar · Kode Faskes: RSU-TBB-2024-007</div>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 1.6 }}>Terdaftar sebagai Mitra Prolanis resmi BPJS Kesehatan. Status: <strong style={{ color: '#1EC8A5' }}>AKTIF</strong> · {patients.length} pasien Prolanis terdaftar · Kode Faskes: RSU-TBB-2024-007</div>
                 </div>
                 <div style={{ display: 'flex', gap: 12, position: 'relative', zIndex: 1, flexShrink: 0 }}>
                   <div style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 10, padding: '10px 18px', textAlign: 'center' }}>
@@ -888,25 +887,25 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           {activeTab === 'eskalasi' && (
             <div className="anim-fadein">
               {showPushAlert && (
-                <div style={{ borderRadius: 14, padding: '22px 24px', marginBottom: 18, position: 'relative', overflow: 'hidden', background: '#1A0B38', border: '1px solid rgba(123,97,255,0.3)', boxShadow: '0 6px 24px rgba(123,97,255,0.2)' }}>
-                  <div style={{ position: 'absolute', top: -40, right: -20, width: 160, height: 160, background: 'rgba(123,97,255,0.12)', borderRadius: '50%' }} />
+                <div style={{ borderRadius: 14, padding: '22px 24px', marginBottom: 18, position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, #7F1D1D 0%, #DC2626 100%)', border: '1px solid rgba(220,38,38,0.3)', boxShadow: '0 6px 24px rgba(220,38,38,0.2)' }}>
+                  <div style={{ position: 'absolute', top: -40, right: -20, width: 160, height: 160, background: 'rgba(255,255,255,0.08)', borderRadius: '50%' }} />
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 15, position: 'relative', zIndex: 1 }}>
-                    <div style={{ width: 50, height: 50, background: 'rgba(123,97,255,0.3)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 24, border: '1px solid rgba(123,97,255,0.4)' }}>🚨</div>
+                    <div style={{ width: 50, height: 50, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 24, border: '1px solid rgba(255,255,255,0.3)' }}>🚨</div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 10, color: 'rgba(196,181,253,0.8)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', marginBottom: 5 }}>Simulasi Push Alert · WhatsApp &amp; SMS</div>
+                      <div style={{ fontSize: 10, color: 'rgba(254,226,226,0.8)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.9px', marginBottom: 5 }}>Simulasi Push Alert · WhatsApp &amp; SMS</div>
                       <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', marginBottom: 7, lineHeight: 1.3 }}>⚠️ ESKALASI KRITIS: Ahmad Suharto — Risk Score 92</div>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, marginBottom: 16 }}>Pasien Diabetes melewati ambang risiko kritis. HbA1c mencapai <strong style={{ color: '#FACC15' }}>10.2%</strong>. Notifikasi WA &amp; SMS otomatis terkirim ke nakes penanggung jawab. <strong style={{ color: '#fff' }}>Tindak lanjut diperlukan segera.</strong></div>
+                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 16 }}>Pasien Diabetes melewati ambang risiko kritis. HbA1c mencapai <strong style={{ color: '#FACC15' }}>10.2%</strong>. Notifikasi WA &amp; SMS otomatis terkirim ke nakes penanggung jawab. <strong style={{ color: '#fff' }}>Tindak lanjut diperlukan segera.</strong></div>
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <button onClick={() => setShowPushAlert(false)} style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', borderStyle: 'solid' }}>Tutup Alert</button>
+                        <button onClick={() => setShowPushAlert(false)} style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.9)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', borderStyle: 'solid' }}>Tutup Alert</button>
                         <button
                           onClick={() => {
                             setShowPushAlert(false)
                             setFollowedUpIds(prev => prev.includes(1) ? prev : [...prev, 1])
                             showToastMsg('✓ Tindak lanjut Ahmad Suharto berhasil dicatat!')
                           }}
-                          style={{ background: '#7B61FF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 4px 14px rgba(123,97,255,0.4)' }}
+                          style={{ background: '#FFFFFF', color: '#DC2626', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 4px 14px rgba(255,255,255,0.15)' }}
                         >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
                           One-Tap Follow Up
                         </button>
                       </div>
@@ -973,7 +972,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           {/* TAB 4: REGISTRASI DOKTER */}
           {activeTab === 'dokter' && (
             <div className="anim-fadein">
-              <div style={{ background: 'linear-gradient(130deg,#0D47A1 0%,#1565D8 60%,#1976D2 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(21,101,216,0.18)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ background: 'linear-gradient(130deg, #262F8A 0%, #5B6BF0 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(38,47,138,0.18)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', right: -20, top: -30, width: 150, height: 150, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
                 <div style={{ width: 46, height: 46, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -982,7 +981,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 </div>
                 <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
                   <div style={{ color: '#fff', fontSize: 15, fontWeight: 700, marginBottom: 3 }}>Registrasi Dokter &amp; Nakes</div>
-                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 1.5 }}>Daftarkan dokter dan tenaga kesehatan yang berpraktik di faskes ini sebagai pengguna platform Sehatiku</div>
+                  <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, lineHeight: 1.5 }}>Daftarkan dokter dan tenaga kesehatan yang berpraktik di faskes ini sebagai pengguna platform Sehatiku</div>
                 </div>
                 <div style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 10, padding: '10px 20px', textAlign: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
                   <div style={{ color: '#fff', fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{registeredDoctors.filter(d => d.available).length}</div>
