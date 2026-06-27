@@ -13,7 +13,7 @@ export default function FiturSection() {
       icon: <IcoBarChart />, iconBg: 'rgb(230,250,245)',
       num: '02', phase: 'Pemantauan', accentCol: 'rgb(20,185,160)',
       title: 'Antrean Prioritas',
-      desc: 'Data fisiologis & gaya hidup harian diolah jadi Health Score cohort. Pasien terurut otomatis berdasarkan tingkat keparahan.',
+      desc: 'Data fisiologis & gaya hidup harian diolah jadi Risk Score cohort. Pasien terurut otomatis dari risiko tertinggi.',
     },
     {
       icon: <IcoBell />, iconBg: 'rgb(241,236,254)',
