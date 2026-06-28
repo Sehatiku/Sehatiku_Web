@@ -27,6 +27,34 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.5px',
 }
 
+// Tipe faskes — visual picker options
+const FASKES_TYPES: { v: FaskesType; label: string; icon: (c: string) => React.ReactNode }[] = [
+  {
+    v: 'puskesmas', label: 'Puskesmas',
+    icon: c => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M9 22V12h6v10" />
+      </svg>
+    ),
+  },
+  {
+    v: 'klinik', label: 'Klinik',
+    icon: c => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="3" width="14" height="18" rx="1.5" /><line x1="9" y1="8" x2="9.01" y2="8" /><line x1="15" y1="8" x2="15.01" y2="8" /><line x1="9" y1="12" x2="9.01" y2="12" /><line x1="15" y1="12" x2="15.01" y2="12" /><line x1="10" y1="21" x2="14" y2="21" />
+      </svg>
+    ),
+  },
+  {
+    v: 'rumah_sakit', label: 'Rumah Sakit',
+    icon: c => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="3" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+      </svg>
+    ),
+  },
+]
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onLoginSuccess }: LoginPageProps) {
@@ -275,7 +303,7 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
           </div>
         </div>
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        <div key={`panel-${role}-${isRegister}`} className="anim-fadein" style={{ position: 'relative', zIndex: 1 }}>
           <h2 style={{ fontSize: 34, lineHeight: 1.2, fontWeight: 800, color: '#fff', letterSpacing: '-0.8px', margin: '0 0 16px' }}>
             {panelTitle}
           </h2>
@@ -323,8 +351,15 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 56px 48px' }}>
         <div style={{ width: '100%', maxWidth: 400 }}>
 
-          {/* Role toggle: Faskes / Dokter */}
-          <div style={{ display: 'flex', gap: 4, background: '#F0F5FA', border: '1px solid #E2EAF2', borderRadius: 11, padding: 4, marginBottom: 20 }}>
+          {/* Role toggle: Faskes / Dokter — sliding pill */}
+          <div style={{ position: 'relative', display: 'flex', background: '#F0F5FA', border: '1px solid #E2EAF2', borderRadius: 11, padding: 4, marginBottom: 20 }}>
+            {/* sliding thumb */}
+            <div style={{
+              position: 'absolute', top: 4, bottom: 4, left: 4, width: 'calc(50% - 4px)',
+              background: '#fff', borderRadius: 8, boxShadow: '0 1px 6px rgba(15,36,68,0.14)',
+              transform: role === 'dokter' ? 'translateX(100%)' : 'translateX(0)',
+              transition: 'transform 0.36s cubic-bezier(0.34, 1.4, 0.5, 1)',
+            }} />
             {([
               { r: 'faskes' as const, label: 'Faskes', icon: (col: string) => (
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -345,13 +380,13 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                   key={r}
                   onClick={() => setRole(r)}
                   style={{
+                    position: 'relative', zIndex: 1,
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
                     padding: '10px', border: 'none', borderRadius: 8,
                     fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                    transition: 'all 0.15s',
-                    background: active ? '#fff' : 'transparent',
+                    transition: 'color 0.25s ease',
+                    background: 'transparent',
                     color: col,
-                    boxShadow: active ? '0 1px 4px rgba(15,36,68,0.12)' : 'none',
                   }}
                 >
                   {icon(col)}{label}
@@ -360,19 +395,27 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
             })}
           </div>
 
-          {/* Mode toggle: Login / Daftar — only for faskes */}
+          {/* Mode toggle: Login / Daftar — only for faskes — sliding pill */}
           {!isDr && (
-            <div style={{ display: 'flex', gap: 4, background: '#F8FAFC', border: '1px solid #E2EAF2', borderRadius: 10, padding: 3, marginBottom: 22 }}>
+            <div style={{ position: 'relative', display: 'flex', background: '#F8FAFC', border: '1px solid #E2EAF2', borderRadius: 10, padding: 3, marginBottom: 22 }}>
+              {/* sliding thumb */}
+              <div style={{
+                position: 'absolute', top: 3, bottom: 3, left: 3, width: 'calc(50% - 3px)',
+                background: 'linear-gradient(120deg, #1EC8A5, #17b093)', borderRadius: 8,
+                boxShadow: '0 2px 8px rgba(30,200,165,0.32)',
+                transform: mode === 'register' ? 'translateX(100%)' : 'translateX(0)',
+                transition: 'transform 0.36s cubic-bezier(0.34, 1.4, 0.5, 1)',
+              }} />
               {(['login', 'register'] as const).map(m => (
                 <button
                   key={m}
                   onClick={() => setMode(m)}
                   style={{
+                    position: 'relative', zIndex: 1,
                     flex: 1, padding: '9px', border: 'none', borderRadius: 8,
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-                    background: mode === m ? '#1EC8A5' : 'transparent',
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.25s ease',
+                    background: 'transparent',
                     color: mode === m ? '#fff' : '#94A3B8',
-                    boxShadow: mode === m ? '0 2px 8px rgba(30,200,165,0.3)' : 'none',
                   }}
                 >
                   {m === 'login' ? 'Masuk' : 'Daftar Faskes Baru'}
@@ -440,26 +483,46 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                         <div style={{ fontSize: 10, color: '#94A3B8' }}>Nama dan kategori fasilitas kesehatan</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
                       <div>
                         <label style={labelStyle}>Nama Faskes</label>
                         <input type="text" value={regName} onChange={e => setRegName(e.target.value)}
-                          placeholder="Puskesmas Sukajadi / Klinik Sehat" style={inputStyle} {...focusHandlers} />
+                          placeholder="Puskesmas Sukajadi / RS Sehat Sentosa" style={inputStyle} {...focusHandlers} />
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                        <div>
-                          <label style={labelStyle}>Tipe Faskes</label>
-                          <select value={regType} onChange={e => setRegType(e.target.value as FaskesType)}
-                            style={{ ...inputStyle }} {...focusHandlers}>
-                            <option value="puskesmas">🏥 Puskesmas</option>
-                            <option value="klinik">🏢 Klinik</option>
-                          </select>
+                      <div>
+                        <label style={labelStyle}>Tipe Faskes</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                          {FASKES_TYPES.map(t => {
+                            const active = regType === t.v
+                            return (
+                              <button
+                                key={t.v}
+                                type="button"
+                                onClick={() => setRegType(t.v)}
+                                style={{
+                                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                                  padding: '13px 6px', borderRadius: 11, cursor: 'pointer', fontFamily: 'inherit',
+                                  border: `1.5px solid ${active ? '#1EC8A5' : '#E2EAF2'}`,
+                                  background: active ? 'rgba(30,200,165,0.08)' : '#fff',
+                                  color: active ? '#0E9384' : '#64748B',
+                                  fontSize: 11.5, fontWeight: 700, transition: 'all 0.18s ease',
+                                  boxShadow: active ? '0 3px 12px rgba(30,200,165,0.18)' : 'none',
+                                  transform: active ? 'translateY(-1px)' : 'none',
+                                }}
+                                onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = '#B7E9DE'; e.currentTarget.style.background = '#F7FCFB' } }}
+                                onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = '#E2EAF2'; e.currentTarget.style.background = '#fff' } }}
+                              >
+                                {t.icon(active ? '#1EC8A5' : '#94A3B8')}
+                                {t.label}
+                              </button>
+                            )
+                          })}
                         </div>
-                        <div>
-                          <label style={labelStyle}>Kota / Wilayah</label>
-                          <input type="text" value={regRegion} onChange={e => setRegRegion(e.target.value)}
-                            placeholder="Bandung" style={inputStyle} {...focusHandlers} />
-                        </div>
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Kota / Wilayah</label>
+                        <input type="text" value={regRegion} onChange={e => setRegRegion(e.target.value)}
+                          placeholder="Bandung" style={inputStyle} {...focusHandlers} />
                       </div>
                     </div>
                   </div>
@@ -728,7 +791,7 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
 
           {/* ── LOGIN FORM ── */}
           {!isRegister && (
-            <div className="anim-fadein">
+            <div key={`login-${role}`} className="anim-fadein">
               <div style={{ fontSize: 22, fontWeight: 800, color: '#0F2444', letterSpacing: '-0.5px', marginBottom: 6 }}>
                 {isDr ? 'Masuk sebagai Dokter' : 'Masuk ke Akun Faskes'}
               </div>

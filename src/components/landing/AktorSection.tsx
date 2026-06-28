@@ -1,5 +1,11 @@
 import { C } from '../../lib/constants'
 import { Arr, IcoCheck, IcoHome, IcoUser } from '../ui/Icons'
+import Reveal from './Reveal'
+
+const lift = {
+  onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 18px 44px rgba(30,36,51,0.10)' },
+  onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(30,36,51,0.05)' },
+}
 
 export default function AktorSection({ onLoginClick }: { onLoginClick: (r: 'faskes' | 'dokter') => void }) {
   const faskesItems = [
@@ -16,20 +22,24 @@ export default function AktorSection({ onLoginClick }: { onLoginClick: (r: 'fask
     <section id="sec-aktor" style={{ background: 'rgb(245,243,255)' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '78px 44px' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 46 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#895CF6', textTransform: 'uppercase', letterSpacing: '1.4px', marginBottom: 10 }}>
-            Dua Sudut Pandang
+        <Reveal>
+          <div style={{ textAlign: 'center', marginBottom: 46 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#895CF6', textTransform: 'uppercase', letterSpacing: '1.6px', marginBottom: 12 }}>
+              — Dua Sudut Pandang —
+            </div>
+            <h2 style={{ fontSize: 36, fontWeight: 800, color: 'rgb(30,36,51)', letterSpacing: '-1.2px', margin: 0 }}>
+              Satu platform untuk <span className="text-gradient-anim">Faskes &amp; Dokter</span>
+            </h2>
           </div>
-          <h2 style={{ fontSize: 34, fontWeight: 800, color: 'rgb(30,36,51)', letterSpacing: '-1px', margin: 0 }}>
-            Satu platform untuk Faskes &amp; Dokter
-          </h2>
-        </div>
+        </Reveal>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22 }}>
           {/* Faskes */}
-          <div style={{
-            background: C.white, borderRadius: 20, padding: 34,
+          <Reveal delay={80} style={{ height: '100%' }}>
+          <div {...lift} style={{
+            background: C.white, borderRadius: 20, padding: 34, height: '100%',
             border: `1px solid ${C.cardBorder}`,
-            filter: 'drop-shadow(rgba(30,36,51,0.05) 0px 1px 4px)',
+            boxShadow: '0 1px 4px rgba(30,36,51,0.05)',
+            transition: 'transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 20 }}>
               <div style={{ width: 52, height: 52, borderRadius: 15, background: 'rgb(238,240,254)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -66,12 +76,15 @@ export default function AktorSection({ onLoginClick }: { onLoginClick: (r: 'fask
               Masuk sebagai Faskes <Arr sz={15} col="white" />
             </button>
           </div>
+          </Reveal>
 
           {/* Dokter */}
-          <div style={{
-            background: C.white, borderRadius: 20, padding: 34,
+          <Reveal delay={200} style={{ height: '100%' }}>
+          <div {...lift} style={{
+            background: C.white, borderRadius: 20, padding: 34, height: '100%',
             border: `1px solid ${C.cardBorder}`,
-            filter: 'drop-shadow(rgba(30,36,51,0.05) 0px 1px 4px)',
+            boxShadow: '0 1px 4px rgba(30,36,51,0.05)',
+            transition: 'transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 20 }}>
               <div style={{ width: 52, height: 52, borderRadius: 15, background: 'rgb(230,250,245)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -108,6 +121,7 @@ export default function AktorSection({ onLoginClick }: { onLoginClick: (r: 'fask
               Masuk sebagai Dokter <Arr sz={15} col="white" />
             </button>
           </div>
+          </Reveal>
         </div>
       </div>
     </section>

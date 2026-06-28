@@ -16,10 +16,19 @@ function AppInner() {
   const { user, logout } = useAuth()
   const [screen, setScreen] = useState<'landing' | 'login'>('landing')
   const [loginRole, setLoginRole] = useState<'faskes' | 'dokter'>('faskes')
+  // Bump to remount the landing so scroll-reveal animations replay
+  const [landingKey, setLandingKey] = useState(0)
 
   const openLogin = (role: 'faskes' | 'dokter' = 'faskes') => {
     setLoginRole(role)
     setScreen('login')
+  }
+
+  // Back to landing: scroll to top + replay entrance animations (like a refresh)
+  const closeLogin = () => {
+    setScreen('landing')
+    setLandingKey(k => k + 1)
+    window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   const handleLogout = async () => {
@@ -39,18 +48,20 @@ function AppInner() {
   // ── Landing / Login ──
   return (
     <div style={{ fontFamily: 'Inter, sans-serif', background: 'rgb(245,243,255)', minHeight: '100vh', margin: 0 }}>
-      <Navbar onLoginClick={() => openLogin('faskes')} />
-      <main>
-        <HeroSection onLoginClick={() => openLogin('faskes')} />
-        <FiturSection />
-        <AktorSection onLoginClick={openLogin} />
-        <TentangSection />
-        <KontakSection onLoginClick={() => openLogin('faskes')} />
-      </main>
-      <Footer />
+      <div key={landingKey}>
+        <Navbar onLoginClick={() => openLogin('faskes')} />
+        <main>
+          <HeroSection onLoginClick={() => openLogin('faskes')} />
+          <FiturSection />
+          <AktorSection onLoginClick={openLogin} />
+          <TentangSection />
+          <KontakSection onLoginClick={() => openLogin('faskes')} />
+        </main>
+        <Footer />
+      </div>
       <LoginPage
         isOpen={screen === 'login'}
-        onClose={() => setScreen('landing')}
+        onClose={closeLogin}
         defaultRole={loginRole}
         onLoginSuccess={() => {
           // user state in AuthContext is already set by loginFaskes/loginNakes;
