@@ -371,6 +371,9 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           {/* TAB 2: OPERASIONAL */}
           {activeTab === 'operasional' && (
             <OperasionalTab
+              nakesItems={nakesItems}
+              nakesLoading={nakesLoading}
+              nakesError={nakesError}
               setActiveTab={setActiveTab}
               showToastMsg={showToastMsg}
             />

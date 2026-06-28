@@ -189,7 +189,7 @@ export interface UpdateNakesStatusResult {
   status: NakesStatus
 }
 
-// ─── Nakes Detail (GET /api/v1/faskes/nakes/{id}) ────────────────────────────
+// ─── Detail Responses ─────────────────────────────────────────────────────────
 
 export interface NakesDetail {
   nakes_id: string
@@ -205,8 +205,6 @@ export interface NakesDetail {
   created_at: string
   updated_at: string
 }
-
-// ─── Patient Detail (GET /api/v1/faskes/patients/{id}) ───────────────────────
 
 export interface FaskesPatientDetail {
   patient_id: string
@@ -229,8 +227,6 @@ export interface FaskesPatientDetail {
   created_at: string
   updated_at: string
 }
-
-// ─── Faskes Profile (GET /api/v1/faskes/profile) ─────────────────────────────
 
 export interface FaskesProfile {
   faskes_id: string

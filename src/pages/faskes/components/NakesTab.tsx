@@ -39,18 +39,18 @@ export default function NakesTab({
   const [nakesToToggle, setNakesToToggle] = useState<NakesItem | null>(null)
   const [toggleLoading, setToggleLoading] = useState(false)
 
-  // Detail drawer state
+  // Detail Drawer States
   const [selectedNakes, setSelectedNakes] = useState<NakesDetail | null>(null)
   const [nakesDetailLoading, setNakesDetailLoading] = useState(false)
 
   const handleSelectNakes = async (id: string) => {
-    setNakesDetailLoading(true)
     setSelectedNakes(null)
+    setNakesDetailLoading(true)
     try {
       const detail = await faskesApi.getNakesDetail(id)
       setSelectedNakes(detail)
     } catch {
-      showToastMsg('⚠️ Gagal memuat detail nakes.')
+      showToastMsg('⚠️ Gagal memuat detail nakes. Coba lagi.')
     } finally {
       setNakesDetailLoading(false)
     }
@@ -65,12 +65,12 @@ export default function NakesTab({
   }
 
   // Computed Validation
-  const drPhoneNormalized = normalizePhone(newDrPhone)
+  const drPhoneDigits = newDrPhone.replace(/\D/g, '')
   const drValidation = {
     name: !newDrName.trim() ? 'Nama wajib diisi' : '',
     nik: !/^\d{16}$/.test(newDrNik) ? 'NIK harus 16 digit angka' : '',
     alamat: !newDrAlamat.trim() ? 'Alamat wajib diisi' : '',
-    phone: !/^62\d{8,12}$/.test(drPhoneNormalized) ? 'Nomor tidak valid (contoh: 08xx atau 628xx)' : '',
+    phone: !/^62\d{8,12}$/.test(drPhoneDigits) ? 'Harus diawali 62 (contoh: 628123456789)' : '',
     username: newDrUsername.trim().length < 4 ? 'Username minimal 4 karakter' : '',
     password: newDrPassword.length < 8 ? 'Password minimal 8 karakter' : '',
   }
@@ -106,7 +106,7 @@ export default function NakesTab({
         nik: newDrNik,
         full_name: newDrName.trim(),
         alamat: newDrAlamat.trim(),
-        phone_number: drPhoneNormalized,
+        phone_number: drPhoneDigits,
         role: newDrRole,
         username: newDrUsername.trim(),
         password: newDrPassword,
@@ -341,13 +341,7 @@ export default function NakesTab({
               }
               const rc = roleColors[doc.role] ?? roleColors.dokter
               return (
-                <div
-                  key={doc.nakes_id}
-                  onClick={() => handleSelectNakes(doc.nakes_id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 20px', borderBottom: '1px solid #F4F5F7', opacity: isActive ? 1 : 0.55, cursor: 'pointer', transition: 'background 0.1s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#F7F8FA')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '')}
-                >
+                <div key={doc.nakes_id} onClick={() => handleSelectNakes(doc.nakes_id)} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 20px', borderBottom: '1px solid #F4F5F7', opacity: isActive ? 1 : 0.55, cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = '#F7F8FF')} onMouseLeave={e => (e.currentTarget.style.background = '')}>
                   <div style={{ width: 42, height: 42, borderRadius: '50%', background: rc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: rc.color, flexShrink: 0 }}>
                     {initials(doc.full_name)}
                   </div>

@@ -39,16 +39,13 @@ export default function NakesDetailDrawer({ detail, loading, onClose, onToggleSt
       style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      {/* modal box */}
       <div style={{ width: 520, maxWidth: '92vw', maxHeight: '88vh', background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(15,36,68,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        {/* header bar */}
         <div style={{ padding: '18px 22px', borderBottom: '1px solid #DCDFE8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>Detail Nakes</div>
           <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 8, background: '#F4F5F7', border: '1px solid #DCDFE8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16 }}>×</button>
         </div>
 
-        {/* scrollable content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
           {loading && (
             <div style={{ textAlign: 'center', padding: '60px 0', color: '#8A93A1', fontSize: 13 }}>Memuat detail...</div>
@@ -59,7 +56,6 @@ export default function NakesDetailDrawer({ detail, loading, onClose, onToggleSt
             const isActive = detail.status === 'active'
             return (
               <>
-                {/* nakes hero */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, padding: '16px', background: '#F7F8FA', borderRadius: 12, border: '1px solid #DCDFE8' }}>
                   <div style={{ width: 52, height: 52, borderRadius: '50%', background: rc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: rc.color, flexShrink: 0 }}>
                     {initials(detail.full_name)}
@@ -92,7 +88,6 @@ export default function NakesDetailDrawer({ detail, loading, onClose, onToggleSt
                   <Row label="Diperbarui" value={formatDate(detail.updated_at)} />
                 </Section>
 
-                {/* action */}
                 <button
                   onClick={() => onToggleStatus({ nakes_id: detail.nakes_id, full_name: detail.full_name, status: detail.status })}
                   style={{

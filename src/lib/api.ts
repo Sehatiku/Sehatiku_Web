@@ -154,62 +154,6 @@ function mockFaskesPatients(): FaskesPatientResponse {
   }
 }
 
-function mockNakesDetail(id: string): NakesDetail {
-  return {
-    nakes_id: id,
-    faskes_id: 'faskes-mock-001',
-    full_name: 'Dr. Andi Wijaya, Sp.PD',
-    role: 'dokter',
-    nik: '3201010101800001',
-    alamat: 'JL. SUDIRMAN NO. 5 RT 001 RW 003, KEL. CITARUM, KEC. BANDUNG WETAN, KOTA BANDUNG',
-    phone_number: '628123456789',
-    username: 'dr.andi',
-    status: 'active',
-    enrolled_at: '2025-01-10T08:00:00Z',
-    created_at: '2025-01-10T08:00:00Z',
-    updated_at: '2025-05-20T09:00:00Z',
-  }
-}
-
-function mockFaskesPatientDetail(id: string): FaskesPatientDetail {
-  return {
-    patient_id: id,
-    faskes_id: 'faskes-mock-001',
-    assigned_nakes_id: 'n1',
-    assigned_nakes_name: 'Dr. Andi Wijaya, Sp.PD',
-    full_name: 'Ahmad Suharto',
-    nik: '3201010101670001',
-    date_of_birth: '1967-01-01',
-    sex: 'male',
-    age: 58,
-    alamat: 'JL. MERDEKA NO. 10 RT 001 RW 002, KEL. SUKAJADI, KEC. BANDUNG WETAN, KOTA BANDUNG',
-    phone_number: '628123456789',
-    companion_name: 'Siti Suharto',
-    companion_phone: '628123456780',
-    disease_type: 'diabetes_t2',
-    username: 'ahmad.suharto',
-    status: 'active',
-    enrolled_at: '2025-01-15T08:00:00Z',
-    created_at: '2025-01-15T08:00:00Z',
-    updated_at: '2025-06-01T10:00:00Z',
-  }
-}
-
-function mockFaskesProfile(): FaskesProfile {
-  return {
-    faskes_id: 'faskes-mock-001',
-    name: 'Puskesmas Coba',
-    type: 'puskesmas',
-    address: 'JL. MERDEKA NO. 1, BANDUNG',
-    region: 'Bandung',
-    username: 'puskesmas.coba',
-    phone_number: '62222555666',
-    status: 'active',
-    created_at: '2025-01-01T00:00:00Z',
-    updated_at: '2025-06-01T00:00:00Z',
-  }
-}
-
 function mockPatientQueue(): PatientQueueResponse {
   return {
     data: [
@@ -358,27 +302,6 @@ export const faskesApi = {
     return res.data
   },
 
-  /** GET /api/v1/faskes/nakes/{id} — requires faskes JWT */
-  getNakesDetail: async (id: string): Promise<NakesDetail> => {
-    if (MOCK) return mockNakesDetail(id)
-    const res = await request<ApiEnvelope<NakesDetail>>(`/api/v1/faskes/nakes/${id}`)
-    return res.data
-  },
-
-  /** GET /api/v1/faskes/patients/{id} — requires faskes JWT */
-  getPatientDetail: async (id: string): Promise<FaskesPatientDetail> => {
-    if (MOCK) return mockFaskesPatientDetail(id)
-    const res = await request<ApiEnvelope<FaskesPatientDetail>>(`/api/v1/faskes/patients/${id}`)
-    return res.data
-  },
-
-  /** GET /api/v1/faskes/profile — requires faskes JWT */
-  getProfile: async (): Promise<FaskesProfile> => {
-    if (MOCK) return mockFaskesProfile()
-    const res = await request<ApiEnvelope<FaskesProfile>>('/api/v1/faskes/profile')
-    return res.data
-  },
-
   /** PATCH /api/v1/faskes/nakes/{id}/status — requires faskes JWT */
   updateNakesStatus: async (nakesId: string, status: NakesStatus): Promise<UpdateNakesStatusResult> => {
     if (MOCK) return { nakes_id: nakesId, full_name: '', status }
@@ -386,6 +309,52 @@ export const faskesApi = {
       `/api/v1/faskes/nakes/${nakesId}/status`,
       { method: 'PATCH', body: JSON.stringify({ status }) },
     )
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/nakes/{id} — requires faskes JWT */
+  getNakesDetail: async (id: string): Promise<NakesDetail> => {
+    if (MOCK) {
+      return {
+        nakes_id: id, faskes_id: 'faskes-mock-001', full_name: 'Dr. Mock Nakes',
+        role: 'dokter', nik: '3201234567890001', alamat: 'Jl. Mock No. 1',
+        phone_number: '6281234567890', username: 'mock.nakes', status: 'active',
+        enrolled_at: '2025-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z',
+      }
+    }
+    const res = await request<ApiEnvelope<NakesDetail>>(`/api/v1/faskes/nakes/${id}`)
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/patients/{id} — requires faskes JWT */
+  getPatientDetail: async (id: string): Promise<FaskesPatientDetail> => {
+    if (MOCK) {
+      return {
+        patient_id: id, faskes_id: 'faskes-mock-001',
+        assigned_nakes_id: 'nakes-mock-001', assigned_nakes_name: 'Dr. Mock Nakes',
+        full_name: 'Pasien Mock', nik: '3201234567890002',
+        date_of_birth: '1970-05-15', sex: 'male', age: 55,
+        alamat: 'Jl. Pasien No. 2', phone_number: '6281234567891',
+        companion_name: 'Pendamping Mock', companion_phone: '6281234567892',
+        disease_type: 'diabetes_t2', username: 'pasien.mock', status: 'active',
+        enrolled_at: '2025-02-01T00:00:00Z', created_at: '2025-02-01T00:00:00Z', updated_at: '2025-02-01T00:00:00Z',
+      }
+    }
+    const res = await request<ApiEnvelope<FaskesPatientDetail>>(`/api/v1/faskes/patients/${id}`)
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/profile — requires faskes JWT */
+  getProfile: async (): Promise<FaskesProfile> => {
+    if (MOCK) {
+      return {
+        faskes_id: 'faskes-mock-001', name: 'Puskesmas Mock', type: 'puskesmas',
+        address: 'Jl. Puskesmas No. 1', region: 'Jakarta', username: 'faskes.mock',
+        phone_number: '6211234567', status: 'active',
+        created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z',
+      }
+    }
+    const res = await request<ApiEnvelope<FaskesProfile>>('/api/v1/faskes/profile')
     return res.data
   },
 }
