@@ -51,9 +51,10 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
   }, [patientPage, patientRefreshKey])
 
   return (
-    <div className="anim-fadein">
-      {/* Header banner */}
-      <div style={{ background: 'linear-gradient(130deg,#1A2066 0%,#262F8A 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(26,32,102,0.18)', position: 'relative', overflow: 'hidden' }}>
+    <div>
+      <div className="anim-fadein">
+        {/* Header banner */}
+        <div style={{ background: 'linear-gradient(130deg,#1A2066 0%,#262F8A 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(26,32,102,0.18)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -20, top: -30, width: 150, height: 150, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
         <div style={{ width: 46, height: 46, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -186,6 +187,8 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
             </div>
           </div>
         )}
+      </div>
+
       </div>
 
       {(detailLoading || selectedPatient !== null) && (

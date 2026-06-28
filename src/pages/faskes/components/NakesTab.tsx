@@ -25,6 +25,7 @@ export default function NakesTab({
   const [newDrAlamat, setNewDrAlamat] = useState('')
   const [newDrPhone, setNewDrPhone] = useState('')
   const [newDrRole, setNewDrRole] = useState<NakesRole>('dokter')
+  const [newDrSpecialization, setNewDrSpecialization] = useState('')
   const [newDrUsername, setNewDrUsername] = useState('')
   const [newDrPassword, setNewDrPassword] = useState('')
   const [registerLoading, setRegisterLoading] = useState(false)
@@ -110,10 +111,11 @@ export default function NakesTab({
         role: newDrRole,
         username: newDrUsername.trim(),
         password: newDrPassword,
+        ...(newDrRole === 'dokter' && newDrSpecialization.trim() ? { specialization: newDrSpecialization.trim() } : {}),
       })
       showToastMsg(`✓ ${newDrName} berhasil didaftarkan ke sistem Sehatiku!`)
       setNewDrName(''); setNewDrNik(''); setNewDrAlamat(''); setNewDrPhone('')
-      setNewDrUsername(''); setNewDrPassword(''); setNewDrRole('dokter')
+      setNewDrUsername(''); setNewDrPassword(''); setNewDrRole('dokter'); setNewDrSpecialization('')
       setDrSubmitted(false)
       refreshNakes()
     } catch (err: unknown) {
@@ -146,8 +148,9 @@ export default function NakesTab({
   }
 
   return (
-    <div className="anim-fadein">
-      <div style={{ background: 'linear-gradient(130deg, #262F8A 0%, #5B6BF0 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(38,47,138,0.18)', position: 'relative', overflow: 'hidden' }}>
+    <div>
+      <div className="anim-fadein">
+        <div style={{ background: 'linear-gradient(130deg, #262F8A 0%, #5B6BF0 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(38,47,138,0.18)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -20, top: -30, width: 150, height: 150, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
         <div style={{ width: 46, height: 46, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -241,6 +244,16 @@ export default function NakesTab({
                 </select>
               </div>
             </div>
+            {newDrRole === 'dokter' && (
+              <div>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Spesialisasi Dokter</label>
+                <input
+                  type="text" value={newDrSpecialization} onChange={e => setNewDrSpecialization(e.target.value)}
+                  placeholder="mis. Penyakit Dalam, Jantung, Umum, dll."
+                  style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+            )}
             <div>
               <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Alamat Lengkap</label>
               <input
@@ -368,6 +381,7 @@ export default function NakesTab({
           </div>
         </div>
 
+      </div>
       </div>
 
       {/* ── NAKES DETAIL DRAWER ── */}

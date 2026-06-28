@@ -71,6 +71,7 @@ export interface NakesItem {
   phone_number: string
   status: NakesStatus
   enrolled_at: string
+  specialization?: string
 }
 
 export interface RegisterNakesBody {
@@ -81,6 +82,7 @@ export interface RegisterNakesBody {
   role: NakesRole
   username: string
   password: string
+  specialization?: string
 }
 
 /** WhatsApp warm-up links returned after registering a nakes or patient */
@@ -240,6 +242,7 @@ export interface NakesDetail {
   enrolled_at: string
   created_at: string
   updated_at: string
+  specialization?: string
 }
 
 export interface FaskesPatientDetail {
