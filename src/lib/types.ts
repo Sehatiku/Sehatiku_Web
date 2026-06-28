@@ -39,7 +39,7 @@ export interface NakesLoginData {
 
 // ─── Faskes Registration ──────────────────────────────────────────────────────
 
-export type FaskesType = 'puskesmas' | 'klinik'
+export type FaskesType = 'puskesmas' | 'klinik' | 'rumah_sakit'
 
 export interface RegisterFaskesBody {
   name: string

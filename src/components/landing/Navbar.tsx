@@ -54,13 +54,14 @@ export default function Navbar({ onLoginClick }: { onLoginClick: () => void }) {
           <button
             key={item.id}
             onClick={() => scrollTo(item.id)}
+            className="link-underline"
             style={{
               background: 'none', border: 'none', fontFamily: 'inherit',
               fontSize: 13.5, fontWeight: 600, color: C.navText,
-              cursor: 'pointer', padding: '8px 13px', borderRadius: 8, transition: '0.15s',
+              cursor: 'pointer', padding: '8px 13px', borderRadius: 8, transition: 'color 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.07)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.primary }}
+            onMouseLeave={e => { e.currentTarget.style.color = C.navText }}
           >
             {item.label}
           </button>
@@ -68,15 +69,16 @@ export default function Navbar({ onLoginClick }: { onLoginClick: () => void }) {
         <button
           id="btn-masuk-navbar"
           onClick={onLoginClick}
+          className="btn-sheen"
           style={{
             display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12,
-            background: C.primary, color: '#fff', border: 'none',
-            borderRadius: 10, padding: '10px 20px', fontSize: 13.5, fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'inherit', transition: '0.15s',
-            filter: 'drop-shadow(rgba(99,102,241,0.28) 0px 4px 14px)',
+            background: 'linear-gradient(120deg, #6366F1, #7C5CF6)', color: '#fff', border: 'none',
+            borderRadius: 11, padding: '10px 20px', fontSize: 13.5, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit', transition: '0.18s',
+            boxShadow: '0 4px 14px rgba(99,102,241,0.28)',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#4f52d8'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = C.primary; e.currentTarget.style.transform = 'none' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 22px rgba(99,102,241,0.38)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(99,102,241,0.28)' }}
         >
           Masuk <Arr sz={15} col="white" />
         </button>

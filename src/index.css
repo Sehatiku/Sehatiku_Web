@@ -158,3 +158,149 @@ body {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.6; transform: scale(1.3); }
 }
+
+/* ===== LANDING — elevated motion system ===== */
+
+/* Slowly drifting aurora blobs */
+@keyframes auroraA {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(40px, -30px) scale(1.12); }
+  66%  { transform: translate(-30px, 24px) scale(0.94); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes auroraB {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(-46px, 28px) scale(0.92); }
+  66%  { transform: translate(34px, -22px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Animated gradient for text / fills */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Marquee ticker */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Sheen sweep for buttons */
+@keyframes sheen {
+  0%   { transform: translateX(-130%) skewX(-18deg); }
+  100% { transform: translateX(260%)  skewX(-18deg); }
+}
+
+/* Soft conic ring rotation behind mockup */
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+
+/* Subtle floating with rotation for orbiting chips */
+@keyframes floatTilt {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-14px) rotate(2deg); }
+}
+
+/* Vertical drift for grid parallax dots */
+@keyframes driftDots {
+  from { background-position: 0 0; }
+  to   { background-position: 0 -42px; }
+}
+
+/* ===== Scroll reveal ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ===== Helper classes ===== */
+.text-gradient-anim {
+  background: linear-gradient(90deg, #6366F1, #895CF6, #14B9A0, #6366F1);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradientShift 9s ease infinite;
+}
+
+.aurora-a { animation: auroraA 18s ease-in-out infinite; }
+.aurora-b { animation: auroraB 22s ease-in-out infinite; }
+.anim-spin-slow { animation: spinSlow 26s linear infinite; }
+.anim-float-tilt { animation: floatTilt 7s ease-in-out infinite; }
+
+.btn-sheen { position: relative; overflow: hidden; }
+.btn-sheen::after {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0; width: 36%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform: translateX(-130%) skewX(-18deg);
+  pointer-events: none;
+}
+.btn-sheen:hover::after { animation: sheen 0.85s ease; }
+
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 28s linear infinite;
+}
+.marquee-mask:hover .marquee-track { animation-play-state: paused; }
+
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: '';
+  position: absolute; left: 13px; right: 13px; bottom: 4px; height: 2px;
+  background: linear-gradient(90deg, #6366F1, #14B9A0);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-underline:hover::after { transform: scaleX(1); }
+
+/* ECG monitor strip — scrolling heartbeat */
+@keyframes ecgScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-180px); }
+}
+.ecg-scroll { animation: ecgScroll 3s linear infinite; }
+
+/* Sparkline self-draw */
+@keyframes sparkDraw {
+  from { stroke-dashoffset: 600; }
+  to   { stroke-dashoffset: 0; }
+}
+.spark-draw { stroke-dasharray: 600; animation: sparkDraw 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards; }
+
+/* Gauge ring fill to 78% (circumference ~214) */
+@keyframes gaugeFill {
+  from { stroke-dashoffset: 214; }
+  to   { stroke-dashoffset: 47; }
+}
+.gauge-fill { stroke-dasharray: 214; stroke-dashoffset: 47; animation: gaugeFill 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s backwards; }
+
+/* Risk bar self-grow */
+.bar-grow { transform-origin: left; animation: growBar 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.4s backwards; }
+
+/* ===== Respect reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-a, .aurora-b, .anim-spin-slow, .anim-float-tilt,
+  .anim-float, .anim-float-delayed, .anim-blink, .marquee-track,
+  .text-gradient-anim, .ecg-scroll, .spark-draw, .gauge-fill, .bar-grow {
+    animation: none !important;
+  }
+  .reveal { transition: none; opacity: 1; transform: none; }
+}
