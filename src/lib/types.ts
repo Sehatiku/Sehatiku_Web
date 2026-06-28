@@ -84,7 +84,7 @@ export interface RegisterNakesResult {
   enrolled_at: string
 }
 
-// ─── Patients (registered by Nakes) ─────────────────────────────────────────
+// ─── Patients ─────────────────────────────────────────────────────────────────
 
 export type DiseaseType = 'diabetes_t2' | 'hypertension' | 'both'
 
@@ -100,6 +100,11 @@ export interface RegisterPatientBody {
   disease_type: DiseaseType
   username: string
   password: string
+}
+
+/** Body for POST /api/v1/faskes/patients/register — requires assigned_nakes_id */
+export interface RegisterFaskesPatientBody extends RegisterPatientBody {
+  assigned_nakes_id: string
 }
 
 export interface RegisterPatientResult {
@@ -154,3 +159,34 @@ export interface PatientQueueResponse {
   data: PatientQueueItem[]
   paging: Paging
 }
+
+// ─── Faskes Patients ──────────────────────────────────────────────────────────
+
+export interface FaskesPatientItem {
+  patient_id: string
+  full_name: string
+  nik: string
+  sex: 'male' | 'female'
+  age: number
+  disease_type: DiseaseType
+  phone_number: string
+  companion_name: string
+  companion_phone: string
+  status: 'active' | 'inactive'
+  enrolled_at: string
+}
+
+export interface FaskesPatientResponse {
+  data: FaskesPatientItem[]
+  paging: Paging
+}
+
+// ─── Nakes Status Update ──────────────────────────────────────────────────────
+
+export interface UpdateNakesStatusResult {
+  nakes_id: string
+  full_name: string
+  status: NakesStatus
+}
+
+
