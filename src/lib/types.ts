@@ -84,7 +84,7 @@ export interface RegisterNakesResult {
   enrolled_at: string
 }
 
-// ─── Patients (registered by Nakes) ─────────────────────────────────────────
+// ─── Patients ─────────────────────────────────────────────────────────────────
 
 export type DiseaseType = 'diabetes_t2' | 'hypertension' | 'both'
 
@@ -100,6 +100,11 @@ export interface RegisterPatientBody {
   disease_type: DiseaseType
   username: string
   password: string
+}
+
+/** Body for POST /api/v1/faskes/patients/register — requires assigned_nakes_id */
+export interface RegisterFaskesPatientBody extends RegisterPatientBody {
+  assigned_nakes_id: string
 }
 
 export interface RegisterPatientResult {
@@ -154,3 +159,86 @@ export interface PatientQueueResponse {
   data: PatientQueueItem[]
   paging: Paging
 }
+
+// ─── Faskes Patients ──────────────────────────────────────────────────────────
+
+export interface FaskesPatientItem {
+  patient_id: string
+  full_name: string
+  nik: string
+  sex: 'male' | 'female'
+  age: number
+  disease_type: DiseaseType
+  phone_number: string
+  companion_name: string
+  companion_phone: string
+  status: 'active' | 'inactive'
+  enrolled_at: string
+}
+
+export interface FaskesPatientResponse {
+  data: FaskesPatientItem[]
+  paging: Paging
+}
+
+// ─── Nakes Status Update ──────────────────────────────────────────────────────
+
+export interface UpdateNakesStatusResult {
+  nakes_id: string
+  full_name: string
+  status: NakesStatus
+}
+
+// ─── Detail Responses ─────────────────────────────────────────────────────────
+
+export interface NakesDetail {
+  nakes_id: string
+  faskes_id: string
+  full_name: string
+  role: NakesRole
+  nik: string
+  alamat: string
+  phone_number: string
+  username: string
+  status: NakesStatus
+  enrolled_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface FaskesPatientDetail {
+  patient_id: string
+  faskes_id: string
+  assigned_nakes_id: string
+  assigned_nakes_name: string
+  full_name: string
+  nik: string
+  date_of_birth: string
+  sex: 'male' | 'female'
+  age: number
+  alamat: string
+  phone_number: string
+  companion_name: string
+  companion_phone: string
+  disease_type: DiseaseType
+  username: string
+  status: 'active' | 'inactive'
+  enrolled_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface FaskesProfile {
+  faskes_id: string
+  name: string
+  type: 'puskesmas' | 'klinik'
+  address: string
+  region: string
+  username: string
+  phone_number: string
+  status: 'active' | 'inactive'
+  created_at: string
+  updated_at: string
+}
+
+
