@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { faskesApi } from '../../../lib/api'
-import type { NakesItem, FaskesPatientItem } from '../../../lib/types'
+import type { FaskesPatientItem } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
 
 interface Patient {
@@ -14,17 +14,11 @@ interface Patient {
 }
 
 interface OperasionalTabProps {
-  nakesItems: NakesItem[]
-  nakesLoading: boolean
-  nakesError: string | null
   setActiveTab: (tab: 'pendaftaran' | 'operasional' | 'eskalasi' | 'dokter' | 'pasien') => void
   showToastMsg: (msg: string) => void
 }
 
 export default function OperasionalTab({
-  nakesItems,
-  nakesLoading,
-  nakesError,
   setActiveTab,
   showToastMsg,
 }: OperasionalTabProps) {

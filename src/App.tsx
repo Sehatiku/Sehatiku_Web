@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './index.css'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import FaskesDashboardPage from './pages/faskes/FaskesDashboardPage'
+import DokterDashboardPage from './pages/dokter/DokterDashboardPage'
 import Navbar from './components/landing/Navbar'
 import HeroSection from './components/landing/HeroSection'
 import FiturSection from './components/landing/FiturSection'
@@ -32,23 +33,7 @@ function AppInner() {
   }
 
   if (user?.actor_type === 'nakes') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center', background: '#F0F5FA', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ background: '#fff', padding: 40, borderRadius: 20, boxShadow: '0 4px 20px rgba(15,36,68,0.08)', textAlign: 'center', maxWidth: 400 }}>
-          <h2 style={{ color: '#0F2444', fontWeight: 800, fontSize: 22, marginBottom: 12 }}>Dashboard Dokter</h2>
-          <p style={{ color: '#64748B', fontSize: 14, marginBottom: 8 }}>
-            Selamat datang, <strong>{user.name}</strong>.
-          </p>
-          <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>Modul Dokter sedang dikembangkan (Fase FE-2).</p>
-          <button
-            onClick={handleLogout}
-            style={{ background: '#14B9A0', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(20,185,160,0.25)' }}
-          >
-            Keluar
-          </button>
-        </div>
-      </div>
-    )
+    return <DokterDashboardPage onLogout={handleLogout} />
   }
 
   // ── Landing / Login ──
