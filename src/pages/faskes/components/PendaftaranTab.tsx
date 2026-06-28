@@ -315,7 +315,7 @@ export default function PendaftaranTab({
               <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jenis Penyakit *</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {([
-                  { val: 'diabetes_t2', label: 'Diabetes', color: '#5B6BF0', bg: '#EEEFFE', border: 'rgba(91,107,240,0.25)' },
+                  { val: 'diabetes_t2', label: 'Diabetes T2', color: '#5B6BF0', bg: '#EEEFFE', border: 'rgba(91,107,240,0.25)' },
                   { val: 'hypertension', label: 'Hipertensi', color: '#0277BD', bg: 'rgba(79,195,247,0.1)', border: 'rgba(2,119,189,0.25)' },
                   { val: 'both', label: 'Keduanya', color: '#7C3AED', bg: '#F5F3FF', border: 'rgba(124,58,237,0.25)' },
                 ] as const).map(opt => (

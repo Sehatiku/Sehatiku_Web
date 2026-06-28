@@ -1,6 +1,6 @@
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-export type ActorType = 'faskes' | 'nakes'
+export type ActorType = 'faskes' | 'nakes' | 'patient'
 export type NakesRole = 'dokter' | 'kader' | 'admin'
 
 export interface TokenBundle {
@@ -12,10 +12,10 @@ export interface TokenBundle {
 /** Stored in AuthContext/localStorage after any successful login */
 export interface AuthUser {
   actor_type: ActorType
-  /** faskes_id (faskes login) or nakes_id (nakes login) */
+  /** faskes_id (faskes login) | nakes_id (nakes login) | patient_id (patient login) */
   id: string
   faskes_id: string
-  /** name (faskes) or full_name (nakes) */
+  /** name (faskes) | full_name (nakes/patient) */
   name: string
   /** only present for nakes login */
   role?: NakesRole
@@ -37,9 +37,17 @@ export interface NakesLoginData {
   role: NakesRole
 }
 
+export interface PatientLoginData {
+  token: TokenBundle
+  patient_id: string
+  faskes_id: string
+  full_name: string
+}
+
 // ─── Faskes Registration ──────────────────────────────────────────────────────
 
-export type FaskesType = 'puskesmas' | 'klinik' | 'rumah_sakit'
+/** API contract: puskesmas | klinik */
+export type FaskesType = 'puskesmas' | 'klinik'
 
 export interface RegisterFaskesBody {
   name: string
@@ -75,6 +83,14 @@ export interface RegisterNakesBody {
   password: string
 }
 
+/** WhatsApp warm-up links returned after registering a nakes or patient */
+export interface WaWarmupNakes {
+  bot_phone: string
+  nakes_link: string
+  nakes_direct_link?: string
+  status: 'pending' | 'unavailable'
+}
+
 export interface RegisterNakesResult {
   nakes_id: string
   faskes_id: string
@@ -82,6 +98,11 @@ export interface RegisterNakesResult {
   role: NakesRole
   nik: string
   enrolled_at: string
+  credentials: {
+    username: string
+    password: string
+  }
+  wa_warmup: WaWarmupNakes
 }
 
 // ─── Patients ─────────────────────────────────────────────────────────────────
@@ -107,6 +128,16 @@ export interface RegisterFaskesPatientBody extends RegisterPatientBody {
   assigned_nakes_id: string
 }
 
+/** WhatsApp warm-up links returned after registering a patient */
+export interface WaWarmupPatient {
+  bot_phone: string
+  patient_link: string
+  companion_link?: string
+  patient_direct_link?: string
+  companion_direct_link?: string
+  status: 'pending' | 'unavailable'
+}
+
 export interface RegisterPatientResult {
   patient_id: string
   faskes_id: string
@@ -114,6 +145,11 @@ export interface RegisterPatientResult {
   nik: string
   disease_type: DiseaseType
   enrolled_at: string
+  credentials: {
+    username: string
+    password: string
+  }
+  wa_warmup: WaWarmupPatient
 }
 
 // ─── OCR KTP ─────────────────────────────────────────────────────────────────
@@ -231,7 +267,7 @@ export interface FaskesPatientDetail {
 export interface FaskesProfile {
   faskes_id: string
   name: string
-  type: 'puskesmas' | 'klinik'
+  type: FaskesType
   address: string
   region: string
   username: string
@@ -241,4 +277,123 @@ export interface FaskesProfile {
   updated_at: string
 }
 
+// ─── Patient Dashboard ────────────────────────────────────────────────────────
 
+export interface PatientDashboard {
+  profile: {
+    full_name: string
+    age: number
+    disease_type: DiseaseType
+    companion_name: string
+    companion_phone: string
+    assigned_nakes_name: string
+  }
+  risk: {
+    score: number
+    risk_label: RiskLabel
+    status: PatientStatus
+    main_factor: string
+    scored_at: string | null
+  }
+  latest_measurements: {
+    glucose: { value: number; measured_at: string } | null
+    blood_pressure: { systolic: number; diastolic: number; measured_at: string } | null
+  }
+  logging: {
+    logged_today: boolean
+    streak_days: number
+  }
+  recommendations: string[]
+}
+
+/** GET /api/v1/patients/assigned-nakes */
+export interface AssignedNakesInfo {
+  full_name: string
+  specialization: string
+  hospital: string
+  whatsapp_phone: string
+  schedule: Array<{ days: string; time: string }>
+}
+
+// ─── Health Logs ──────────────────────────────────────────────────────────────
+
+export type HealthMetricType =
+  | 'glucose'
+  | 'bp'
+  | 'med_adherence'
+  | 'food'
+  | 'activity'
+  | 'sleep'
+  | 'stress'
+  | 'smoking'
+  | 'alcohol'
+  | 'weight'
+
+/** POST /api/v1/patients/health-logs — one metric per request */
+export interface HealthLogBody {
+  metric_type: HealthMetricType
+  /** required for numeric metrics (not bp, not food) */
+  value_numeric?: number
+  /** required for metric_type=bp */
+  systolic?: number
+  /** required for metric_type=bp */
+  diastolic?: number
+  /** required for metric_type=food */
+  value_text?: string
+  /** RFC3339 / ISO 8601, must not be in the future */
+  measured_at: string
+}
+
+export interface HealthLogResult {
+  id: string
+  patient_id: string
+  metric_type: HealthMetricType
+  value_numeric?: number
+  value_text?: string
+  blood_pressure?: { systolic: number; diastolic: number }
+  measured_at: string
+  logged_by: string
+  source: string
+  created_at: string
+}
+
+// ─── Daily Records ────────────────────────────────────────────────────────────
+
+/** POST /api/v1/patients/records — all metrics in one request */
+export interface DailyRecordBody {
+  blood_sugar?: number | null
+  systolic?: number | null
+  diastolic?: number | null
+  weight?: number | null
+  medicine_taken?: boolean | null
+  meals?: string
+  recorded_at: string   // RFC3339
+}
+
+export interface DailyRecordResult {
+  recorded_at: string
+  created: string[]   // e.g. ["glucose", "bp", "weight"]
+}
+
+/** One day of history from GET /api/v1/patients/records/history */
+export interface HistoryRecord {
+  date: string          // YYYY-MM-DD
+  blood_sugar: number | null
+  systolic: number | null
+  diastolic: number | null
+  weight: number | null
+}
+
+// ─── Consultations ────────────────────────────────────────────────────────────
+
+export interface ConsultationBody {
+  complaint: string   // 1–2000 chars
+}
+
+export interface ConsultationResult {
+  id: string
+  patient_id: string
+  complaint: string
+  status: string      // 'open' when freshly created
+  created_at: string
+}

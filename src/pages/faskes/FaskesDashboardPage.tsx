@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { LogoImg } from '../../components/ui/Icons'
 import { faskesApi } from '../../lib/api'
 import { useAuth } from '../../auth/AuthContext'
-import type { NakesItem } from '../../lib/types'
+import type { NakesItem, FaskesProfile } from '../../lib/types'
 import { initials } from '../../lib/utils'
 
 // Import modular tab subcomponents
@@ -11,6 +11,33 @@ import OperasionalTab from './components/OperasionalTab'
 import EskalasiTab from './components/EskalasiTab'
 import NakesTab from './components/NakesTab'
 import PasienTab from './components/PasienTab'
+
+// ── Color tokens (from design palette) ─────────────────────────────────────
+const C = {
+  indigo: '#5B6BF0',
+  indigoDark: '#4558E8',
+  teal: '#1EC8A5',
+  purple: '#8B5CF6',
+  lavender: '#EEF0FF',
+  slate: '#2D3748',
+  sidebarFrom: '#262F8A',
+  sidebarTo: '#1A2066',
+}
+
+// ── Helper: format today's date in Indonesian ───────────────────────────────
+function todayLabel(): string {
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  }).format(new Date())
+}
+
+// ── Helper: faskes type label ──────────────────────────────────────────────
+function faskesTypeLabel(type: string): string {
+  if (type === 'puskesmas') return 'Puskesmas'
+  if (type === 'klinik') return 'Klinik'
+  if (type === 'rumah_sakit') return 'RS'
+  return type
+}
 
 export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void }) {
   const { user } = useAuth()
@@ -25,13 +52,11 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
     if (toastTimer) clearTimeout(toastTimer)
     setToastMsg(msg)
     setShowToast(true)
-    const timer = setTimeout(() => {
-      setShowToast(false)
-    }, 4200)
+    const timer = setTimeout(() => { setShowToast(false) }, 4200)
     setToastTimer(timer)
   }
 
-  // ── Nakes list (fetched from API, shared with tabs) ──────────────────────
+  // ── Nakes list ─────────────────────────────────────────────────────────────
   const [nakesItems, setNakesItems] = useState<NakesItem[]>([])
   const [nakesLoading, setNakesLoading] = useState(true)
   const [nakesError, setNakesError] = useState<string | null>(null)
@@ -50,32 +75,84 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       .catch(() => { setNakesError('Gagal memuat daftar nakes.'); setNakesLoading(false) })
   }
 
-  // Modals States
+  // ── Faskes Profile (real API) ───────────────────────────────────────────────
+  const [profile, setProfile] = useState<FaskesProfile | null>(null)
+
+  useEffect(() => {
+    faskesApi.getProfile()
+      .then(data => setProfile(data))
+      .catch(() => { /* silently fallback to user.name */ })
+  }, [])
+
+  const faskesName = profile?.name ?? user?.name ?? 'Faskes'
+  const faskesCode = profile ? `${faskesTypeLabel(profile.type).toUpperCase().slice(0, 3)}-${profile.faskes_id.slice(-8).toUpperCase()}` : '—'
+
+  // Modal States
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
-  // Title selector based on active tab
-  const getHeaderTitle = () => {
-    switch (activeTab) {
-      case 'pendaftaran': return 'Fase Pendaftaran — Registrasi Pasien'
-      case 'operasional': return 'Fase Operasional — Dashboard Monitoring'
-      case 'eskalasi': return 'Notifikasi & Eskalasi Klinis'
-      case 'dokter': return 'Manajemen Nakes'
-      case 'pasien': return 'Daftar Pasien Terdaftar'
-    }
+  // ── Tab meta ───────────────────────────────────────────────────────────────
+  const TAB_META: Record<string, { title: string; subtitle: string; icon: JSX.Element }> = {
+    pendaftaran: {
+      title: 'Fase Pendaftaran',
+      subtitle: 'Registrasi pasien & tenaga kesehatan baru',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
+        </svg>
+      ),
+    },
+    operasional: {
+      title: 'Dashboard Monitoring',
+      subtitle: 'Ringkasan status pasien Prolanis hari ini',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+        </svg>
+      ),
+    },
+    eskalasi: {
+      title: 'Notifikasi & Eskalasi Klinis',
+      subtitle: 'Pantau alert risiko & tindak lanjut darurat',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+      ),
+    },
+    dokter: {
+      title: 'Manajemen Nakes',
+      subtitle: 'Kelola dokter, kader & status aktif/nonaktif',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+    },
+    pasien: {
+      title: 'Daftar Pasien',
+      subtitle: 'Semua pasien Prolanis terdaftar di faskes ini',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      ),
+    },
   }
 
+  const currentTab = TAB_META[activeTab]
+
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Inter, sans-serif', background: '#F4F5F7' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Inter, sans-serif', background: '#F0F1FE' }}>
 
       {/* ── SIDEBAR ── */}
       <div style={{
         width: 248,
         minWidth: 248,
-        background: 'linear-gradient(180deg, #262F8A 0%, #1A2066 100%)',
+        background: `linear-gradient(180deg, ${C.sidebarFrom} 0%, ${C.sidebarTo} 100%)`,
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        boxShadow: '4px 0 24px rgba(26, 32, 102, 0.15)',
+        boxShadow: '4px 0 24px rgba(26, 32, 102, 0.18)',
         color: '#ffffff',
         position: 'relative',
         zIndex: 10,
@@ -87,14 +164,14 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             <LogoImg size={32} />
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.3px', lineHeight: 1 }}>
-                sehat<span style={{ color: '#1EC8A5' }}>iku</span>
+                sehat<span style={{ color: C.teal }}>iku</span>
               </div>
               <div style={{ fontSize: 8.5, color: 'rgba(255, 255, 255, 0.5)', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: 2 }}>Admin Faskes</div>
             </div>
           </div>
         </div>
 
-        {/* Faskes Badge */}
+        {/* Faskes Badge — populated from real API */}
         <div style={{
           margin: '10px 14px 0',
           background: 'rgba(255, 255, 255, 0.05)',
@@ -104,11 +181,13 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.05)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <div className="anim-blink" style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5' }}></div>
-            <span style={{ fontSize: 8.5, fontWeight: 800, color: '#1EC8A5', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Mitra Prolanis Aktif</span>
+            <div className="anim-blink" style={{ width: 6, height: 6, borderRadius: '50%', background: C.teal }} />
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Mitra Prolanis Aktif</span>
           </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>RS Umum Sejahtera</div>
-          <div style={{ fontSize: 9.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 1, fontFamily: 'monospace' }}>Kode: RSU-TBB-2024-007</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>{faskesName}</div>
+          <div style={{ fontSize: 9.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 1, fontFamily: 'monospace' }}>
+            {profile ? `ID: ${profile.faskes_id.slice(0, 16)}` : 'Memuat profil...'}
+          </div>
         </div>
 
         {/* Nav Menu Header */}
@@ -119,52 +198,11 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
         {/* Nav Items */}
         <div style={{ padding: '0 10px', flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
           {[
-            {
-              id: 'pendaftaran',
-              label: 'Fase Pendaftaran',
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
-                </svg>
-              ),
-            },
-            {
-              id: 'operasional',
-              label: 'Fase Operasional',
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-                </svg>
-              ),
-            },
-            {
-              id: 'eskalasi',
-              label: 'Notifikasi & Eskalasi',
-              badge: '3',
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-              ),
-            },
-            {
-              id: 'dokter',
-              label: 'Manajemen Nakes',
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              ),
-            },
-            {
-              id: 'pasien',
-              label: 'Daftar Pasien',
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                </svg>
-              ),
-            },
+            { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon },
+            { id: 'operasional', label: 'Fase Operasional', icon: TAB_META.operasional.icon },
+            { id: 'eskalasi', label: 'Notifikasi & Eskalasi', badge: '3', icon: TAB_META.eskalasi.icon },
+            { id: 'dokter', label: 'Manajemen Nakes', icon: TAB_META.dokter.icon },
+            { id: 'pasien', label: 'Daftar Pasien', icon: TAB_META.pasien.icon },
           ].map(item => {
             const isSelected = activeTab === item.id
             return (
@@ -180,7 +218,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  borderLeft: `3px solid ${isSelected ? '#1EC8A5' : 'transparent'}`,
+                  borderLeft: `3px solid ${isSelected ? C.teal : 'transparent'}`,
                   color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
                 }}
                 onMouseEnter={e => {
@@ -197,35 +235,20 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 }}
               >
                 <div style={{
-                  color: isSelected ? '#1EC8A5' : 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 20,
-                  flexShrink: 0
+                  color: isSelected ? C.teal : 'inherit',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 20, flexShrink: 0
                 }}>
                   {item.icon}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 12.5, fontWeight: isSelected ? 700 : 600 }}>{item.label}</div>
-                  {'sublabel' in item && isSelected && (
-                    <div style={{ fontSize: 9.5, color: '#1EC8A5', marginTop: 1, fontWeight: 600 }}>{(item as any).sublabel}</div>
-                  )}
                 </div>
                 {item.badge && (
                   <span style={{
-                    background: '#EF4444',
-                    color: '#ffffff',
-                    fontSize: 8.5,
-                    fontWeight: 800,
-                    minWidth: 16,
-                    height: 16,
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0 3px',
-                    boxShadow: '0 2px 5px rgba(239, 68, 68, 0.3)'
+                    background: '#EF4444', color: '#ffffff', fontSize: 8.5, fontWeight: 800,
+                    minWidth: 16, height: 16, borderRadius: 8, display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 5px rgba(239, 68, 68, 0.3)'
                   }}>
                     {item.badge}
                   </span>
@@ -235,7 +258,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           })}
 
           {/* Divider */}
-          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', margin: '10px 12px 6px' }}></div>
+          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', margin: '10px 12px 6px' }} />
           <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255, 255, 255, 0.35)', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 12px', marginBottom: 4 }}>Ringkasan</div>
 
           {/* Stat pills */}
@@ -246,46 +269,8 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(30, 200, 165, 0.03)', borderRadius: 8, border: '1px solid rgba(30, 200, 165, 0.08)' }}>
               <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>Nakes Aktif</span>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: '#1EC8A5' }}>{nakesLoading ? '…' : nakesItems.filter(n => n.status === 'active').length}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: C.teal }}>{nakesLoading ? '…' : nakesItems.filter(n => n.status === 'active').length}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>Total Pasien</span>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255, 255, 255, 0.4)' }}>—</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Profile Card */}
-        <div style={{ padding: '10px 12px 0', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '8px 10px',
-            background: 'rgba(255, 255, 255, 0.04)',
-            borderRadius: 10,
-            border: '1px solid rgba(255, 255, 255, 0.06)'
-          }}>
-            <div style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, #5B6BF0, #4FC3F7)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              fontSize: 11,
-              fontWeight: 700,
-              flexShrink: 0
-            }}>
-              {initials(user?.name ?? 'F')}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name ?? 'Faskes'}</div>
-              <div style={{ fontSize: 9.5, color: 'rgba(255, 255, 255, 0.45)', fontWeight: 500, marginTop: 1 }}>Admin Faskes</div>
-            </div>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5', flexShrink: 0 }}></div>
           </div>
         </div>
 
@@ -294,19 +279,10 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           <button
             onClick={() => setShowLogoutConfirm(true)}
             style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              padding: '8px 12px',
-              background: 'rgba(239, 68, 68, 0.08)',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
-              borderRadius: 10,
-              cursor: 'pointer',
-              color: '#EF4444',
-              fontSize: 12.5,
-              fontWeight: 700,
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 8, padding: '8px 12px', background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 10,
+              cursor: 'pointer', color: '#EF4444', fontSize: 12.5, fontWeight: 700,
               transition: 'all 0.2s ease',
             }}
             onMouseEnter={e => {
@@ -329,36 +305,106 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       {/* ── MAIN AREA ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
-        {/* Top Header Bar */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #DCDFE8', padding: '0 24px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, boxShadow: '0 1px 6px rgba(15,36,68,0.04)' }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>{getHeaderTitle()}</div>
-            <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 1 }}>Platform Sehatiku — Prolanis PTM · 24 Juni 2026</div>
+        {/* ── TOP HEADER BAR — beautiful redesign ── */}
+        <div style={{
+          background: '#ffffff',
+          borderBottom: '1px solid #E2E5F1',
+          padding: '0 28px',
+          height: 64,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+          boxShadow: '0 1px 12px rgba(91,107,240,0.07)',
+        }}>
+          {/* Left: breadcrumb + page title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Accent stripe */}
+            <div style={{
+              width: 3.5, height: 36, borderRadius: 2,
+              background: `linear-gradient(180deg, ${C.indigo} 0%, ${C.purple} 100%)`,
+              flexShrink: 0,
+            }} />
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.indigo, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  Platform Sehatiku
+                </span>
+                <span style={{ fontSize: 10, color: '#C5CAE3' }}>·</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: '#8A93A1' }}>Prolanis PTM</span>
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.slate, lineHeight: 1, letterSpacing: '-0.2px' }}>
+                {currentTab.title}
+              </div>
+              <div style={{ fontSize: 11, color: '#9AA0B9', marginTop: 2, fontWeight: 500 }}>
+                {currentTab.subtitle}
+              </div>
+            </div>
           </div>
 
+          {/* Right: date + mode badge + bell */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#EEEFFE', border: '1px solid rgba(91,107,240,0.18)', borderRadius: 8, padding: '6px 12px' }}>
-              <div className="anim-blink" style={{ width: 7, height: 7, borderRadius: '50%', background: '#5B6BF0' }}></div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>Mode: Faskes</span>
+
+            {/* Live date pill */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              background: C.lavender, border: `1px solid rgba(91,107,240,0.18)`,
+              borderRadius: 10, padding: '7px 14px',
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.indigo} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: C.indigo, whiteSpace: 'nowrap' }}>
+                {todayLabel()}
+              </span>
             </div>
 
+            {/* Mode badge */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)',
+              borderRadius: 10, padding: '7px 14px',
+            }}>
+              <div className="anim-blink" style={{ width: 7, height: 7, borderRadius: '50%', background: C.purple }} />
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: C.purple }}>Mode: Faskes</span>
+            </div>
+
+            {/* Notification bell */}
             <div
               onClick={() => setActiveTab('eskalasi')}
-              style={{ position: 'relative', width: 38, height: 38, background: '#F4F5F7', border: '1px solid #DCDFE8', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              style={{
+                position: 'relative', width: 40, height: 40,
+                background: '#F7F8FF', border: `1px solid #E2E5F1`, borderRadius: 10,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = C.lavender
+                e.currentTarget.style.borderColor = `rgba(91,107,240,0.3)`
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#F7F8FF'
+                e.currentTarget.style.borderColor = '#E2E5F1'
+              }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636B78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              <span style={{ position: 'absolute', top: -4, right: -4, background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 800, width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>3</span>
+              <span style={{
+                position: 'absolute', top: -5, right: -5,
+                background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 800,
+                width: 17, height: 17, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
+                border: '2px solid #ffffff',
+              }}>3</span>
             </div>
-
           </div>
         </div>
 
         {/* ── SCROLLABLE TAB CONTENTS ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px', background: '#F4F5F7' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px', background: '#F0F1FE' }}>
 
-          {/* TAB 1: PENDAFTARAN */}
           {activeTab === 'pendaftaran' && (
             <PendaftaranTab
               nakesItems={nakesItems}
@@ -368,7 +414,6 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             />
           )}
 
-          {/* TAB 2: OPERASIONAL */}
           {activeTab === 'operasional' && (
             <OperasionalTab
               setActiveTab={setActiveTab}
@@ -376,12 +421,10 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             />
           )}
 
-          {/* TAB 3: ESKALASI */}
           {activeTab === 'eskalasi' && (
             <EskalasiTab showToastMsg={showToastMsg} />
           )}
 
-          {/* TAB 4: MANAJEMEN NAKES */}
           {activeTab === 'dokter' && (
             <NakesTab
               nakesItems={nakesItems}
@@ -392,7 +435,6 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             />
           )}
 
-          {/* TAB 5: DAFTAR PASIEN */}
           {activeTab === 'pasien' && (
             <PasienTab showToastMsg={showToastMsg} />
           )}
@@ -402,8 +444,16 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
       {/* ── TOAST MESSAGE ── */}
       {showToast && (
-        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#2B2D42', color: '#fff', borderRadius: 12, padding: '14px 18px', fontSize: 13, fontWeight: 500, boxShadow: '0 8px 30px rgba(15,36,68,0.22)', zIndex: 9999, maxWidth: 420, display: 'flex', alignItems: 'flex-start', gap: 11, borderLeft: '4px solid #1EC8A5', animation: 'slideIn 0.3s ease-out', lineHeight: '1.45' }}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1EC8A5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><polyline points="20,6 9,17 4,12" /></svg>
+        <div style={{
+          position: 'fixed', bottom: 24, right: 24, background: C.slate, color: '#fff',
+          borderRadius: 12, padding: '14px 18px', fontSize: 13, fontWeight: 500,
+          boxShadow: '0 8px 30px rgba(15,36,68,0.22)', zIndex: 9999, maxWidth: 420,
+          display: 'flex', alignItems: 'flex-start', gap: 11,
+          borderLeft: `4px solid ${C.teal}`, animation: 'slideIn 0.3s ease-out', lineHeight: '1.45'
+        }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+            <polyline points="20,6 9,17 4,12" />
+          </svg>
           {toastMsg}
         </div>
       )}
