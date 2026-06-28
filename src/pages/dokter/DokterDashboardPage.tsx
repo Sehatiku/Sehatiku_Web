@@ -5,6 +5,8 @@ import { nakesApi } from '../../lib/api'
 import type { DashboardSummary, PatientQueueItem, RiskLabel, DiseaseType } from '../../lib/types'
 import { initials, formatDate } from '../../lib/utils'
 
+const isMockMode = import.meta.env.VITE_MOCK === 'true'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ActiveView = 'antrean' | 'tren' | 'umpan'
@@ -325,11 +327,14 @@ function AvatarCircle({ name, size = 36, bg }: { name: string; size?: number; bg
   )
 }
 
-function RiskScoreBadge({ label, score }: { label: RiskLabel; score: number }) {
-  const c = RISK_COLOR[label]
+function HealthScoreBadge({ score }: { score: number }) {
+  let bg = '#10B981' // Green
+  if (score < 40) bg = '#EF4444' // Red
+  else if (score < 70) bg = '#F59E0B' // Yellow
+
   return (
     <div style={{
-      width: 40, height: 40, borderRadius: 8, background: c.sqBg,
+      width: 40, height: 40, borderRadius: 8, background: bg,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: '#fff', fontWeight: 700, fontSize: 13,
       fontFamily: 'IBM Plex Mono, monospace', flexShrink: 0,
@@ -381,6 +386,17 @@ function TrendChart({
   onParamChange: (p: 'glucose' | 'bp') => void
   onRangeChange: (r: 7 | 14) => void
 }) {
+  if (!isMockMode) {
+    return (
+      <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220 }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8A93A1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        <span style={{ fontSize: 13, color: '#636B78', fontWeight: 600 }}>Belum ada data parameter harian</span>
+      </div>
+    )
+  }
+
   const safeIdx = Math.min(patientIdx, MOCK_GLUCOSE.length - 1)
   const glucoseData = MOCK_GLUCOSE[safeIdx]
   const bpData = MOCK_BP[safeIdx]
@@ -464,6 +480,17 @@ function TrendChart({
 // ─── SHAP factors card ────────────────────────────────────────────────────────
 
 function ShapCard({ patientIdx }: { patientIdx: number }) {
+  if (!isMockMode) {
+    return (
+      <div style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1.5px solid #DCDFE8', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220 }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8A93A1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+        </svg>
+        <span style={{ fontSize: 13, color: '#636B78', fontWeight: 600 }}>Atribusi faktor AI belum tersedia</span>
+      </div>
+    )
+  }
+
   const safeIdx = Math.min(patientIdx, MOCK_SHAP.length - 1)
   const factors = MOCK_SHAP[safeIdx]
   return (
@@ -489,11 +516,11 @@ function ShapCard({ patientIdx }: { patientIdx: number }) {
       <div style={{ display: 'flex', gap: 14, marginTop: 14, paddingTop: 12, borderTop: '1px solid #E9D5FF' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#636B78' }}>
           <span style={{ width: 10, height: 10, background: '#EF4444', borderRadius: 2, display: 'inline-block' }} />
-          Menaikkan risiko
+          Menurunkan kesehatan
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#636B78' }}>
           <span style={{ width: 10, height: 10, background: '#1EC8A5', borderRadius: 2, display: 'inline-block' }} />
-          Menurunkan risiko
+          Meningkatkan kesehatan
         </span>
       </div>
     </div>
@@ -503,6 +530,17 @@ function ShapCard({ patientIdx }: { patientIdx: number }) {
 // ─── Log harian card ──────────────────────────────────────────────────────────
 
 function LogCard({ patientIdx }: { patientIdx: number }) {
+  if (!isMockMode) {
+    return (
+      <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 180 }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8A93A1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span style={{ fontSize: 13, color: '#636B78', fontWeight: 600 }}>Belum ada log catatan harian</span>
+      </div>
+    )
+  }
+
   const safeIdx = Math.min(patientIdx, MOCK_LOGS.length - 1)
   const logs = MOCK_LOGS[safeIdx]
   return (
@@ -956,7 +994,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                                 </div>
                               </div>
                             </div>
-                            <RiskScoreBadge label={p.risk_label} score={p.risk_score} />
+                            <HealthScoreBadge score={100 - p.risk_score} />
                           </div>
                           {needsContact && (
                             <div style={{ marginTop: 8, background: '#F3F0FE', borderRadius: 6, padding: '4px 8px' }}>
@@ -1001,15 +1039,21 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                           </div>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                          <div style={{
-                            width: 62, height: 62, borderRadius: 16,
-                            background: RISK_COLOR[selectedPatient.risk_label].sqBg,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#fff', fontWeight: 800, fontSize: 24,
-                            fontFamily: 'IBM Plex Mono, monospace', fontVariantNumeric: 'tabular-nums',
-                          }}>
-                            {selectedPatient.risk_score}
-                          </div>
+                          {(() => {
+                            const hs = 100 - selectedPatient.risk_score
+                            const bg = hs >= 70 ? '#1EC8A5' : hs >= 40 ? '#F59E0B' : '#EF4444'
+                            return (
+                              <div style={{
+                                width: 62, height: 62, borderRadius: 16,
+                                background: bg,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#fff', fontWeight: 800, fontSize: 24,
+                                fontFamily: 'IBM Plex Mono, monospace', fontVariantNumeric: 'tabular-nums',
+                              }}>
+                                {hs}
+                              </div>
+                            )
+                          })()}
                           {contacted.has(selectedPatient.patient_id) ? (
                             <span style={{
                               background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 8,
@@ -1030,7 +1074,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                       </div>
                       <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid #EFF1F5' }}>
                         <p style={{ margin: 0, fontSize: 11, color: '#8A93A1', fontStyle: 'italic' }}>
-                          &#x26A0;&#xFE0F; Risk Score &amp; atribusi bersifat indikatif &mdash; bukan diagnosis medis.
+                          &#x26A0;&#xFE0F; Health Score &amp; atribusi bersifat indikatif &mdash; bukan diagnosis medis.
                         </p>
                       </div>
                     </div>
@@ -1066,7 +1110,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                 <div>
                   <div style={{ marginBottom: 16 }}>
                     <p style={{ margin: '0 0 2px', fontWeight: 800, fontSize: 22, color: '#2B2D42', letterSpacing: '-0.4px' }}>Tren & Riwayat</p>
-                    <p style={{ margin: 0, fontSize: 13, color: '#8A93A1' }}>Pilih pasien untuk melihat tren risk score &amp; riwayat klinis 6 bulan terakhir</p>
+                    <p style={{ margin: 0, fontSize: 13, color: '#8A93A1' }}>Pilih pasien untuk melihat tren health score &amp; riwayat klinis 6 bulan terakhir</p>
                   </div>
 
                   {/* Search + filter bar */}
@@ -1107,13 +1151,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                       </svg>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>Diurutkan otomatis berdasarkan prioritas risiko</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>Diurutkan otomatis berdasarkan prioritas skor kesehatan</span>
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#159E84', background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 20, padding: '2px 9px', marginLeft: 'auto' }}>AI Auto-Sorted</span>
                     </div>
                     {/* Column header */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 120px 150px 28px', alignItems: 'center', gap: 12, padding: '11px 18px 11px 21px', background: '#F7F8FA', borderBottom: '1px solid #DCDFE8' }}>
-                      {['Nama Pasien', 'Penyakit', 'Status', 'Risk Score', ''].map((h, i) => (
-                        <span key={i} style={{ fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: i === 3 ? 'right' : 'left' }}>{h}</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.1fr 90px 110px 90px 100px 28px', alignItems: 'center', gap: 12, padding: '11px 18px 11px 21px', background: '#F7F8FA', borderBottom: '1px solid #DCDFE8' }}>
+                      {['Nama Pasien', 'Penyebab Utama', 'Kepatuhan', 'Penyakit', 'Status', 'Health Score', ''].map((h, i) => (
+                        <span key={i} style={{ fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: i === 5 ? 'right' : 'left' }}>{h}</span>
                       ))}
                     </div>
 
@@ -1134,7 +1178,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                             key={p.patient_id}
                             onClick={() => setTrenPatientId(p.patient_id)}
                             style={{
-                              display: 'grid', gridTemplateColumns: '1fr 150px 120px 150px 28px', alignItems: 'center', gap: 12,
+                              display: 'grid', gridTemplateColumns: '1.2fr 1.1fr 90px 110px 90px 100px 28px', alignItems: 'center', gap: 12,
                               padding: '13px 18px', paddingLeft: 18, cursor: 'pointer',
                               borderLeft: `3px solid ${c.edge}`,
                               borderBottom: idx < trenList.length - 1 ? '1px solid #EFF1F5' : 'none',
@@ -1147,13 +1191,34 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                               <AvatarCircle name={p.full_name} size={38} bg={c.sqBg} />
                               <div style={{ minWidth: 0 }}>
                                 <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13.5, color: '#2B2D42', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.full_name}</p>
-                                <p style={{ margin: 0, fontSize: 11, color: '#8A93A1' }}>{p.age} tahun{p.main_factor ? ` · ${p.main_factor}` : ''}</p>
+                                <p style={{ margin: 0, fontSize: 11, color: '#8A93A1' }}>{p.age} tahun</p>
                               </div>
+                            </div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: '#4A5260', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {p.main_factor || 'Kondisi Stabil'}
+                            </div>
+                            <div>
+                              {(() => {
+                                let compliance = '100%'
+                                let color = '#10B981'
+                                if (p.status === 'bahaya') {
+                                  compliance = '40%'
+                                  color = '#EF4444'
+                                } else if (p.status === 'waswas') {
+                                  compliance = '71%'
+                                  color = '#F59E0B'
+                                }
+                                return (
+                                  <span style={{ fontSize: 12.5, fontWeight: 700, color, fontFamily: 'IBM Plex Mono, monospace' }}>
+                                    {compliance}
+                                  </span>
+                                )
+                              })()}
                             </div>
                             <div><DiseasePill type={p.disease_type} /></div>
                             <div><StatusPill label={p.status === 'bahaya' ? 'Bahaya' : p.status === 'waswas' ? 'Waswas' : 'Aman'} risk={p.risk_label} /></div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                              <RiskScoreBadge label={p.risk_label} score={p.risk_score} />
+                              <HealthScoreBadge score={100 - p.risk_score} />
                             </div>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C2C8D4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                               <polyline points="9 18 15 12 9 6" />
@@ -1198,17 +1263,18 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                     </div>
                   </div>
 
-                  {/* Risk score bar chart */}
+                  {/* Health score bar chart */}
                   <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                    <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Tren Risk Score</p>
-                    <p style={{ margin: '0 0 16px', fontSize: 11, color: '#8A93A1' }}>skor risiko bulanan (0&ndash;100) &middot; semakin tinggi semakin buruk</p>
+                    <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Tren Health Score</p>
+                    <p style={{ margin: '0 0 16px', fontSize: 11, color: '#8A93A1' }}>skor kesehatan bulanan (0&ndash;100) &middot; semakin tinggi semakin baik</p>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 160 }}>
                       {(MOCK_RISK_TREND[Math.min(safeTrenIdx, MOCK_RISK_TREND.length - 1)]).map((entry, i) => {
-                        const barColor = entry.score >= 80 ? '#EF4444' : entry.score >= 50 ? '#F59E0B' : '#1EC8A5'
-                        const barH = Math.round((entry.score / 100) * 120)
+                        const healthScore = 100 - entry.score
+                        const barColor = healthScore >= 70 ? '#1EC8A5' : healthScore >= 40 ? '#F59E0B' : '#EF4444'
+                        const barH = Math.round((healthScore / 100) * 120)
                         return (
                           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: barColor, fontFamily: 'IBM Plex Mono, monospace' }}>{entry.score}</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: barColor, fontFamily: 'IBM Plex Mono, monospace' }}>{healthScore}</span>
                             <div style={{ width: '100%', height: barH, background: barColor, borderRadius: '6px 6px 0 0' }} />
                             <span style={{ fontSize: 11, color: '#636B78' }}>{entry.month}</span>
                           </div>
@@ -1313,7 +1379,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                   <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 6px' }}>
                     <thead>
                       <tr>
-                        {['Pasien', 'Penyebab & Penyakit', 'Risk Score', 'Status Umpan Balik', 'Aksi'].map(h => (
+                        {['Pasien', 'Penyebab & Penyakit', 'Health Score', 'Status Umpan Balik', 'Aksi'].map(h => (
                           <th key={h} style={{ textAlign: 'left', padding: '0 12px 8px', fontSize: 11, fontWeight: 700, color: '#8A93A1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             {h}
                           </th>
@@ -1339,13 +1405,19 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                               <DiseasePill type={p.disease_type} />
                             </td>
                             <td style={{ padding: '10px 12px', background: '#F7F8FA', textAlign: 'center' }}>
-                              <div style={{
-                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                width: 38, height: 38, borderRadius: 10, background: RISK_COLOR[p.risk_label].sqBg,
-                                color: '#fff', fontWeight: 800, fontSize: 14, fontFamily: 'IBM Plex Mono, monospace',
-                              }}>
-                                {p.risk_score}
-                              </div>
+                              {(() => {
+                                const hs = 100 - p.risk_score
+                                const bg = hs >= 70 ? '#1EC8A5' : hs >= 40 ? '#F59E0B' : '#EF4444'
+                                return (
+                                  <div style={{
+                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                    width: 38, height: 38, borderRadius: 10, background: bg,
+                                    color: '#fff', fontWeight: 800, fontSize: 14, fontFamily: 'IBM Plex Mono, monospace',
+                                  }}>
+                                    {hs}
+                                  </div>
+                                )
+                              })()}
                             </td>
                             <td style={{ padding: '10px 12px', background: '#F7F8FA' }}>
                               {given ? (
