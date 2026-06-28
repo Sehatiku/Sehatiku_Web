@@ -39,6 +39,9 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
   // Login fields
   const [username, setUsername] = useState('')
   const [pass, setPass] = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [showRegPass, setShowRegPass] = useState(false)
+  const [showRegPass2, setShowRegPass2] = useState(false)
   const [loginLoading, setLoginLoading] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
@@ -114,6 +117,34 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
       e.target.style.boxShadow = 'none'
     },
   }
+
+  const EyeButton = ({ shown, onToggle }: { shown: boolean; onToggle: () => void }) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      tabIndex={-1}
+      aria-label={shown ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+      style={{
+        position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+        background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex',
+        alignItems: 'center', justifyContent: 'center', color: '#8A93A1',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.color = focusColor)}
+      onMouseLeave={e => (e.currentTarget.style.color = '#8A93A1')}
+    >
+      {shown ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+          <line x1="1" y1="1" x2="23" y2="23" />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      )}
+    </button>
+  )
 
   // Left panel content
   const panelTitle = isRegister
@@ -547,9 +578,12 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                       </div>
                       <div>
                         <label style={labelStyle}>Password</label>
-                        <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)}
-                          placeholder="Min. 8 karakter" style={inputStyle} {...focusHandlers}
-                          autoComplete="new-password" />
+                        <div style={{ position: 'relative' }}>
+                          <input type={showRegPass ? 'text' : 'password'} value={regPassword} onChange={e => setRegPassword(e.target.value)}
+                            placeholder="Min. 8 karakter" style={{ ...inputStyle, paddingRight: 42 }} {...focusHandlers}
+                            autoComplete="new-password" />
+                          <EyeButton shown={showRegPass} onToggle={() => setShowRegPass(v => !v)} />
+                        </div>
                         {/* Password strength bar */}
                         {pwStrength && (
                           <div style={{ marginTop: 7 }}>
@@ -564,12 +598,15 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                       </div>
                       <div>
                         <label style={labelStyle}>Konfirmasi Password</label>
-                        <input type="password" value={regPasswordConfirm} onChange={e => setRegPasswordConfirm(e.target.value)}
-                          placeholder="Ulangi password" style={{
-                            ...inputStyle,
-                            borderColor: regPasswordConfirm && regPassword !== regPasswordConfirm ? '#FCA5A5' : '#E2EAF2',
-                          }} {...focusHandlers}
-                          autoComplete="new-password" />
+                        <div style={{ position: 'relative' }}>
+                          <input type={showRegPass2 ? 'text' : 'password'} value={regPasswordConfirm} onChange={e => setRegPasswordConfirm(e.target.value)}
+                            placeholder="Ulangi password" style={{
+                              ...inputStyle, paddingRight: 42,
+                              borderColor: regPasswordConfirm && regPassword !== regPasswordConfirm ? '#FCA5A5' : '#E2EAF2',
+                            }} {...focusHandlers}
+                            autoComplete="new-password" />
+                          <EyeButton shown={showRegPass2} onToggle={() => setShowRegPass2(v => !v)} />
+                        </div>
                         {regPasswordConfirm && regPassword !== regPasswordConfirm && (
                           <div style={{ fontSize: 11, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><line x1="8" y1="8" x2="16" y2="16" /><line x1="16" y1="8" x2="8" y2="16" /></svg>
@@ -720,13 +757,16 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                 </div>
                 <div>
                   <label style={labelStyle}>Kata Sandi</label>
-                  <input
-                    type="password" value={pass} onChange={e => setPass(e.target.value)}
-                    placeholder="••••••••"
-                    autoComplete="current-password"
-                    style={inputStyle} {...focusHandlers}
-                    onKeyDown={e => { if (e.key === 'Enter') handleLogin() }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPass ? 'text' : 'password'} value={pass} onChange={e => setPass(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      style={{ ...inputStyle, paddingRight: 42 }} {...focusHandlers}
+                      onKeyDown={e => { if (e.key === 'Enter') handleLogin() }}
+                    />
+                    <EyeButton shown={showPass} onToggle={() => setShowPass(v => !v)} />
+                  </div>
                 </div>
               </div>
 

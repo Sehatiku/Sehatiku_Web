@@ -15,7 +15,7 @@ type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 const RISK_COLOR: Record<RiskLabel, { text: string; bg: string; border: string; edge: string; sqBg: string }> = {
   kritis: { text: '#DC2626', bg: '#FEF2F2', border: '#FECACA', edge: '#EF4444', sqBg: '#EF4444' },
   sedang: { text: '#D97706', bg: '#FFFBEB', border: '#FDE68A', edge: '#F59E0B', sqBg: '#F59E0B' },
-  rendah: { text: '#059669', bg: '#F0FDF4', border: '#A7F3D0', edge: '#00B894', sqBg: '#00B894' },
+  rendah: { text: '#059669', bg: '#F0FDF4', border: '#A7F3D0', edge: '#1EC8A5', sqBg: '#1EC8A5' },
 }
 
 const DISEASE_LABEL: Record<DiseaseType, string> = {
@@ -25,7 +25,7 @@ const DISEASE_LABEL: Record<DiseaseType, string> = {
 }
 
 const DISEASE_COLOR: Record<DiseaseType, { text: string; bg: string }> = {
-  diabetes_t2: { text: '#7C3AED', bg: '#F5F3FF' },
+  diabetes_t2: { text: '#7C5CFC', bg: '#F3F0FE' },
   hypertension: { text: '#0369A1', bg: '#F0F9FF' },
   both: { text: '#9A3412', bg: '#FFF7ED' },
 }
@@ -111,7 +111,7 @@ const MOCK_SHAP: ShapFactor[][] = [
     { label: 'HbA1c', valText: '10.2%', color: '#EF4444', barWidth: '88%', barBg: '#EF4444', note: '> 7% — zona kritis, +2.4 poin risiko' },
     { label: 'Kepatuhan Obat', valText: '40%', color: '#EF4444', barWidth: '72%', barBg: '#EF4444', note: 'Hanya 2–3 dari 7 hari — dampak besar' },
     { label: 'Gula Darah Puasa', valText: '215 mg/dL', color: '#EF4444', barWidth: '65%', barBg: '#EF4444', note: 'Normal < 100 mg/dL' },
-    { label: 'Aktivitas Fisik', valText: '1 hari/minggu', color: '#00B894', barWidth: '45%', barBg: '#00B894', note: 'Menurunkan risiko +0.8 poin' },
+    { label: 'Aktivitas Fisik', valText: '1 hari/minggu', color: '#1EC8A5', barWidth: '45%', barBg: '#1EC8A5', note: 'Menurunkan risiko +0.8 poin' },
     { label: 'BMI', valText: '29.4', color: '#F59E0B', barWidth: '35%', barBg: '#F59E0B', note: 'Overweight — kontribusi sedang' },
   ],
   [
@@ -125,60 +125,60 @@ const MOCK_SHAP: ShapFactor[][] = [
     { label: 'Gula Darah 2j pp', valText: '185 mg/dL', color: '#F59E0B', barWidth: '68%', barBg: '#F59E0B', note: 'Di atas target (< 140 mg/dL)' },
     { label: 'Tidur', valText: '5 jam', color: '#F59E0B', barWidth: '52%', barBg: '#F59E0B', note: 'Kurang tidur — pengaruhi gula darah' },
     { label: 'Kepatuhan Obat', valText: '71%', color: '#F59E0B', barWidth: '42%', barBg: '#F59E0B', note: '5 dari 7 hari — perlu ditingkatkan' },
-    { label: 'Aktivitas Fisik', valText: '3 hari/minggu', color: '#00B894', barWidth: '55%', barBg: '#00B894', note: 'Cukup baik, pertahankan' },
+    { label: 'Aktivitas Fisik', valText: '3 hari/minggu', color: '#1EC8A5', barWidth: '55%', barBg: '#1EC8A5', note: 'Cukup baik, pertahankan' },
     { label: 'BMI', valText: '26.1', color: '#F59E0B', barWidth: '28%', barBg: '#F59E0B', note: 'Overweight ringan' },
   ],
   [
     { label: 'Tensi Sistolik', valText: '148 mmHg', color: '#F59E0B', barWidth: '62%', barBg: '#F59E0B', note: 'Stage 2 hipertensi (130-139)' },
     { label: 'Kepatuhan Obat', valText: '57%', color: '#EF4444', barWidth: '55%', barBg: '#EF4444', note: 'Hanya 4 dari 7 hari — risiko rebound' },
     { label: 'Gula Darah', valText: '138 mg/dL', color: '#F59E0B', barWidth: '45%', barBg: '#F59E0B', note: 'Mendekati batas atas (< 140)' },
-    { label: 'Makan Sehat', valText: '43%', color: '#00B894', barWidth: '38%', barBg: '#00B894', note: 'Ada peningkatan dari minggu lalu' },
-    { label: 'Olahraga', valText: '2 hari/minggu', color: '#00B894', barWidth: '32%', barBg: '#00B894', note: 'Setara 60 menit — efek positif' },
+    { label: 'Makan Sehat', valText: '43%', color: '#1EC8A5', barWidth: '38%', barBg: '#1EC8A5', note: 'Ada peningkatan dari minggu lalu' },
+    { label: 'Olahraga', valText: '2 hari/minggu', color: '#1EC8A5', barWidth: '32%', barBg: '#1EC8A5', note: 'Setara 60 menit — efek positif' },
   ],
   [
-    { label: 'Tensi Sistolik', valText: '124 mmHg', color: '#00B894', barWidth: '82%', barBg: '#00B894', note: 'Dalam target — sangat baik' },
-    { label: 'Kepatuhan Obat', valText: '100%', color: '#00B894', barWidth: '95%', barBg: '#00B894', note: 'Sempurna 7/7 hari' },
-    { label: 'Aktivitas Fisik', valText: '5 hari/minggu', color: '#00B894', barWidth: '78%', barBg: '#00B894', note: 'Excellent — menurunkan risiko -2.1 poin' },
-    { label: 'BMI', valText: '22.8', color: '#00B894', barWidth: '60%', barBg: '#00B894', note: 'Normal — berdampak positif' },
-    { label: 'Gula Darah', valText: '92 mg/dL', color: '#00B894', barWidth: '45%', barBg: '#00B894', note: 'Di bawah 100 — sangat baik' },
+    { label: 'Tensi Sistolik', valText: '124 mmHg', color: '#1EC8A5', barWidth: '82%', barBg: '#1EC8A5', note: 'Dalam target — sangat baik' },
+    { label: 'Kepatuhan Obat', valText: '100%', color: '#1EC8A5', barWidth: '95%', barBg: '#1EC8A5', note: 'Sempurna 7/7 hari' },
+    { label: 'Aktivitas Fisik', valText: '5 hari/minggu', color: '#1EC8A5', barWidth: '78%', barBg: '#1EC8A5', note: 'Excellent — menurunkan risiko -2.1 poin' },
+    { label: 'BMI', valText: '22.8', color: '#1EC8A5', barWidth: '60%', barBg: '#1EC8A5', note: 'Normal — berdampak positif' },
+    { label: 'Gula Darah', valText: '92 mg/dL', color: '#1EC8A5', barWidth: '45%', barBg: '#1EC8A5', note: 'Di bawah 100 — sangat baik' },
   ],
 ]
 
 const MOCK_LOGS: LogEntry[][] = [
   [
-    { time: '07:12', dot: '#00B894', text: 'Obat pagi diminum ✓', detail: 'Metformin 500mg + Glibenklamid — kepatuhan tercatat' },
+    { time: '07:12', dot: '#1EC8A5', text: 'Obat pagi diminum ✓', detail: 'Metformin 500mg + Glibenklamid — kepatuhan tercatat' },
     { time: '08:30', dot: '#EF4444', text: 'Gula Darah Puasa: 215 mg/dL', detail: 'Di atas target (<100 mg/dL) — sudah dinotif via WA' },
     { time: '12:45', dot: '#F59E0B', text: 'Makan siang — kurang sehat', detail: 'Nasi putih + goreng-gorengan, tidak ada sayur' },
-    { time: '16:00', dot: '#94A3B8', text: 'Tidak ada aktivitas fisik hari ini', detail: 'Target: minimal 30 menit jalan kaki' },
-    { time: '21:30', dot: '#00B894', text: 'Obat malam diminum ✓', detail: 'Metformin 500mg — tercatat' },
+    { time: '16:00', dot: '#8A93A1', text: 'Tidak ada aktivitas fisik hari ini', detail: 'Target: minimal 30 menit jalan kaki' },
+    { time: '21:30', dot: '#1EC8A5', text: 'Obat malam diminum ✓', detail: 'Metformin 500mg — tercatat' },
   ],
   [
     { time: '06:45', dot: '#EF4444', text: 'Tensi Pagi: 178/105 mmHg', detail: 'Sangat tinggi — eskalasi otomatis terkirim' },
-    { time: '07:00', dot: '#94A3B8', text: 'Obat pagi — terlewat', detail: 'Amlodipine 5mg tidak diminum hari ini' },
+    { time: '07:00', dot: '#8A93A1', text: 'Obat pagi — terlewat', detail: 'Amlodipine 5mg tidak diminum hari ini' },
     { time: '13:00', dot: '#F59E0B', text: 'Makan siang dengan garam tinggi', detail: 'Ikan asin + mie instan — asupan natrium berlebih' },
     { time: '19:00', dot: '#EF4444', text: 'Tensi Malam: 182/112 mmHg', detail: 'Meningkat — perlu tindak lanjut dokter' },
-    { time: '22:00', dot: '#94A3B8', text: 'Tidur 04.30 jam', detail: 'Kurang tidur kronis — memperparah hipertensi' },
+    { time: '22:00', dot: '#8A93A1', text: 'Tidur 04.30 jam', detail: 'Kurang tidur kronis — memperparah hipertensi' },
   ],
   [
-    { time: '07:20', dot: '#00B894', text: 'Obat pagi diminum ✓', detail: 'Metformin 500mg — kepatuhan baik' },
+    { time: '07:20', dot: '#1EC8A5', text: 'Obat pagi diminum ✓', detail: 'Metformin 500mg — kepatuhan baik' },
     { time: '09:00', dot: '#F59E0B', text: 'Gula 2 jam pp: 185 mg/dL', detail: 'Sedikit di atas target (< 140 mg/dL)' },
-    { time: '12:00', dot: '#00B894', text: 'Makan siang — cukup sehat', detail: 'Nasi merah + sayur + ikan — pilihan yang baik' },
-    { time: '16:00', dot: '#00B894', text: 'Jalan kaki 30 menit ✓', detail: 'Aktivitas konsisten hari ke-3' },
+    { time: '12:00', dot: '#1EC8A5', text: 'Makan siang — cukup sehat', detail: 'Nasi merah + sayur + ikan — pilihan yang baik' },
+    { time: '16:00', dot: '#1EC8A5', text: 'Jalan kaki 30 menit ✓', detail: 'Aktivitas konsisten hari ke-3' },
     { time: '22:00', dot: '#F59E0B', text: 'Tidur 05:00 jam', detail: 'Masih kurang — target 7 jam/hari' },
   ],
   [
     { time: '07:30', dot: '#F59E0B', text: 'Obat pagi — terlewat sekali', detail: 'Amlodipine + Metformin — hanya 1 yang diminum' },
     { time: '10:00', dot: '#F59E0B', text: 'Tensi: 148/92 mmHg', detail: 'Di atas normal — monitoring lanjut' },
-    { time: '12:30', dot: '#00B894', text: 'Makan siang — sehat', detail: 'Sayur bening + tempe bakar + buah' },
-    { time: '15:00', dot: '#00B894', text: 'Olahraga ringan 20 menit', detail: 'Senam lansia — rutin 2x seminggu' },
-    { time: '21:00', dot: '#00B894', text: 'Obat malam diminum ✓', detail: 'Metformin 500mg tercatat' },
+    { time: '12:30', dot: '#1EC8A5', text: 'Makan siang — sehat', detail: 'Sayur bening + tempe bakar + buah' },
+    { time: '15:00', dot: '#1EC8A5', text: 'Olahraga ringan 20 menit', detail: 'Senam lansia — rutin 2x seminggu' },
+    { time: '21:00', dot: '#1EC8A5', text: 'Obat malam diminum ✓', detail: 'Metformin 500mg tercatat' },
   ],
   [
-    { time: '06:30', dot: '#00B894', text: 'Obat pagi diminum ✓', detail: 'Amlodipine 5mg — konsisten 7 hari' },
-    { time: '07:00', dot: '#00B894', text: 'Tensi Pagi: 124/78 mmHg', detail: 'Dalam rentang target — excellent' },
-    { time: '08:00', dot: '#00B894', text: 'Jogging 40 menit ✓', detail: 'Konsisten 5 hari/minggu — dampak sangat positif' },
-    { time: '12:30', dot: '#00B894', text: 'Makan siang — sangat sehat', detail: 'Nasi merah + sayur hijau + ikan kukus' },
-    { time: '21:30', dot: '#00B894', text: 'Semua parameter hari ini ✓', detail: 'Skor diperkirakan membaik besok' },
+    { time: '06:30', dot: '#1EC8A5', text: 'Obat pagi diminum ✓', detail: 'Amlodipine 5mg — konsisten 7 hari' },
+    { time: '07:00', dot: '#1EC8A5', text: 'Tensi Pagi: 124/78 mmHg', detail: 'Dalam rentang target — excellent' },
+    { time: '08:00', dot: '#1EC8A5', text: 'Jogging 40 menit ✓', detail: 'Konsisten 5 hari/minggu — dampak sangat positif' },
+    { time: '12:30', dot: '#1EC8A5', text: 'Makan siang — sangat sehat', detail: 'Nasi merah + sayur hijau + ikan kukus' },
+    { time: '21:30', dot: '#1EC8A5', text: 'Semua parameter hari ini ✓', detail: 'Skor diperkirakan membaik besok' },
   ],
 ]
 
@@ -211,13 +211,13 @@ const MOCK_METRICS: MockMetricSet[] = [
     metrics: [
       { label: 'HbA1c', value: '10.2', unit: '%', arrow: '↑', deltaTxt: '+1.8%', trendBg: '#FEF2F2', trendColor: '#EF4444' },
       { label: 'Gula Puasa', value: '215', unit: 'mg/dL', arrow: '↑', deltaTxt: '+45', trendBg: '#FEF2F2', trendColor: '#EF4444' },
-      { label: 'BMI', value: '29.4', unit: 'kg/m²', arrow: '→', deltaTxt: 'Stabil', trendBg: '#F8FAFC', trendColor: '#64748B' },
+      { label: 'BMI', value: '29.4', unit: 'kg/m²', arrow: '→', deltaTxt: 'Stabil', trendBg: '#F7F8FA', trendColor: '#636B78' },
       { label: 'Tekanan Darah', value: '155/98', unit: 'mmHg', arrow: '↑', deltaTxt: '+10', trendBg: '#FEF2F2', trendColor: '#EF4444' },
     ],
     timeline: [
       { color: '#EF4444', date: '10 Jun 2026', title: 'Eskalasi — HbA1c Kritis', note: 'HbA1c 10.2%, gula puasa 215 mg/dL. Pasien dihubungi oleh dr. Ahmad.' },
       { color: '#F59E0B', date: '15 Mei 2026', title: 'Evaluasi Bulanan', note: 'Skor meningkat dari 78 → 85. Kepatuhan obat turun ke 40%.' },
-      { color: '#94A3B8', date: '01 Apr 2026', title: 'Konsultasi Rutin', note: 'Tensi dalam batas normal, namun gula darah masih perlu dipantau.' },
+      { color: '#8A93A1', date: '01 Apr 2026', title: 'Konsultasi Rutin', note: 'Tensi dalam batas normal, namun gula darah masih perlu dipantau.' },
     ],
     deltaColor: '#EF4444', delta: '+37', deltaLabel: '↑ memburuk',
   },
@@ -226,7 +226,7 @@ const MOCK_METRICS: MockMetricSet[] = [
       { label: 'Tensi Sistolik', value: '178', unit: 'mmHg', arrow: '↑', deltaTxt: '+28', trendBg: '#FEF2F2', trendColor: '#EF4444' },
       { label: 'Tensi Diastolik', value: '112', unit: 'mmHg', arrow: '↑', deltaTxt: '+18', trendBg: '#FEF2F2', trendColor: '#EF4444' },
       { label: 'Natrium Urin', value: 'Tinggi', unit: '', arrow: '↑', deltaTxt: 'Naik', trendBg: '#FEF2F2', trendColor: '#EF4444' },
-      { label: 'BMI', value: '28.1', unit: 'kg/m²', arrow: '→', deltaTxt: 'Stabil', trendBg: '#F8FAFC', trendColor: '#64748B' },
+      { label: 'BMI', value: '28.1', unit: 'kg/m²', arrow: '→', deltaTxt: 'Stabil', trendBg: '#F7F8FA', trendColor: '#636B78' },
     ],
     timeline: [
       { color: '#EF4444', date: '11 Jun 2026', title: 'Eskalasi Krisis Hipertensi', note: 'Tensi 182/112 mmHg — sudah dihubungi. Disarankan ke IGD jika tidak turun.' },
@@ -240,12 +240,12 @@ const MOCK_METRICS: MockMetricSet[] = [
       { label: 'Gula 2j pp', value: '185', unit: 'mg/dL', arrow: '↑', deltaTxt: '+25', trendBg: '#FFF9F0', trendColor: '#D97706' },
       { label: 'HbA1c', value: '7.8', unit: '%', arrow: '↑', deltaTxt: '+0.6%', trendBg: '#FFF9F0', trendColor: '#D97706' },
       { label: 'Tidur', value: '5', unit: 'jam/hr', arrow: '↓', deltaTxt: '-1.5j', trendBg: '#FFF9F0', trendColor: '#D97706' },
-      { label: 'BMI', value: '26.1', unit: 'kg/m²', arrow: '→', deltaTxt: 'Stabil', trendBg: '#F8FAFC', trendColor: '#64748B' },
+      { label: 'BMI', value: '26.1', unit: 'kg/m²', arrow: '→', deltaTxt: 'Stabil', trendBg: '#F7F8FA', trendColor: '#636B78' },
     ],
     timeline: [
       { color: '#F59E0B', date: '09 Jun 2026', title: 'Monitoring Rutin', note: 'Gula 2j pp 185 mg/dL, masih di atas target. Tidur hanya 5 jam.' },
-      { color: '#94A3B8', date: '12 Mei 2026', title: 'Evaluasi Bulanan', note: 'Skor 50 → 55, sedikit memburuk. Disarankan perbaiki pola tidur.' },
-      { color: '#00B894', date: '01 Apr 2026', title: 'Perbaikan Aktivitas', note: 'Pasien mulai rutin olahraga 3x/minggu. Apresiasi diberikan.' },
+      { color: '#8A93A1', date: '12 Mei 2026', title: 'Evaluasi Bulanan', note: 'Skor 50 → 55, sedikit memburuk. Disarankan perbaiki pola tidur.' },
+      { color: '#1EC8A5', date: '01 Apr 2026', title: 'Perbaikan Aktivitas', note: 'Pasien mulai rutin olahraga 3x/minggu. Apresiasi diberikan.' },
     ],
     deltaColor: '#D97706', delta: '+7', deltaLabel: '↑ sedikit memburuk',
   },
@@ -257,9 +257,9 @@ const MOCK_METRICS: MockMetricSet[] = [
       { label: 'BMI', value: '27.3', unit: 'kg/m²', arrow: '↓', deltaTxt: '-0.4', trendBg: '#F0FDF4', trendColor: '#059669' },
     ],
     timeline: [
-      { color: '#00B894', date: '08 Jun 2026', title: 'Tren Membaik', note: 'Skor turun 50 → 48. Kepatuhan obat naik ke 57%, terus membaik.' },
+      { color: '#1EC8A5', date: '08 Jun 2026', title: 'Tren Membaik', note: 'Skor turun 50 → 48. Kepatuhan obat naik ke 57%, terus membaik.' },
       { color: '#F59E0B', date: '15 Mei 2026', title: 'Monitoring DM+HT', note: 'Kedua kondisi perlu dikontrol. Kombinasi terapi sedang dievaluasi.' },
-      { color: '#94A3B8', date: '01 Apr 2026', title: 'Konsultasi Nutrisi', note: 'Diet rendah garam dan rendah GI dimulai. Dampak positif terlihat.' },
+      { color: '#8A93A1', date: '01 Apr 2026', title: 'Konsultasi Nutrisi', note: 'Diet rendah garam dan rendah GI dimulai. Dampak positif terlihat.' },
     ],
     deltaColor: '#059669', delta: '-12', deltaLabel: '↓ membaik',
   },
@@ -271,9 +271,9 @@ const MOCK_METRICS: MockMetricSet[] = [
       { label: 'Aktivitas Fisik', value: '5', unit: 'hari/minggu', arrow: '↑', deltaTxt: '+2 hari', trendBg: '#F0FDF4', trendColor: '#059669' },
     ],
     timeline: [
-      { color: '#00B894', date: '10 Jun 2026', title: 'Status Terkontrol', note: 'Semua parameter dalam target. Tensi 124/78, gula 92. Pasien sangat kooperatif.' },
-      { color: '#00B894', date: '01 Mei 2026', title: 'Capaian Terapi', note: 'Skor turun 32 → 25. Salah satu pasien dengan progres terbaik bulan ini.' },
-      { color: '#00B894', date: '01 Mar 2026', title: 'Mulai Program Intensif', note: 'Pasien bergabung program olahraga dan diet khusus. Dampak langsung terlihat.' },
+      { color: '#1EC8A5', date: '10 Jun 2026', title: 'Status Terkontrol', note: 'Semua parameter dalam target. Tensi 124/78, gula 92. Pasien sangat kooperatif.' },
+      { color: '#1EC8A5', date: '01 Mei 2026', title: 'Capaian Terapi', note: 'Skor turun 32 → 25. Salah satu pasien dengan progres terbaik bulan ini.' },
+      { color: '#1EC8A5', date: '01 Mar 2026', title: 'Mulai Program Intensif', note: 'Pasien bergabung program olahraga dan diet khusus. Dampak langsung terlihat.' },
     ],
     deltaColor: '#059669', delta: '-7', deltaLabel: '↓ membaik',
   },
@@ -288,7 +288,7 @@ function ToastNotif({ msg, type, onClose }: { msg: string; type: 'ok' | 'err'; o
   return (
     <div style={{
       position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-      background: type === 'ok' ? '#00B894' : '#EF4444',
+      background: type === 'ok' ? '#1EC8A5' : '#EF4444',
       color: '#fff', padding: '10px 18px', borderRadius: 10,
       fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 14, fontWeight: 600,
       boxShadow: '0 4px 16px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', gap: 10,
@@ -396,12 +396,12 @@ function TrendChart({
   return (
     <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: '#1E293B' }}>Tren Parameter Harian</span>
+        <span style={{ fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Tren Parameter Harian</span>
         <div style={{ display: 'flex', gap: 6 }}>
           {(['glucose', 'bp'] as const).map(p => (
             <button key={p} onClick={() => onParamChange(p)} style={{
-              padding: '4px 11px', borderRadius: 8, border: `1.5px solid ${chartParam === p ? '#1565D8' : '#E2E8F0'}`,
-              background: chartParam === p ? '#EFF6FF' : '#fff', color: chartParam === p ? '#1565D8' : '#64748B',
+              padding: '4px 11px', borderRadius: 8, border: `1.5px solid ${chartParam === p ? '#5B6BF0' : '#DCDFE8'}`,
+              background: chartParam === p ? '#EEEFFE' : '#fff', color: chartParam === p ? '#5B6BF0' : '#636B78',
               fontSize: 12, fontWeight: 600, cursor: 'pointer',
             }}>
               {p === 'glucose' ? 'Gula Darah' : 'Tensi'}
@@ -415,14 +415,14 @@ function TrendChart({
           <span style={{ fontSize: 28, fontWeight: 700, color: isHigh ? '#EF4444' : '#059669', fontFamily: 'IBM Plex Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>
             {currentVal}
           </span>
-          <span style={{ fontSize: 13, color: '#64748B' }}>{unit}</span>
+          <span style={{ fontSize: 13, color: '#636B78' }}>{unit}</span>
           <StatusPill label={isHigh ? 'Di atas Normal' : 'Normal'} risk={isHigh ? 'kritis' : 'rendah'} />
         </div>
         <div style={{ display: 'flex', gap: 5 }}>
           {([7, 14] as const).map(r => (
             <button key={r} onClick={() => onRangeChange(r)} style={{
-              padding: '3px 10px', borderRadius: 7, border: `1.5px solid ${chartRange === r ? '#1565D8' : '#E2E8F0'}`,
-              background: chartRange === r ? '#EFF6FF' : '#fff', color: chartRange === r ? '#1565D8' : '#64748B',
+              padding: '3px 10px', borderRadius: 7, border: `1.5px solid ${chartRange === r ? '#5B6BF0' : '#DCDFE8'}`,
+              background: chartRange === r ? '#EEEFFE' : '#fff', color: chartRange === r ? '#5B6BF0' : '#636B78',
               fontSize: 11, fontWeight: 600, cursor: 'pointer',
             }}>
               {r}d
@@ -435,21 +435,21 @@ function TrendChart({
         <rect x="48" y={chart.dangerY} width="576" height={chart.dangerH} fill="rgba(239,68,68,0.06)" />
         <line x1="48" y1={chart.dangerY} x2="624" y2={chart.dangerY} stroke="#EF4444" strokeWidth="1.5" strokeDasharray="5 4" />
         <polygon points={chart.areaPoints} fill="rgba(21,101,216,0.07)" />
-        <polyline points={chart.linePoints} fill="none" stroke="#1565D8" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={chart.linePoints} fill="none" stroke="#5B6BF0" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" />
         {chart.dots.map((d, i) => (
-          <circle key={i} cx={d.cx} cy={d.cy} r="3" fill="#fff" stroke={d.inDanger ? '#EF4444' : '#1565D8'} strokeWidth="2" />
+          <circle key={i} cx={d.cx} cy={d.cy} r="3" fill="#fff" stroke={d.inDanger ? '#EF4444' : '#5B6BF0'} strokeWidth="2" />
         ))}
         {chart.yLabels.map((yl, i) => (
-          <text key={i} x="42" y={yl.y + 4} textAnchor="end" fontSize="10" fill="#94A3B8">{yl.label}</text>
+          <text key={i} x="42" y={yl.y + 4} textAnchor="end" fontSize="10" fill="#8A93A1">{yl.label}</text>
         ))}
         {chart.xLabels.map((xl, i) => (
-          <text key={i} x={xl.x} y="198" textAnchor="middle" fontSize="10" fill="#94A3B8">{xl.label}</text>
+          <text key={i} x={xl.x} y="198" textAnchor="middle" fontSize="10" fill="#8A93A1">{xl.label}</text>
         ))}
       </svg>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#475569' }}>
-          <span style={{ width: 14, height: 3, background: '#1565D8', borderRadius: 2, display: 'inline-block' }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#4A5260' }}>
+          <span style={{ width: 14, height: 3, background: '#5B6BF0', borderRadius: 2, display: 'inline-block' }} />
           {paramLabel}
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#EF4444' }}>
@@ -476,23 +476,23 @@ function ShapCard({ patientIdx }: { patientIdx: number }) {
         {factors.map((f, i) => (
           <div key={i}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#1E293B' }}>{f.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#2B2D42' }}>{f.label}</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: f.color, fontFamily: 'IBM Plex Mono, monospace' }}>{f.valText}</span>
             </div>
-            <div style={{ height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: 8, background: '#DCDFE8', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ height: '100%', width: f.barWidth, background: f.barBg, borderRadius: 4 }} />
             </div>
-            <p style={{ fontSize: 11, color: '#64748B', margin: '3px 0 0' }}>{f.note}</p>
+            <p style={{ fontSize: 11, color: '#636B78', margin: '3px 0 0' }}>{f.note}</p>
           </div>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 14, marginTop: 14, paddingTop: 12, borderTop: '1px solid #E9D5FF' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#64748B' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#636B78' }}>
           <span style={{ width: 10, height: 10, background: '#EF4444', borderRadius: 2, display: 'inline-block' }} />
           Menaikkan risiko
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#64748B' }}>
-          <span style={{ width: 10, height: 10, background: '#00B894', borderRadius: 2, display: 'inline-block' }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#636B78' }}>
+          <span style={{ width: 10, height: 10, background: '#1EC8A5', borderRadius: 2, display: 'inline-block' }} />
           Menurunkan risiko
         </span>
       </div>
@@ -508,22 +508,22 @@ function LogCard({ patientIdx }: { patientIdx: number }) {
   return (
     <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: '#1E293B' }}>Log Harian Pasien</span>
-        <span style={{ background: '#E5FBF6', border: '1px solid #B2F0E4', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, color: '#00A382' }}>
+        <span style={{ fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Log Harian Pasien</span>
+        <span style={{ background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, color: '#159E84' }}>
           via WhatsApp &middot; hari ini
         </span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {logs.map((log, i) => (
           <div key={i} style={{ display: 'flex', gap: 12, paddingBottom: i < logs.length - 1 ? 14 : 0 }}>
-            <span style={{ fontSize: 11, color: '#94A3B8', fontFamily: 'IBM Plex Mono, monospace', minWidth: 36, textAlign: 'right', paddingTop: 2 }}>{log.time}</span>
+            <span style={{ fontSize: 11, color: '#8A93A1', fontFamily: 'IBM Plex Mono, monospace', minWidth: 36, textAlign: 'right', paddingTop: 2 }}>{log.time}</span>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: log.dot, flexShrink: 0 }} />
-              {i < logs.length - 1 && <div style={{ width: 2, flex: 1, background: '#E2E8F0', marginTop: 4, minHeight: 20 }} />}
+              {i < logs.length - 1 && <div style={{ width: 2, flex: 1, background: '#DCDFE8', marginTop: 4, minHeight: 20 }} />}
             </div>
             <div style={{ flex: 1, paddingBottom: i < logs.length - 1 ? 4 : 0 }}>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#1E293B' }}>{log.text}</p>
-              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#64748B' }}>{log.detail}</p>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#2B2D42' }}>{log.text}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#636B78' }}>{log.detail}</p>
             </div>
           </div>
         ))}
@@ -545,27 +545,27 @@ function FeedbackCard({
 }) {
   const given = feedbacks[patient.patient_id]
   return (
-    <div style={{ background: '#0F2444', borderRadius: 16, padding: '18px 20px' }}>
+    <div style={{ background: 'linear-gradient(160deg, #262F8A 0%, #1A2066 100%)', borderRadius: 16, padding: '18px 20px' }}>
       <p style={{ margin: '0 0 6px', fontWeight: 700, fontSize: 15, color: '#fff' }}>Umpan Balik Eskalasi</p>
-      <p style={{ margin: '0 0 16px', fontSize: 13, color: '#94A3B8', lineHeight: 1.6 }}>
-        Apakah eskalasi untuk <span style={{ color: '#E2E8F0', fontWeight: 600 }}>{patient.full_name}</span> karena{' '}
+      <p style={{ margin: '0 0 16px', fontSize: 13, color: '#8A93A1', lineHeight: 1.6 }}>
+        Apakah eskalasi untuk <span style={{ color: '#DCDFE8', fontWeight: 600 }}>{patient.full_name}</span> karena{' '}
         <em>{patient.main_factor || 'faktor klinis'}</em> sudah tepat?
       </p>
       {given ? (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <span style={{ fontSize: 20 }}>{given === 'tepat' ? '✅' : '❌'}</span>
-            <span style={{ color: given === 'tepat' ? '#00B894' : '#EF4444', fontWeight: 700, fontSize: 14 }}>
+            <span style={{ color: given === 'tepat' ? '#1EC8A5' : '#EF4444', fontWeight: 700, fontSize: 14 }}>
               Ditandai: {given === 'tepat' ? 'Tepat' : 'Tidak Tepat'}
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: '#64748B' }}>Terima kasih — umpan balik Anda membantu meningkatkan model AI.</p>
+          <p style={{ margin: 0, fontSize: 12, color: '#636B78' }}>Terima kasih — umpan balik Anda membantu meningkatkan model AI.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => onFeedback(patient.patient_id, 'tepat')} style={{
-            flex: 1, padding: '10px 0', borderRadius: 10, border: '2px solid #00B894',
-            background: 'transparent', color: '#00B894', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+            flex: 1, padding: '10px 0', borderRadius: 10, border: '2px solid #1EC8A5',
+            background: 'transparent', color: '#1EC8A5', fontWeight: 700, fontSize: 14, cursor: 'pointer',
             fontFamily: 'Plus Jakarta Sans, sans-serif',
           }}>
             ✓ Tepat
@@ -579,7 +579,7 @@ function FeedbackCard({
           </button>
         </div>
       )}
-      <p style={{ margin: '14px 0 0', fontSize: 11, color: '#475569', fontStyle: 'italic' }}>
+      <p style={{ margin: '14px 0 0', fontSize: 11, color: '#4A5260', fontStyle: 'italic' }}>
         Umpan balik bersifat anonim dan digunakan untuk pelatihan ulang model secara berkala.
       </p>
     </div>
@@ -588,8 +588,8 @@ function FeedbackCard({
 
 // ─── Main page component ──────────────────────────────────────────────────────
 
-export default function DokterDashboardPage() {
-  const { user, logout } = useAuth()
+export default function DokterDashboardPage({ onLogout }: { onLogout: () => void }) {
+  const { user } = useAuth()
 
   const [activeView, setActiveView] = useState<ActiveView>('antrean')
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
@@ -603,7 +603,10 @@ export default function DokterDashboardPage() {
   const [chartParam, setChartParam] = useState<'glucose' | 'bp'>('glucose')
   const [chartRange, setChartRange] = useState<7 | 14>(7)
   const [trenPatientId, setTrenPatientId] = useState<string | null>(null)
+  const [trenSearch, setTrenSearch] = useState('')
+  const [trenFilter, setTrenFilter] = useState<QueueFilter>('all')
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -650,6 +653,15 @@ export default function DokterDashboardPage() {
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
   const trenIdx = useMemo(() => queue.findIndex(p => p.patient_id === trenPatientId), [queue, trenPatientId])
 
+  const trenList = useMemo(() => {
+    const q = trenSearch.trim().toLowerCase()
+    return queue.filter(p => {
+      if (trenFilter !== 'all' && p.status !== trenFilter) return false
+      if (q && !p.full_name.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [queue, trenSearch, trenFilter])
+
   const handleContact = useCallback((id: string) => {
     setContacted(prev => new Set([...prev, id]))
     showToast('Pasien berhasil dihubungi', 'ok')
@@ -660,9 +672,9 @@ export default function DokterDashboardPage() {
     showToast(`Umpan balik "${val === 'tepat' ? 'Tepat' : 'Tidak Tepat'}" tersimpan`, 'ok')
   }, [showToast])
 
-  const handleLogout = useCallback(async () => {
-    try { await logout() } catch { /* ignore */ }
-  }, [logout])
+  const handleLogout = useCallback(() => {
+    onLogout()
+  }, [onLogout])
 
   // KPI values
   const bahayaCount = summary?.risiko_bahaya ?? 0
@@ -685,6 +697,8 @@ export default function DokterDashboardPage() {
       <style>{`
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .anim-blink { animation: blink 1.6s infinite; }
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -693,67 +707,79 @@ export default function DokterDashboardPage() {
 
       {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
       <aside style={{
-        width: 256, minWidth: 256, background: '#fff', borderRight: '1px solid #E2E8F0',
+        width: 256, minWidth: 256,
+        background: 'linear-gradient(180deg, #262F8A 0%, #1A2066 100%)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        boxShadow: '4px 0 24px rgba(26,32,102,0.15)', color: '#fff',
+        position: 'relative', zIndex: 10,
       }}>
         {/* Logo */}
-        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{ padding: '16px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <LogoImg size={32} />
             <div>
-              <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: '#1E293B', letterSpacing: '-0.3px' }}>sehatiku</p>
-              <p style={{ margin: 0, fontSize: 10, color: '#94A3B8', fontWeight: 500 }}>Portal Dokter</p>
+              <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1 }}>
+                sehat<span style={{ color: '#1EC8A5' }}>iku</span>
+              </p>
+              <p style={{ margin: '2px 0 0', fontSize: 8.5, color: 'rgba(255,255,255,0.5)', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase' }}>Portal Dokter</p>
             </div>
           </div>
         </div>
 
         {/* Doctor badge */}
-        <div style={{ padding: '14px 16px', borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{
+          margin: '10px 14px 0', background: 'rgba(255,255,255,0.05)', borderRadius: 10,
+          padding: '8px 10px', border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 10,
+        }}>
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            background: 'linear-gradient(135deg, #00B894 0%, #00A382 100%)',
-            borderRadius: 12, padding: '10px 12px',
+            width: 34, height: 34, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1EC8A5, #4FC3F7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 700, fontSize: 12, flexShrink: 0,
           }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: 700, fontSize: 13,
-            }}>
-              {initials(user?.name ?? 'DR')}
-            </div>
-            <div>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#fff' }}>{user?.name ?? 'Dokter'}</p>
-              <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.8)' }}>
-                {user?.role === 'dokter' ? 'Dokter Umum' : user?.role === 'kader' ? 'Kader Kesehatan' : 'Admin'}
-              </p>
-            </div>
+            {initials(user?.name ?? 'DR')}
           </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 12.5, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name ?? 'Dokter'}</p>
+            <p style={{ margin: '1px 0 0', fontSize: 9.5, color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>
+              {user?.role === 'dokter' ? 'Dokter Umum' : user?.role === 'kader' ? 'Kader Kesehatan' : 'Admin'}
+            </p>
+          </div>
+          <span className="anim-blink" style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5', flexShrink: 0 }} />
         </div>
 
         {/* Nav */}
-        <div style={{ padding: '14px 12px 8px', flex: 1, overflowY: 'auto' }}>
-          <p style={{ margin: '0 0 8px 6px', fontSize: 10, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Menu Klinis</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {(
-              [
-                { id: 'antrean' as const, label: 'Antrean Prioritas', icon: '☰' },
-                { id: 'tren' as const, label: 'Tren & Riwayat', icon: '∼' },
-                { id: 'umpan' as const, label: 'Umpan Balik Model', icon: '👍' },
-              ]
-            ).map(nav => {
+        <div style={{ padding: '14px 10px 8px', flex: 1, overflowY: 'auto' }}>
+          <p style={{ margin: '0 0 6px 8px', fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', textTransform: 'uppercase' }}>Menu Klinis</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {([
+              { id: 'antrean' as const, label: 'Antrean Prioritas', icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              ) },
+              { id: 'tren' as const, label: 'Tren & Riwayat', icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              ) },
+              { id: 'umpan' as const, label: 'Umpan Balik Model', icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              ) },
+            ]).map(nav => {
               const active = activeView === nav.id
               return (
                 <button key={nav.id} onClick={() => setActiveView(nav.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10,
-                  border: 'none', background: active ? '#E5FBF6' : 'transparent',
-                  borderLeft: `3px solid ${active ? '#00B894' : 'transparent'}`,
-                  color: active ? '#00A382' : '#475569', cursor: 'pointer', width: '100%', textAlign: 'left',
-                  fontWeight: active ? 700 : 500, fontSize: 13, fontFamily: 'Plus Jakarta Sans, sans-serif',
-                }}>
-                  <span style={{ fontSize: 15, color: active ? '#00B894' : '#64748B', width: 20, textAlign: 'center' }}>{nav.icon}</span>
-                  {nav.label}
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8,
+                  border: 'none', background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                  borderLeft: `3px solid ${active ? '#1EC8A5' : 'transparent'}`,
+                  color: active ? '#fff' : 'rgba(255,255,255,0.65)', cursor: 'pointer', width: '100%', textAlign: 'left',
+                  fontWeight: active ? 700 : 600, fontSize: 12.5, fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.2s ease',
+                }}
+                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = '#fff' } }}
+                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)' } }}
+                >
+                  <span style={{ color: active ? '#1EC8A5' : 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, flexShrink: 0 }}>{nav.icon}</span>
+                  <span style={{ flex: 1 }}>{nav.label}</span>
                   {nav.id === 'antrean' && totalCount > 0 && (
-                    <span style={{ marginLeft: 'auto', background: '#00B894', color: '#fff', borderRadius: 12, padding: '1px 7px', fontSize: 11, fontWeight: 700 }}>
+                    <span style={{ background: '#1EC8A5', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 800 }}>
                       {totalCount}
                     </span>
                   )}
@@ -762,43 +788,36 @@ export default function DokterDashboardPage() {
             })}
           </div>
 
-          <div style={{ margin: '14px 0 8px', borderTop: '1px solid #F1F5F9', paddingTop: 12 }}>
-            <p style={{ margin: '0 0 8px 6px', fontSize: 10, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Ringkasan Pasien Saya</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ background: '#FDF5FF', border: '1px solid rgba(123,97,255,0.1)', borderRadius: 10, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#6B21A8', fontWeight: 500 }}>Risiko Bahaya</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: '#7B61FF', fontFamily: 'IBM Plex Mono, monospace' }}>{bahayaCount}</span>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '12px 12px 8px', paddingTop: 12 }}>
+            <p style={{ margin: '0 0 8px 0', fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', textTransform: 'uppercase' }}>Ringkasan Pasien Saya</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(137,92,246,0.08)', borderRadius: 8, border: '1px solid rgba(137,92,246,0.15)' }}>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Risiko Bahaya</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#B79CFB', fontFamily: 'IBM Plex Mono, monospace' }}>{bahayaCount}</span>
               </div>
-              <div style={{ background: '#F0FAFF', border: '1px solid rgba(79,195,247,0.14)', borderRadius: 10, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#0369A1', fontWeight: 500 }}>Perlu Pantau</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: '#0288A0', fontFamily: 'IBM Plex Mono, monospace' }}>{waswasCount}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(79,195,247,0.08)', borderRadius: 8, border: '1px solid rgba(79,195,247,0.15)' }}>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Perlu Pantau</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#7FD4F8', fontFamily: 'IBM Plex Mono, monospace' }}>{waswasCount}</span>
               </div>
-              <div style={{ background: '#F0FDF8', border: '1px solid rgba(0,184,148,0.12)', borderRadius: 10, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#065F46', fontWeight: 500 }}>Status Aman</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: '#00B894', fontFamily: 'IBM Plex Mono, monospace' }}>{amanCount}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(30,200,165,0.08)', borderRadius: 8, border: '1px solid rgba(30,200,165,0.15)' }}>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Status Aman</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#1EC8A5', fontFamily: 'IBM Plex Mono, monospace' }}>{amanCount}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom user card + logout */}
-        <div style={{ padding: '12px 16px', borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <AvatarCircle name={user?.name ?? 'D'} size={32} bg="#00B894" />
-            <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#1E293B' }}>{user?.name ?? 'Dokter'}</p>
-              <p style={{ margin: 0, fontSize: 10, color: '#64748B' }}>
-                {user?.role === 'dokter' ? 'Dokter Umum' : user?.role === 'kader' ? 'Kader Kesehatan' : 'Dokter'}
-              </p>
-            </div>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#00B894', animation: 'blink 2s infinite', display: 'inline-block' }} />
-          </div>
-          <button onClick={handleLogout} style={{
-            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-            background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8,
-            padding: '7px 12px', fontSize: 12, fontWeight: 600, color: '#DC2626', cursor: 'pointer',
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-          }}>
+        {/* Logout */}
+        <div style={{ padding: '10px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          <button onClick={() => setShowLogoutConfirm(true)} style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10,
+            padding: '8px 12px', fontSize: 12.5, fontWeight: 700, color: '#EF4444', cursor: 'pointer',
+            fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.2s ease',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)' }}
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
@@ -814,14 +833,14 @@ export default function DokterDashboardPage() {
 
         {/* Topbar */}
         <header style={{
-          height: 58, background: '#fff', borderBottom: '1px solid #E2E8F0', flexShrink: 0,
+          height: 58, background: '#fff', borderBottom: '1px solid #DCDFE8', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px',
         }}>
           <div>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: '#1E293B' }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: '#2B2D42' }}>
               {activeView === 'antrean' ? 'Antrean Prioritas' : activeView === 'tren' ? 'Tren & Riwayat Klinis' : 'Umpan Balik Model'}
             </p>
-            <p style={{ margin: 0, fontSize: 12, color: '#64748B' }}>
+            <p style={{ margin: 0, fontSize: 12, color: '#636B78' }}>
               {activeView === 'antrean'
                 ? `${totalCount} pasien terdaftar`
                 : activeView === 'tren'
@@ -830,19 +849,19 @@ export default function DokterDashboardPage() {
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#E5FBF6', border: '1px solid #B2F0E4', borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: '#00A382' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#00B894', animation: 'blink 1.5s infinite', display: 'inline-block' }} />
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: '#159E84' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#1EC8A5', animation: 'blink 1.5s infinite', display: 'inline-block' }} />
               Mode: Dokter
             </span>
             <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636B78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
               {bahayaCount > 0 && (
                 <span style={{
                   position: 'absolute', top: 0, right: 0, width: 14, height: 14,
-                  background: '#7B61FF', borderRadius: '50%', fontSize: 9, fontWeight: 700,
+                  background: '#895CF6', borderRadius: '50%', fontSize: 9, fontWeight: 700,
                   color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {bahayaCount}
@@ -859,9 +878,9 @@ export default function DokterDashboardPage() {
           {fetchError && !loading && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 12 }}>
               <span style={{ fontSize: 36 }}>&#x26A0;&#xFE0F;</span>
-              <p style={{ margin: 0, fontSize: 15, color: '#64748B' }}>{fetchError}</p>
+              <p style={{ margin: 0, fontSize: 15, color: '#636B78' }}>{fetchError}</p>
               <button onClick={fetchData} style={{
-                background: '#1565D8', color: '#fff', border: 'none', borderRadius: 8,
+                background: '#5B6BF0', color: '#fff', border: 'none', borderRadius: 8,
                 padding: '8px 20px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
                 fontFamily: 'Plus Jakarta Sans, sans-serif',
               }}>
@@ -875,19 +894,24 @@ export default function DokterDashboardPage() {
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
               {/* Left queue panel */}
-              <div style={{ width: 340, minWidth: 340, borderRight: '1px solid #E2E8F0', background: '#FAFCFF', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <div style={{ padding: '16px 16px 10px', borderBottom: '1px solid #F1F5F9' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <span style={{ fontWeight: 700, fontSize: 15, color: '#1E293B' }}>Pasien Saya</span>
-                    <span style={{ background: '#EFF6FF', borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700, color: '#1565D8' }}>
+              <div style={{ width: 340, minWidth: 340, borderRight: '1px solid #DCDFE8', background: '#F7F8FA', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <div style={{ padding: '16px 16px 10px', borderBottom: '1px solid #EFF1F5' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Pasien Saya</span>
+                    <span style={{ background: '#EEEFFE', borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700, color: '#5B6BF0' }}>
                       {queue.length} pasien
                     </span>
+                  </div>
+                  {/* Sehatiku signature: live triage indicator */}
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12, background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 20, padding: '3px 10px' }}>
+                    <span className="anim-blink" style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5', flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#159E84', letterSpacing: '0.2px' }}>Triase langsung · diperbarui tiap 60 dtk</span>
                   </div>
                   <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                     {(['all', 'bahaya', 'waswas', 'aman'] as const).map(f => (
                       <button key={f} onClick={() => setQueueFilter(f)} style={{
-                        padding: '4px 10px', borderRadius: 20, border: `1.5px solid ${queueFilter === f ? '#1565D8' : '#E2E8F0'}`,
-                        background: queueFilter === f ? '#EFF6FF' : '#fff', color: queueFilter === f ? '#1565D8' : '#64748B',
+                        padding: '4px 10px', borderRadius: 20, border: `1.5px solid ${queueFilter === f ? '#5B6BF0' : '#DCDFE8'}`,
+                        background: queueFilter === f ? '#EEEFFE' : '#fff', color: queueFilter === f ? '#5B6BF0' : '#636B78',
                         fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
                       }}>
                         {f === 'all' ? 'Semua' : f === 'bahaya' ? 'Bahaya' : f === 'waswas' ? 'Waswas' : 'Aman'}
@@ -902,7 +926,7 @@ export default function DokterDashboardPage() {
                   ) : filteredQueue.length === 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 8, paddingTop: 60 }}>
                       <span style={{ fontSize: 36 }}>&#x1F389;</span>
-                      <p style={{ margin: 0, fontSize: 14, color: '#64748B', textAlign: 'center' }}>Tidak ada pasien di kategori ini.</p>
+                      <p style={{ margin: 0, fontSize: 14, color: '#636B78', textAlign: 'center' }}>Tidak ada pasien di kategori ini.</p>
                     </div>
                   ) : (
                     filteredQueue.map(p => {
@@ -924,19 +948,19 @@ export default function DokterDashboardPage() {
                             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
                               <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.full_name}</p>
-                                <p style={{ margin: 0, fontSize: 11, color: '#64748B' }}>{p.age} thn &middot; {DISEASE_LABEL[p.disease_type]}</p>
+                                <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#2B2D42', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.full_name}</p>
+                                <p style={{ margin: 0, fontSize: 11, color: '#636B78' }}>{p.age} thn &middot; {DISEASE_LABEL[p.disease_type]}</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
                                   <StatusPill label={p.status === 'bahaya' ? 'Bahaya' : p.status === 'waswas' ? 'Waswas' : 'Aman'} risk={p.risk_label} />
-                                  {p.main_factor && <span style={{ fontSize: 10, color: '#94A3B8' }}>{p.main_factor}</span>}
+                                  {p.main_factor && <span style={{ fontSize: 10, color: '#8A93A1' }}>{p.main_factor}</span>}
                                 </div>
                               </div>
                             </div>
                             <RiskScoreBadge label={p.risk_label} score={p.risk_score} />
                           </div>
                           {needsContact && (
-                            <div style={{ marginTop: 8, background: '#F5F3FF', borderRadius: 6, padding: '4px 8px' }}>
-                              <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: '#7C3AED' }}>&#x26A1; Perlu dihubungi hari ini</p>
+                            <div style={{ marginTop: 8, background: '#F3F0FE', borderRadius: 6, padding: '4px 8px' }}>
+                              <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: '#7C5CFC' }}>&#x26A1; Perlu dihubungi hari ini</p>
                             </div>
                           )}
                         </div>
@@ -951,8 +975,8 @@ export default function DokterDashboardPage() {
                 {!selectedPatient ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12 }}>
                     <span style={{ fontSize: 48 }}>&#x1F468;&#x200D;&#x2695;&#xFE0F;</span>
-                    <p style={{ margin: 0, fontSize: 15, color: '#94A3B8', fontWeight: 500 }}>Pilih pasien untuk melihat detail</p>
-                    <p style={{ margin: 0, fontSize: 12, color: '#CBD5E1' }}>Klik kartu pasien di panel kiri</p>
+                    <p style={{ margin: 0, fontSize: 15, color: '#8A93A1', fontWeight: 500 }}>Pilih pasien untuk melihat detail</p>
+                    <p style={{ margin: 0, fontSize: 12, color: '#C2C8D4' }}>Klik kartu pasien di panel kiri</p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -962,7 +986,7 @@ export default function DokterDashboardPage() {
                         <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                           <AvatarCircle name={selectedPatient.full_name} size={58} bg={RISK_COLOR[selectedPatient.risk_label].sqBg} />
                           <div>
-                            <p style={{ margin: '0 0 6px', fontWeight: 800, fontSize: 20, color: '#1E293B' }}>{selectedPatient.full_name}</p>
+                            <p style={{ margin: '0 0 6px', fontWeight: 800, fontSize: 20, color: '#2B2D42' }}>{selectedPatient.full_name}</p>
                             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                               <DiseasePill type={selectedPatient.disease_type} />
                               <StatusPill
@@ -970,7 +994,7 @@ export default function DokterDashboardPage() {
                                 risk={selectedPatient.risk_label}
                               />
                             </div>
-                            <p style={{ margin: '5px 0 0', fontSize: 12, color: '#64748B' }}>
+                            <p style={{ margin: '5px 0 0', fontSize: 12, color: '#636B78' }}>
                               {selectedPatient.age} tahun &middot; Pasien Prolanis
                               {selectedPatient.main_factor && <> &middot; <em>{selectedPatient.main_factor}</em></>}
                             </p>
@@ -988,14 +1012,14 @@ export default function DokterDashboardPage() {
                           </div>
                           {contacted.has(selectedPatient.patient_id) ? (
                             <span style={{
-                              background: '#E5FBF6', border: '1px solid #B2F0E4', borderRadius: 8,
-                              padding: '7px 14px', fontSize: 12, fontWeight: 700, color: '#00A382',
+                              background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 8,
+                              padding: '7px 14px', fontSize: 12, fontWeight: 700, color: '#159E84',
                             }}>
                               ✓ Sudah Dihubungi
                             </span>
                           ) : (
                             <button onClick={() => handleContact(selectedPatient.patient_id)} style={{
-                              background: '#00B894', border: 'none', borderRadius: 8,
+                              background: '#1EC8A5', border: 'none', borderRadius: 8,
                               padding: '7px 14px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer',
                               fontFamily: 'Plus Jakarta Sans, sans-serif',
                             }}>
@@ -1004,8 +1028,8 @@ export default function DokterDashboardPage() {
                           )}
                         </div>
                       </div>
-                      <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid #F1F5F9' }}>
-                        <p style={{ margin: 0, fontSize: 11, color: '#94A3B8', fontStyle: 'italic' }}>
+                      <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid #EFF1F5' }}>
+                        <p style={{ margin: 0, fontSize: 11, color: '#8A93A1', fontStyle: 'italic' }}>
                           &#x26A0;&#xFE0F; Risk Score &amp; atribusi bersifat indikatif &mdash; bukan diagnosis medis.
                         </p>
                       </div>
@@ -1037,54 +1061,135 @@ export default function DokterDashboardPage() {
           {/* ── VIEW 2: Tren & Riwayat ────────────────────────────────────────── */}
           {!fetchError && activeView === 'tren' && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '22px 26px' }}>
-              {/* Patient chips */}
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-                {loading
-                  ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} w="100px" h={36} />)
-                  : queue.map(p => {
-                    const sel = p.patient_id === trenPatientId
-                    return (
-                      <button key={p.patient_id} onClick={() => setTrenPatientId(p.patient_id)} style={{
-                        display: 'flex', alignItems: 'center', gap: 7, padding: '6px 14px', borderRadius: 20,
-                        border: `1.5px solid ${sel ? '#1565D8' : '#E2E8F0'}`,
-                        background: sel ? '#1565D8' : '#fff', color: sel ? '#fff' : '#475569',
-                        fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
-                      }}>
-                        <div style={{
-                          width: 20, height: 20, borderRadius: '50%',
-                          background: sel ? 'rgba(255,255,255,0.25)' : RISK_COLOR[p.risk_label].sqBg,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#fff', fontSize: 9, fontWeight: 700, flexShrink: 0,
-                        }}>
-                          {initials(p.full_name)}
-                        </div>
-                        {p.full_name.split(' ')[0]}
-                      </button>
-                    )
-                  })
-                }
-              </div>
-
               {!trenPatient ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 280, gap: 10 }}>
-                  <span style={{ fontSize: 36 }}>&#x1F4CA;</span>
-                  <p style={{ margin: 0, color: '#94A3B8', fontSize: 14 }}>Pilih pasien untuk melihat tren</p>
+                /* ── Patient list ── */
+                <div>
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ margin: '0 0 2px', fontWeight: 800, fontSize: 22, color: '#2B2D42', letterSpacing: '-0.4px' }}>Tren & Riwayat</p>
+                    <p style={{ margin: 0, fontSize: 13, color: '#8A93A1' }}>Pilih pasien untuk melihat tren risk score &amp; riwayat klinis 6 bulan terakhir</p>
+                  </div>
+
+                  {/* Search + filter bar */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid #DCDFE8', borderRadius: 12, padding: '10px 12px', marginBottom: 14, boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
+                    <div style={{ position: 'relative', flex: 1, maxWidth: 340 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A93A1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }}>
+                        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                      <input
+                        value={trenSearch}
+                        onChange={e => setTrenSearch(e.target.value)}
+                        placeholder="Cari nama pasien…"
+                        style={{ width: '100%', padding: '8px 12px 8px 36px', border: '1px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', gap: 5, background: '#F7F8FA', borderRadius: 9, padding: 3 }}>
+                      {(['all', 'bahaya', 'waswas', 'aman'] as const).map(f => (
+                        <button key={f} onClick={() => setTrenFilter(f)} style={{
+                          padding: '6px 14px', borderRadius: 7, border: 'none',
+                          background: trenFilter === f ? '#fff' : 'transparent',
+                          boxShadow: trenFilter === f ? '0 1px 3px rgba(15,36,68,0.1)' : 'none',
+                          color: trenFilter === f ? '#5B6BF0' : '#636B78',
+                          fontSize: 12, fontWeight: trenFilter === f ? 700 : 600, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
+                        }}>
+                          {f === 'all' ? 'Semua' : f === 'bahaya' ? 'Bahaya' : f === 'waswas' ? 'Waswas' : 'Aman'}
+                        </button>
+                      ))}
+                    </div>
+                    <span style={{ marginLeft: 'auto', fontSize: 12, color: '#8A93A1', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      {loading ? '…' : `${trenList.length} hasil`}
+                    </span>
+                  </div>
+
+                  {/* List card */}
+                  <div style={{ background: '#fff', border: '1px solid #DCDFE8', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(15,36,68,0.05)' }}>
+                    {/* Sehatiku signature: AI-sorted strip */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', background: 'linear-gradient(90deg, rgba(91,107,240,0.07), rgba(30,200,165,0.05))', borderBottom: '1px solid #EFF1F5' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                      </svg>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>Diurutkan otomatis berdasarkan prioritas risiko</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#159E84', background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 20, padding: '2px 9px', marginLeft: 'auto' }}>AI Auto-Sorted</span>
+                    </div>
+                    {/* Column header */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px 120px 150px 28px', alignItems: 'center', gap: 12, padding: '11px 18px 11px 21px', background: '#F7F8FA', borderBottom: '1px solid #DCDFE8' }}>
+                      {['Nama Pasien', 'Penyakit', 'Status', 'Risk Score', ''].map((h, i) => (
+                        <span key={i} style={{ fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: i === 3 ? 'right' : 'left' }}>{h}</span>
+                      ))}
+                    </div>
+
+                    {loading ? (
+                      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} h={48} />)}
+                      </div>
+                    ) : trenList.length === 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '54px 0', gap: 10 }}>
+                        <span style={{ fontSize: 34 }}>&#x1F4CA;</span>
+                        <p style={{ margin: 0, color: '#8A93A1', fontSize: 13 }}>{queue.length === 0 ? 'Belum ada pasien terdaftar.' : 'Tidak ada pasien yang cocok.'}</p>
+                      </div>
+                    ) : (
+                      trenList.map((p, idx) => {
+                        const c = RISK_COLOR[p.risk_label]
+                        return (
+                          <div
+                            key={p.patient_id}
+                            onClick={() => setTrenPatientId(p.patient_id)}
+                            style={{
+                              display: 'grid', gridTemplateColumns: '1fr 150px 120px 150px 28px', alignItems: 'center', gap: 12,
+                              padding: '13px 18px', paddingLeft: 18, cursor: 'pointer',
+                              borderLeft: `3px solid ${c.edge}`,
+                              borderBottom: idx < trenList.length - 1 ? '1px solid #EFF1F5' : 'none',
+                              transition: 'background 0.12s ease',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = '#F7F8FF')}
+                            onMouseLeave={e => (e.currentTarget.style.background = '')}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                              <AvatarCircle name={p.full_name} size={38} bg={c.sqBg} />
+                              <div style={{ minWidth: 0 }}>
+                                <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13.5, color: '#2B2D42', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.full_name}</p>
+                                <p style={{ margin: 0, fontSize: 11, color: '#8A93A1' }}>{p.age} tahun{p.main_factor ? ` · ${p.main_factor}` : ''}</p>
+                              </div>
+                            </div>
+                            <div><DiseasePill type={p.disease_type} /></div>
+                            <div><StatusPill label={p.status === 'bahaya' ? 'Bahaya' : p.status === 'waswas' ? 'Waswas' : 'Aman'} risk={p.risk_label} /></div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                              <RiskScoreBadge label={p.risk_label} score={p.risk_score} />
+                            </div>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C2C8D4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Back button */}
+                  <button onClick={() => setTrenPatientId(null)} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start',
+                    background: '#fff', border: '1px solid #DCDFE8', borderRadius: 9, padding: '7px 14px',
+                    fontSize: 12.5, fontWeight: 600, color: '#4A5260', cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Kembali ke daftar pasien
+                  </button>
                   {/* Mini header */}
                   <div style={{ background: '#fff', borderRadius: 16, padding: '16px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 14 }}>
                     <AvatarCircle name={trenPatient.full_name} size={44} bg={RISK_COLOR[trenPatient.risk_label].sqBg} />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: 16, color: '#1E293B' }}>{trenPatient.full_name}</p>
+                        <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: 16, color: '#2B2D42' }}>{trenPatient.full_name}</p>
                         <DiseasePill type={trenPatient.disease_type} />
                         <StatusPill
                           label={trenPatient.status === 'bahaya' ? 'Bahaya' : trenPatient.status === 'waswas' ? 'Waswas' : 'Aman'}
                           risk={trenPatient.risk_label}
                         />
                       </div>
-                      <p style={{ margin: 0, fontSize: 12, color: '#64748B' }}>
+                      <p style={{ margin: 0, fontSize: 12, color: '#636B78' }}>
                         {trenPatient.age} tahun &middot; Riwayat 6 bulan
                         <span style={{ marginLeft: 10, fontWeight: 700, color: safeTrenMetrics.deltaColor }}>
                           {safeTrenMetrics.delta} {safeTrenMetrics.deltaLabel}
@@ -1095,17 +1200,17 @@ export default function DokterDashboardPage() {
 
                   {/* Risk score bar chart */}
                   <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                    <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: 15, color: '#1E293B' }}>Tren Risk Score</p>
-                    <p style={{ margin: '0 0 16px', fontSize: 11, color: '#94A3B8' }}>skor risiko bulanan (0&ndash;100) &middot; semakin tinggi semakin buruk</p>
+                    <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Tren Risk Score</p>
+                    <p style={{ margin: '0 0 16px', fontSize: 11, color: '#8A93A1' }}>skor risiko bulanan (0&ndash;100) &middot; semakin tinggi semakin buruk</p>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 160 }}>
                       {(MOCK_RISK_TREND[Math.min(safeTrenIdx, MOCK_RISK_TREND.length - 1)]).map((entry, i) => {
-                        const barColor = entry.score >= 80 ? '#EF4444' : entry.score >= 50 ? '#F59E0B' : '#00B894'
+                        const barColor = entry.score >= 80 ? '#EF4444' : entry.score >= 50 ? '#F59E0B' : '#1EC8A5'
                         const barH = Math.round((entry.score / 100) * 120)
                         return (
                           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                             <span style={{ fontSize: 11, fontWeight: 700, color: barColor, fontFamily: 'IBM Plex Mono, monospace' }}>{entry.score}</span>
                             <div style={{ width: '100%', height: barH, background: barColor, borderRadius: '6px 6px 0 0' }} />
-                            <span style={{ fontSize: 11, color: '#64748B' }}>{entry.month}</span>
+                            <span style={{ fontSize: 11, color: '#636B78' }}>{entry.month}</span>
                           </div>
                         )
                       })}
@@ -1114,14 +1219,14 @@ export default function DokterDashboardPage() {
 
                   {/* Clinical metrics */}
                   <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                    <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 15, color: '#1E293B' }}>Parameter Klinis Terkini</p>
+                    <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Parameter Klinis Terkini</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                       {safeTrenMetrics.metrics.map((m, i) => (
-                        <div key={i} style={{ background: '#F8FAFC', borderRadius: 12, padding: '12px 14px' }}>
-                          <p style={{ margin: '0 0 4px', fontSize: 11, color: '#64748B' }}>{m.label}</p>
+                        <div key={i} style={{ background: '#F7F8FA', borderRadius: 12, padding: '12px 14px' }}>
+                          <p style={{ margin: '0 0 4px', fontSize: 11, color: '#636B78' }}>{m.label}</p>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                            <span style={{ fontSize: 20, fontWeight: 800, color: '#1E293B', fontFamily: 'IBM Plex Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>{m.value}</span>
-                            {m.unit && <span style={{ fontSize: 10, color: '#94A3B8' }}>{m.unit}</span>}
+                            <span style={{ fontSize: 20, fontWeight: 800, color: '#2B2D42', fontFamily: 'IBM Plex Mono, monospace', fontVariantNumeric: 'tabular-nums' }}>{m.value}</span>
+                            {m.unit && <span style={{ fontSize: 10, color: '#8A93A1' }}>{m.unit}</span>}
                           </div>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: m.trendBg, borderRadius: 6, padding: '2px 7px', fontSize: 11, fontWeight: 700, color: m.trendColor, marginTop: 4 }}>
                             {m.arrow} {m.deltaTxt}
@@ -1133,7 +1238,7 @@ export default function DokterDashboardPage() {
 
                   {/* Timeline */}
                   <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                    <p style={{ margin: '0 0 16px', fontWeight: 700, fontSize: 15, color: '#1E293B' }}>Riwayat Klinis</p>
+                    <p style={{ margin: '0 0 16px', fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Riwayat Klinis</p>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {safeTrenMetrics.timeline.map((tl, i) => {
                         const last = i === safeTrenMetrics.timeline.length - 1
@@ -1141,12 +1246,12 @@ export default function DokterDashboardPage() {
                           <div key={i} style={{ display: 'flex', gap: 14, paddingBottom: last ? 0 : 16 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                               <span style={{ width: 12, height: 12, borderRadius: '50%', background: tl.color, flexShrink: 0 }} />
-                              {!last && <div style={{ width: 2, flex: 1, background: '#E2E8F0', marginTop: 4, minHeight: 24 }} />}
+                              {!last && <div style={{ width: 2, flex: 1, background: '#DCDFE8', marginTop: 4, minHeight: 24 }} />}
                             </div>
                             <div style={{ paddingBottom: last ? 0 : 4 }}>
-                              <p style={{ margin: '0 0 2px', fontSize: 11, color: '#94A3B8' }}>{tl.date}</p>
-                              <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#1E293B' }}>{tl.title}</p>
-                              <p style={{ margin: 0, fontSize: 12, color: '#64748B' }}>{tl.note}</p>
+                              <p style={{ margin: '0 0 2px', fontSize: 11, color: '#8A93A1' }}>{tl.date}</p>
+                              <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#2B2D42' }}>{tl.title}</p>
+                              <p style={{ margin: 0, fontSize: 12, color: '#636B78' }}>{tl.note}</p>
                             </div>
                           </div>
                         )
@@ -1167,30 +1272,30 @@ export default function DokterDashboardPage() {
                   Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} h={90} />)
                 ) : (
                   <>
-                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderTop: '3px solid #1565D8' }}>
-                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#64748B' }}>Total Eskalasi</p>
-                      <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#1565D8', fontFamily: 'IBM Plex Mono, monospace' }}>
+                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderTop: '3px solid #5B6BF0' }}>
+                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#636B78' }}>Total Eskalasi</p>
+                      <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#5B6BF0', fontFamily: 'IBM Plex Mono, monospace' }}>
                         {queue.filter(p => p.status === 'bahaya').length}
                       </p>
                     </div>
-                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderTop: '3px solid #00B894' }}>
-                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#64748B' }}>Ditandai Tepat</p>
-                      <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#00B894', fontFamily: 'IBM Plex Mono, monospace' }}>{tepat}</p>
+                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderTop: '3px solid #1EC8A5' }}>
+                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#636B78' }}>Ditandai Tepat</p>
+                      <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#1EC8A5', fontFamily: 'IBM Plex Mono, monospace' }}>{tepat}</p>
                     </div>
                     <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderTop: '3px solid #EF4444' }}>
-                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#64748B' }}>Tidak Tepat</p>
+                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#636B78' }}>Tidak Tepat</p>
                       <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#EF4444', fontFamily: 'IBM Plex Mono, monospace' }}>{tidak}</p>
                     </div>
-                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderTop: '3px solid #7B61FF' }}>
-                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#64748B' }}>Akurasi Eskalasi</p>
-                      <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#7B61FF', fontFamily: 'IBM Plex Mono, monospace' }}>{akurasi}%</p>
+                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderTop: '3px solid #895CF6' }}>
+                      <p style={{ margin: '0 0 4px', fontSize: 12, color: '#636B78' }}>Akurasi Eskalasi</p>
+                      <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#895CF6', fontFamily: 'IBM Plex Mono, monospace' }}>{akurasi}%</p>
                     </div>
                   </>
                 )}
               </div>
 
               {/* Info banner */}
-              <div style={{ background: '#F5F3FF', border: '1px solid #DDD6FE', borderRadius: 12, padding: '14px 18px', marginBottom: 18 }}>
+              <div style={{ background: '#F3F0FE', border: '1px solid #DDD6FE', borderRadius: 12, padding: '14px 18px', marginBottom: 18 }}>
                 <p style={{ margin: 0, fontSize: 13, color: '#4C1D95', lineHeight: 1.6 }}>
                   <strong>&#x1F916; Tentang Umpan Balik:</strong> Penilaian Anda membantu model AI belajar dari pengalaman klinis nyata.
                   Setiap umpan balik digunakan dalam siklus RLHF (Reinforcement Learning from Human Feedback) untuk meningkatkan akurasi eskalasi berikutnya.
@@ -1199,7 +1304,7 @@ export default function DokterDashboardPage() {
 
               {/* Escalation table */}
               <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-                <p style={{ margin: '0 0 16px', fontWeight: 700, fontSize: 15, color: '#1E293B' }}>Eskalasi untuk Dinilai</p>
+                <p style={{ margin: '0 0 16px', fontWeight: 700, fontSize: 15, color: '#2B2D42' }}>Eskalasi untuk Dinilai</p>
                 {loading ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} h={60} />)}
@@ -1209,7 +1314,7 @@ export default function DokterDashboardPage() {
                     <thead>
                       <tr>
                         {['Pasien', 'Penyebab & Penyakit', 'Risk Score', 'Status Umpan Balik', 'Aksi'].map(h => (
-                          <th key={h} style={{ textAlign: 'left', padding: '0 12px 8px', fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          <th key={h} style={{ textAlign: 'left', padding: '0 12px 8px', fontSize: 11, fontWeight: 700, color: '#8A93A1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             {h}
                           </th>
                         ))}
@@ -1220,20 +1325,20 @@ export default function DokterDashboardPage() {
                         const given = feedbacks[p.patient_id]
                         return (
                           <tr key={p.patient_id}>
-                            <td style={{ padding: '10px 12px', background: '#F8FAFC', borderRadius: '10px 0 0 10px' }}>
+                            <td style={{ padding: '10px 12px', background: '#F7F8FA', borderRadius: '10px 0 0 10px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <AvatarCircle name={p.full_name} size={32} bg={RISK_COLOR[p.risk_label].sqBg} />
                                 <div>
-                                  <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#1E293B' }}>{p.full_name}</p>
+                                  <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#2B2D42' }}>{p.full_name}</p>
                                   <StatusPill label={p.status === 'bahaya' ? 'Bahaya' : p.status === 'waswas' ? 'Waswas' : 'Aman'} risk={p.risk_label} />
                                 </div>
                               </div>
                             </td>
-                            <td style={{ padding: '10px 12px', background: '#F8FAFC' }}>
-                              <p style={{ margin: '0 0 4px', fontSize: 12, color: '#1E293B' }}>{p.main_factor || '—'}</p>
+                            <td style={{ padding: '10px 12px', background: '#F7F8FA' }}>
+                              <p style={{ margin: '0 0 4px', fontSize: 12, color: '#2B2D42' }}>{p.main_factor || '—'}</p>
                               <DiseasePill type={p.disease_type} />
                             </td>
-                            <td style={{ padding: '10px 12px', background: '#F8FAFC', textAlign: 'center' }}>
+                            <td style={{ padding: '10px 12px', background: '#F7F8FA', textAlign: 'center' }}>
                               <div style={{
                                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                                 width: 38, height: 38, borderRadius: 10, background: RISK_COLOR[p.risk_label].sqBg,
@@ -1242,28 +1347,28 @@ export default function DokterDashboardPage() {
                                 {p.risk_score}
                               </div>
                             </td>
-                            <td style={{ padding: '10px 12px', background: '#F8FAFC' }}>
+                            <td style={{ padding: '10px 12px', background: '#F7F8FA' }}>
                               {given ? (
                                 <span style={{
                                   display: 'inline-flex', alignItems: 'center', gap: 5,
-                                  background: given === 'tepat' ? '#E5FBF6' : '#FEF2F2',
-                                  border: `1px solid ${given === 'tepat' ? '#B2F0E4' : '#FECACA'}`,
+                                  background: given === 'tepat' ? '#F0FDF8' : '#FEF2F2',
+                                  border: `1px solid ${given === 'tepat' ? '#A7ECD9' : '#FECACA'}`,
                                   borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700,
-                                  color: given === 'tepat' ? '#00A382' : '#DC2626',
+                                  color: given === 'tepat' ? '#159E84' : '#DC2626',
                                 }}>
                                   {given === 'tepat' ? '✓ Tepat' : '✗ Tidak Tepat'}
                                 </span>
                               ) : (
-                                <span style={{ fontSize: 11, color: '#94A3B8' }}>Belum dinilai</span>
+                                <span style={{ fontSize: 11, color: '#8A93A1' }}>Belum dinilai</span>
                               )}
                             </td>
-                            <td style={{ padding: '10px 12px', background: '#F8FAFC', borderRadius: '0 10px 10px 0' }}>
+                            <td style={{ padding: '10px 12px', background: '#F7F8FA', borderRadius: '0 10px 10px 0' }}>
                               <div style={{ display: 'flex', gap: 6 }}>
                                 <button onClick={() => handleFeedback(p.patient_id, 'tepat')} title="Tepat" style={{
                                   width: 38, height: 38, borderRadius: 8,
-                                  border: `2px solid #00B894`,
-                                  background: given === 'tepat' ? '#00B894' : '#fff',
-                                  color: given === 'tepat' ? '#fff' : '#00B894',
+                                  border: `2px solid #1EC8A5`,
+                                  background: given === 'tepat' ? '#1EC8A5' : '#fff',
+                                  color: given === 'tepat' ? '#fff' : '#1EC8A5',
                                   cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}>
                                   ✓
@@ -1293,6 +1398,41 @@ export default function DokterDashboardPage() {
 
       {/* Toast */}
       {toast && <ToastNotif msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* ── Logout confirm modal ── */}
+      {showLogoutConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
+          onMouseDown={e => { if (e.target === e.currentTarget) setShowLogoutConfirm(false) }}
+        >
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: 380, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(15,36,68,0.25)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#2B2D42' }}>Keluar dari Portal?</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#8A93A1' }}>Anda perlu login kembali untuk masuk.</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowLogoutConfirm(false)} style={{
+                flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #DCDFE8', background: '#fff',
+                color: '#636B78', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
+              }}>
+                Batal
+              </button>
+              <button onClick={() => { setShowLogoutConfirm(false); handleLogout() }} style={{
+                flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: '#EF4444',
+                color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
+              }}>
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
