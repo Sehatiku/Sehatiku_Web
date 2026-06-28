@@ -16,6 +16,9 @@ import type {
   FaskesPatientItem,
   FaskesPatientResponse,
   UpdateNakesStatusResult,
+  NakesDetail,
+  FaskesPatientDetail,
+  FaskesProfile,
 } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8080'
@@ -306,6 +309,52 @@ export const faskesApi = {
       `/api/v1/faskes/nakes/${nakesId}/status`,
       { method: 'PATCH', body: JSON.stringify({ status }) },
     )
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/nakes/{id} — requires faskes JWT */
+  getNakesDetail: async (id: string): Promise<NakesDetail> => {
+    if (MOCK) {
+      return {
+        nakes_id: id, faskes_id: 'faskes-mock-001', full_name: 'Dr. Mock Nakes',
+        role: 'dokter', nik: '3201234567890001', alamat: 'Jl. Mock No. 1',
+        phone_number: '6281234567890', username: 'mock.nakes', status: 'active',
+        enrolled_at: '2025-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z',
+      }
+    }
+    const res = await request<ApiEnvelope<NakesDetail>>(`/api/v1/faskes/nakes/${id}`)
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/patients/{id} — requires faskes JWT */
+  getPatientDetail: async (id: string): Promise<FaskesPatientDetail> => {
+    if (MOCK) {
+      return {
+        patient_id: id, faskes_id: 'faskes-mock-001',
+        assigned_nakes_id: 'nakes-mock-001', assigned_nakes_name: 'Dr. Mock Nakes',
+        full_name: 'Pasien Mock', nik: '3201234567890002',
+        date_of_birth: '1970-05-15', sex: 'male', age: 55,
+        alamat: 'Jl. Pasien No. 2', phone_number: '6281234567891',
+        companion_name: 'Pendamping Mock', companion_phone: '6281234567892',
+        disease_type: 'diabetes_t2', username: 'pasien.mock', status: 'active',
+        enrolled_at: '2025-02-01T00:00:00Z', created_at: '2025-02-01T00:00:00Z', updated_at: '2025-02-01T00:00:00Z',
+      }
+    }
+    const res = await request<ApiEnvelope<FaskesPatientDetail>>(`/api/v1/faskes/patients/${id}`)
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/profile — requires faskes JWT */
+  getProfile: async (): Promise<FaskesProfile> => {
+    if (MOCK) {
+      return {
+        faskes_id: 'faskes-mock-001', name: 'Puskesmas Mock', type: 'puskesmas',
+        address: 'Jl. Puskesmas No. 1', region: 'Jakarta', username: 'faskes.mock',
+        phone_number: '6211234567', status: 'active',
+        created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z',
+      }
+    }
+    const res = await request<ApiEnvelope<FaskesProfile>>('/api/v1/faskes/profile')
     return res.data
   },
 }

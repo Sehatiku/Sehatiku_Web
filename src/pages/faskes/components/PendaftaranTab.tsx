@@ -259,13 +259,12 @@ export default function PendaftaranTab({
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>No. WhatsApp Pasien *</label>
                 <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#8A93A1', fontWeight: 600 }}>+</span>
                   <input
                     type="tel" value={ptPhone}
                     onChange={e => setPtPhone(e.target.value)}
                     onBlur={() => setPtPhone(normalizePhone(ptPhone))}
-                    placeholder="628xxxxxxxxxx (awali dengan 62)"
-                    style={{ width: '100%', padding: '10px 13px 10px 22px', border: `1.5px solid ${ptErr('phone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                    placeholder="628xxxxxxxxxx"
+                    style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('phone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 {ptErr('phone') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('phone')}</div>}

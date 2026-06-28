@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { faskesApi } from '../../../lib/api'
-import type { FaskesPatientItem, Paging } from '../../../lib/types'
+import type { FaskesPatientItem, FaskesPatientDetail, Paging } from '../../../lib/types'
 import { initials, formatDate } from '../../../lib/utils'
+import PatientDetailDrawer from './PatientDetailDrawer'
 
 interface PasienTabProps {
   showToastMsg: (msg: string) => void
@@ -15,6 +16,23 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
   const [patientPage, setPatientPage] = useState(1)
   const [patientPaging, setPatientPaging] = useState<Paging | null>(null)
   const [patientRefreshKey, setPatientRefreshKey] = useState(0)
+
+  // Detail Drawer state
+  const [selectedPatient, setSelectedPatient] = useState<FaskesPatientDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  const handleSelectPatient = async (id: string) => {
+    setSelectedPatient(null)
+    setDetailLoading(true)
+    try {
+      const detail = await faskesApi.getPatientDetail(id)
+      setSelectedPatient(detail)
+    } catch {
+      showToastMsg('⚠️ Gagal memuat detail pasien. Coba lagi.')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
 
   useEffect(() => {
     setPatientLoading(true)
@@ -111,7 +129,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                   }
                   const dc = diseaseColor[p.disease_type] ?? diseaseColor.diabetes_t2
                   return (
-                    <tr key={p.patient_id} style={{ borderBottom: '1px solid #F4F5F7', background: idx % 2 === 0 ? '#fff' : '#FAFBFC', opacity: isActive ? 1 : 0.55 }}>
+                    <tr key={p.patient_id} onClick={() => handleSelectPatient(p.patient_id)} style={{ borderBottom: '1px solid #F4F5F7', background: idx % 2 === 0 ? '#fff' : '#FAFBFC', opacity: isActive ? 1 : 0.55, cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = '#F0F1FE')} onMouseLeave={e => (e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#FAFBFC')}>
                       <td style={{ padding: '13px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div style={{ width: 34, height: 34, borderRadius: 9, background: dc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: dc.color, flexShrink: 0 }}>{initials(p.full_name)}</div>
@@ -169,6 +187,14 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
           </div>
         )}
       </div>
+
+      {(detailLoading || selectedPatient !== null) && (
+        <PatientDetailDrawer
+          detail={selectedPatient}
+          loading={detailLoading}
+          onClose={() => { setSelectedPatient(null); setDetailLoading(false) }}
+        />
+      )}
     </div>
   )
 }
