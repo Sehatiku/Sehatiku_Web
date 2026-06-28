@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { faskesApi } from '../../../lib/api'
-import type { NakesItem, DiseaseType } from '../../../lib/types'
+import type { NakesItem, DiseaseType, RegisterPatientResult } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
 
 interface PendaftaranTabProps {
@@ -34,6 +35,7 @@ export default function PendaftaranTab({
   const ptOcrRef = useRef<HTMLInputElement>(null)
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null)
   const [ptSubmitted, setPtSubmitted] = useState(false)
+  const [registerResult, setRegisterResult] = useState<RegisterPatientResult | null>(null)
 
   const normalizePhone = (val: string): string => {
     const d = val.replace(/\D/g, '')
@@ -97,7 +99,7 @@ export default function PendaftaranTab({
 
     setPtRegisterLoading(true)
     try {
-      await faskesApi.registerPatient({
+      const res = await faskesApi.registerPatient({
         assigned_nakes_id: selectedDoctorId!,
         nik: ptNik,
         full_name: ptName.trim(),
@@ -111,7 +113,8 @@ export default function PendaftaranTab({
         username: ptUsername.trim(),
         password: ptPassword,
       })
-      showToastMsg(`✓ ${ptName} berhasil didaftarkan ke Sehatiku! Kredensial dikirim via WhatsApp.`)
+      setRegisterResult(res)
+      showToastMsg(`✓ ${ptName} berhasil didaftarkan ke Sehatiku!`)
       resetPtForm()
     } catch (err: unknown) {
       const apiErr = err as { status?: number; body?: { message?: string } }
@@ -438,6 +441,125 @@ export default function PendaftaranTab({
             : <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>Daftarkan Pasien</>}
         </button>
       </div>
+
+      {/* ── SUCCESS REGISTRATION WHATSAPP MODAL ── */}
+      {registerResult && createPortal(
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 10000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backdropFilter: 'blur(5px)', animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 20, padding: 32, width: 480, maxWidth: '90vw',
+            boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8',
+            maxHeight: '90vh', overflowY: 'auto', boxSizing: 'border-box'
+          }}>
+            {/* Header / Whatsapp Icon */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 24 }}>
+              <div style={{
+                width: 60, height: 60, borderRadius: '50%', background: '#25D366',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 8px 24px rgba(37,211,102,0.3)', marginBottom: 16
+              }}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+              </div>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#2B2D42' }}>Pasien Berhasil Didaftarkan</h3>
+              <p style={{ margin: '6px 0 0', fontSize: 12, color: '#636B78', lineHeight: 1.5 }}>
+                Undangan aktivasi &amp; kredensial siap dikirimkan kepada pasien <strong>{registerResult.full_name}</strong>.
+              </p>
+            </div>
+
+            {/* Credentials Card */}
+            <div style={{ background: '#F5F3FF', border: '1.5px solid #DDD6FE', borderRadius: 12, padding: '16px 20px', marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Username</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', fontFamily: 'IBM Plex Mono, monospace' }}>{registerResult.credentials.username}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kata Sandi</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', fontFamily: 'IBM Plex Mono, monospace' }}>{registerResult.credentials.password}</span>
+              </div>
+            </div>
+
+            {/* WA Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {registerResult.wa_warmup.status === 'unavailable' ? (
+                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '12px 14px', fontSize: 12, color: '#B45309', lineHeight: 1.5, textAlign: 'center' }}>
+                  <strong>⚠️ WhatsApp Bot Offline:</strong> Kredensial tidak dapat dikirim otomatis via bot. Sampaikan detail akun di atas secara manual kepada pasien.
+                </div>
+              ) : (
+                <>
+                  {registerResult.wa_warmup.patient_direct_link && (
+                    <div>
+                      <button
+                        onClick={() => window.open(registerResult.wa_warmup.patient_direct_link, '_blank')}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#25D366', color: '#fff', border: 'none', borderRadius: 10,
+                          padding: '11px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(37,211,102,0.2)', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#20ba59'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#25D366'}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        </svg>
+                        Hubungkan WhatsApp Pasien
+                      </button>
+                      <p style={{ margin: '6px 0 0 4px', fontSize: 11, color: '#8A93A1', lineHeight: 1.45 }}>
+                        Membuka chat WhatsApp faskes langsung ke nomor pasien dengan teks undangan aktivasi. Pasien tinggal klik kirim pesan.
+                      </p>
+                    </div>
+                  )}
+
+                  {registerResult.wa_warmup.companion_direct_link && (
+                    <div style={{ borderTop: '1px dashed #DCDFE8', paddingTop: 14 }}>
+                      <button
+                        onClick={() => window.open(registerResult.wa_warmup.companion_direct_link, '_blank')}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#128C7E', color: '#fff', border: 'none', borderRadius: 10,
+                          padding: '11px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(18,140,126,0.2)', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#0e7569'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#128C7E'}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                        </svg>
+                        Hubungkan WhatsApp Pendamping
+                      </button>
+                      <p style={{ margin: '6px 0 0 4px', fontSize: 11, color: '#8A93A1', lineHeight: 1.45 }}>
+                        Membuka chat WhatsApp faskes langsung ke nomor pendamping pasien.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Footer buttons */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28, borderTop: '1px solid #EFF1F5', paddingTop: 18 }}>
+              <button
+                onClick={() => setRegisterResult(null)}
+                style={{
+                  width: '100%', padding: '10px 0', borderRadius: 10, border: 'none', background: '#F4F5F7',
+                  color: '#636B78', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#E4E5E7'}
+                onMouseLeave={e => e.currentTarget.style.background = '#F4F5F7'}
+              >
+                Tutup &amp; Selesai
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

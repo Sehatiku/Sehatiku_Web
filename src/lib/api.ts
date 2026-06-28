@@ -443,7 +443,14 @@ export const faskesApi = {
         full_name: body.full_name, nik: body.nik, disease_type: body.disease_type,
         enrolled_at: new Date().toISOString(),
         credentials: { username: body.username, password: body.password },
-        wa_warmup: { bot_phone: '', patient_link: '', status: 'unavailable' },
+        wa_warmup: {
+          bot_phone: '628975228858',
+          patient_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          companion_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          patient_direct_link: `https://wa.me/${body.phone_number}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.full_name)}+%F0%9F%99%8F%0A%0AAkun+Sehatiku+Anda+sudah+dibuat.%0AUsername%3A+${body.username}%0A%0AUntuk+mengaktifkan+dan+menerima+password%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+password+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.`,
+          companion_direct_link: body.companion_phone ? `https://wa.me/${body.companion_phone}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.companion_name)}+%F0%9F%99%8F%0A%0AAnda+terdaftar+sebagai+pendamping+${encodeURIComponent(body.full_name)}+di+Sehatiku.%0A%0AUntuk+mengaktifkan%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+detail+akun+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.` : undefined,
+          status: 'pending',
+        },
       }
     }
     const res = await request<ApiEnvelope<RegisterPatientResult>>(
@@ -493,7 +500,14 @@ export const nakesApi = {
         full_name: body.full_name, nik: body.nik, disease_type: body.disease_type,
         enrolled_at: new Date().toISOString(),
         credentials: { username: body.username, password: body.password },
-        wa_warmup: { bot_phone: '', patient_link: '', status: 'unavailable' },
+        wa_warmup: {
+          bot_phone: '628975228858',
+          patient_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          companion_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          patient_direct_link: `https://wa.me/${body.phone_number}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.full_name)}+%F0%9F%99%8F%0A%0AAkun+Sehatiku+Anda+sudah+dibuat.%0AUsername%3A+${body.username}%0A%0AUntuk+mengaktifkan+dan+menerima+password%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+password+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.`,
+          companion_direct_link: body.companion_phone ? `https://wa.me/${body.companion_phone}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.companion_name)}+%F0%9F%99%8F%0A%0AAnda+terdaftar+sebagai+pendamping+${encodeURIComponent(body.full_name)}+di+Sehatiku.%0A%0AUntuk+mengaktifkan%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+detail+akun+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.` : undefined,
+          status: 'pending',
+        },
       }
     }
     const res = await request<ApiEnvelope<RegisterPatientResult>>(
