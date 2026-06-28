@@ -23,7 +23,7 @@ export function scoreToColor(score: number): string {
 
 /** disease_type → label Bahasa Indonesia */
 export function diseaseLabel(type: DiseaseType): string {
-  if (type === 'diabetes_t2') return 'Diabetes'
+  if (type === 'diabetes_t2') return 'Diabetes T2'
   if (type === 'hypertension') return 'Hipertensi'
   return 'Diabetes + Hipertensi'
 }

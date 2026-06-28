@@ -249,7 +249,7 @@ export default function OperasionalTab({
           <div style={{ fontSize: 10, fontWeight: 700, color: '#8A93A1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>Distribusi Penyakit</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {([
-              { key: 'diabetes_t2', label: 'Diabetes', color: '#5B6BF0', bg: '#EEEFFE' },
+              { key: 'diabetes_t2', label: 'Diabetes T2', color: '#5B6BF0', bg: '#EEEFFE' },
               { key: 'hypertension', label: 'Hipertensi', color: '#0277BD', bg: 'rgba(79,195,247,0.12)' },
               { key: 'both', label: 'DM + Hipertensi', color: '#7C3AED', bg: '#F5F3FF' },
             ] as const).map(d => {
@@ -275,101 +275,270 @@ export default function OperasionalTab({
         </div>
 
         {/* Baseline Klinis Periodik */}
-        <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42', marginBottom: 3 }}>Baseline Klinis Periodik</div>
-          <div style={{ fontSize: 11, color: '#8A93A1', marginBottom: 16 }}>Klik "Update Baseline" pada tabel pasien di atas</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-            <div style={{ background: '#FFF5F5', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(239,68,68,0.12)' }}>
-              <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, marginBottom: 3 }}>HbA1c</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#EF4444' }}>10.2%</div>
-              <div style={{ fontSize: 9, color: '#EF4444', marginTop: 1, fontWeight: 600 }}>Kritis &gt;9%</div>
+        <div style={{
+          background: '#fff', borderRadius: 14, padding: 22,
+          boxShadow: '0 1px 4px rgba(15,36,68,0.06)',
+          border: '1px solid #DCDFE8',
+        }}>
+          {/* Card Header — same style as Ringkasan Pasien */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>Baseline Klinis Periodik</div>
+              <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 2 }}>Klik "Update Baseline" pada tabel pasien di atas</div>
             </div>
-            <div style={{ background: '#FFFDF0', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(245,158,11,0.15)' }}>
-              <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, marginBottom: 3 }}>LDL Kolesterol</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#F59E0B' }}>145 mg/dL</div>
-              <div style={{ fontSize: 9, color: '#F59E0B', marginTop: 1, fontWeight: 600 }}>Tinggi &gt;100</div>
-            </div>
-            <div style={{ background: '#F0FDF8', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(16,185,129,0.12)' }}>
-              <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, marginBottom: 3 }}>eGFR</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#10B981' }}>72 mL/min</div>
-              <div style={{ fontSize: 9, color: '#10B981', marginTop: 1, fontWeight: 600 }}>Normal ≥60</div>
-            </div>
-            <div style={{ background: '#F0FDF8', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(16,185,129,0.12)' }}>
-              <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, marginBottom: 3 }}>UACR</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#10B981' }}>42 mg/g</div>
-              <div style={{ fontSize: 9, color: '#10B981', marginTop: 1, fontWeight: 600 }}>Mikro 30–300</div>
-            </div>
-            <div style={{ background: '#FFFDF0', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(245,158,11,0.15)' }}>
-              <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, marginBottom: 3 }}>BMI</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#F59E0B' }}>29.3 kg/m²</div>
-              <div style={{ fontSize: 9, color: '#F59E0B', marginTop: 1, fontWeight: 600 }}>Overweight</div>
-            </div>
-            <div style={{ background: '#FFF5F5', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(239,68,68,0.12)' }}>
-              <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, marginBottom: 3 }}>Tensi Baseline</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#EF4444' }}>148/92</div>
-              <div style={{ fontSize: 9, color: '#EF4444', marginTop: 1, fontWeight: 600 }}>Grade 1 HTN</div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: '#EEEFFE', border: '1px solid rgba(91,107,240,0.18)',
+              borderRadius: 9, padding: '8px 14px',
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#5B6BF0' }}>7 Parameter</span>
             </div>
           </div>
-          <div style={{ background: '#FFFDF0', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(245,158,11,0.15)' }}>
-            <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, marginBottom: 3 }}>Lingkar Pinggang</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#F59E0B' }}>94 cm</div>
-            <div style={{ fontSize: 9, color: '#F59E0B', marginTop: 1, fontWeight: 600 }}>Risiko ≥90cm (L) / ≥80cm (P)</div>
+
+          {/* Metric grid — palette colors: indigo / purple / teal */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+
+            {/* HbA1c — INDIGO */}
+            <div style={{ background: '#EEF0FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(91,107,240,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 9.5, color: '#9AA0B9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>HbA1c</span>
+                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '1px 6px' }}>Kritis</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>10.2%</div>
+              <div style={{ fontSize: 9, color: '#5B6BF0', marginTop: 3, fontWeight: 600, opacity: 0.7 }}>&gt;9% = bahaya</div>
+            </div>
+
+            {/* LDL Kolesterol — PURPLE */}
+            <div style={{ background: '#F5F3FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(139,92,246,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 9.5, color: '#9AA0B9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>LDL Kolesterol</span>
+                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '1px 6px' }}>Tinggi</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>145 mg/dL</div>
+              <div style={{ fontSize: 9, color: '#8B5CF6', marginTop: 3, fontWeight: 600, opacity: 0.7 }}>&gt;100 = waspada</div>
+            </div>
+
+            {/* eGFR — TEAL */}
+            <div style={{ background: 'rgba(30,200,165,0.07)', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(30,200,165,0.22)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 9.5, color: '#9AA0B9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>eGFR</span>
+                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#1EC8A5', background: 'rgba(30,200,165,0.12)', borderRadius: 5, padding: '1px 6px' }}>Normal</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#1EC8A5', lineHeight: 1 }}>72 mL/min</div>
+              <div style={{ fontSize: 9, color: '#1EC8A5', marginTop: 3, fontWeight: 600, opacity: 0.7 }}>Target ≥60</div>
+            </div>
+
+            {/* UACR — INDIGO */}
+            <div style={{ background: '#EEF0FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(91,107,240,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 9.5, color: '#9AA0B9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>UACR</span>
+                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '1px 6px' }}>Mikro</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>42 mg/g</div>
+              <div style={{ fontSize: 9, color: '#5B6BF0', marginTop: 3, fontWeight: 600, opacity: 0.7 }}>30–300 pantau</div>
+            </div>
+
+            {/* BMI — PURPLE */}
+            <div style={{ background: '#F5F3FF', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(139,92,246,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 9.5, color: '#9AA0B9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>BMI</span>
+                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '1px 6px' }}>Overweight</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>29.3 kg/m²</div>
+              <div style={{ fontSize: 9, color: '#8B5CF6', marginTop: 3, fontWeight: 600, opacity: 0.7 }}>Target 18.5–24.9</div>
+            </div>
+
+            {/* Tensi Baseline — TEAL */}
+            <div style={{ background: 'rgba(30,200,165,0.07)', borderRadius: 10, padding: '11px 13px', border: '1px solid rgba(30,200,165,0.22)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 9.5, color: '#9AA0B9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Tensi Baseline</span>
+                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#1EC8A5', background: 'rgba(30,200,165,0.12)', borderRadius: 5, padding: '1px 6px' }}>HTN I</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#1EC8A5', lineHeight: 1 }}>148/92</div>
+              <div style={{ fontSize: 9, color: '#1EC8A5', marginTop: 3, fontWeight: 600, opacity: 0.7 }}>Grade 1 hipertensi</div>
+            </div>
+          </div>
+
+          {/* Lingkar Pinggang — full width, PURPLE */}
+          <div style={{ marginTop: 8, background: 'linear-gradient(135deg, #F5F3FF 0%, #EEF0FF 100%)', borderRadius: 10, padding: '12px 14px', border: '1px solid rgba(139,92,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 9.5, color: '#9AA0B9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 3 }}>Lingkar Pinggang</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>94 cm</div>
+            </div>
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.1)', borderRadius: 7, padding: '3px 9px', border: '1px solid rgba(139,92,246,0.2)' }}>
+              Risiko ≥90cm (L) / ≥80cm (P)
+            </span>
           </div>
         </div>
       </div>
 
       {/* ── BASELINE MODAL ── */}
       {showBaselineModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(2px)' }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: 540, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#2B2D42' }}>Update Baseline Klinis</div>
-                <div style={{ fontSize: 12, color: '#8A93A1', marginTop: 3 }}>Pasien: <strong style={{ color: '#5B6BF0' }}>{selectedPatientName}</strong></div>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: 'rgba(43,45,66,0.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(3px)',
+          padding: 20,
+        }}>
+          <div style={{
+            width: 560, maxWidth: '95vw', maxHeight: '92vh',
+            background: '#fff', borderRadius: 18,
+            boxShadow: '0 24px 64px rgba(15,36,68,0.28)',
+            border: '1px solid #E2E5F1',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+            animation: 'scaleIn 0.15s ease-out',
+          }}>
+
+            {/* Modal Header — gradient matching the card */}
+            <div style={{
+              background: 'linear-gradient(135deg, #5B6BF0 0%, #8B5CF6 100%)',
+              padding: '20px 24px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              flexShrink: 0,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 11,
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.2px' }}>Update Baseline Klinis</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
+                    Pasien: <strong style={{ color: '#fff' }}>{selectedPatientName}</strong> &bull; Masukkan nilai terbaru untuk 7 parameter klinis
+                  </div>
+                </div>
               </div>
-              <button onClick={() => setShowBaselineModal(false)} style={{ background: '#F4F5F7', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16 }}>✕</button>
+              <button
+                onClick={() => setShowBaselineModal(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: 9, width: 32, height: 32, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#ffffff', fontSize: 16, flexShrink: 0,
+                }}
+              >✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 13, marginBottom: 22 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>HbA1c (%)</label>
-                <input type="text" placeholder="e.g. 7.5" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none' }} />
+            {/* Form Body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px 0' }}>
+
+              {/* Field grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                {[
+                  { label: 'HbA1c', unit: '%', placeholder: 'mis. 7.5', dot: '#5B6BF0', hint: 'Normal <7%' },
+                  { label: 'LDL Kolesterol', unit: 'mg/dL', placeholder: 'mis. 130', dot: '#8B5CF6', hint: 'Target <100' },
+                  { label: 'eGFR', unit: 'mL/min', placeholder: 'mis. 75', dot: '#1EC8A5', hint: 'Normal ≥60' },
+                  { label: 'UACR', unit: 'mg/g', placeholder: 'mis. 30', dot: '#5B6BF0', hint: 'Normal <30' },
+                  { label: 'BMI', unit: 'kg/m²', placeholder: 'mis. 25.0', dot: '#8B5CF6', hint: 'Normal 18.5–24.9' },
+                  { label: 'Lingkar Pinggang', unit: 'cm', placeholder: 'mis. 90', dot: '#8B5CF6', hint: 'Risiko ≥90 (L) / ≥80 (P)' },
+                ].map(f => (
+                  <div key={f.label}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: f.dot, flexShrink: 0 }} />
+                      <label style={{ fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {f.label} <span style={{ fontWeight: 500, color: '#B0B8C8', textTransform: 'none', letterSpacing: 0 }}>({f.unit})</span>
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={f.placeholder}
+                      style={{
+                        width: '100%', padding: '10px 13px',
+                        border: '1.5px solid #E2E5F1', borderRadius: 9,
+                        fontSize: 13, color: '#2B2D42', background: '#F7F8FF',
+                        outline: 'none', boxSizing: 'border-box',
+                        transition: 'border-color 0.15s',
+                      }}
+                      onFocus={e => e.currentTarget.style.borderColor = '#5B6BF0'}
+                      onBlur={e => e.currentTarget.style.borderColor = '#E2E5F1'}
+                    />
+                    <div style={{ fontSize: 9.5, color: '#B0B8C8', marginTop: 4, fontWeight: 500 }}>{f.hint}</div>
+                  </div>
+                ))}
+
+                {/* Tensi Baseline — full width */}
+                <div style={{ gridColumn: 'span 2' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
+                    <label style={{ fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Tensi Baseline <span style={{ fontWeight: 500, color: '#B0B8C8', textTransform: 'none', letterSpacing: 0 }}>(mmHg)</span>
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="mis. 130/85"
+                    style={{
+                      width: '100%', padding: '10px 13px',
+                      border: '1.5px solid #E2E5F1', borderRadius: 9,
+                      fontSize: 13, color: '#2B2D42', background: '#F7F8FF',
+                      outline: 'none', boxSizing: 'border-box',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#5B6BF0'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#E2E5F1'}
+                  />
+                  <div style={{ fontSize: 9.5, color: '#B0B8C8', marginTop: 4, fontWeight: 500 }}>Normal &lt;120/80 · HTN Grade 1: 130–139/80–89</div>
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>LDL Kolesterol (mg/dL)</label>
-                <input type="text" placeholder="e.g. 130" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>eGFR (mL/min)</label>
-                <input type="text" placeholder="e.g. 75" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>UACR (mg/g)</label>
-                <input type="text" placeholder="e.g. 30" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>BMI (kg/m²)</label>
-                <input type="text" placeholder="e.g. 25.0" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lingkar Pinggang (cm)</label>
-                <input type="text" placeholder="e.g. 90" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none' }} />
-              </div>
-              <div style={{ gridColumn: 'span 2' }}>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tensi Baseline (mmHg)</label>
-                <input type="text" placeholder="e.g. 130/85" style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none' }} />
+
+              {/* Info note */}
+              <div style={{
+                display: 'flex', alignItems: 'flex-start', gap: 9,
+                background: '#EEF0FF', borderRadius: 10, padding: '11px 14px',
+                marginBottom: 20, border: '1px solid rgba(91,107,240,0.18)',
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span style={{ fontSize: 11.5, color: '#5B6BF0', fontWeight: 600, lineHeight: 1.5 }}>
+                  Data baseline digunakan sebagai acuan pemantauan klinis periodik. Nilai kosong tidak akan disimpan.
+                </span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowBaselineModal(false)} style={{ padding: '10px 22px', border: '1.5px solid #DCDFE8', borderRadius: 9, background: '#fff', color: '#636B78', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Batal</button>
+            {/* Footer */}
+            <div style={{
+              padding: '16px 24px',
+              borderTop: '1px solid #F0F1FE',
+              display: 'flex', gap: 10, justifyContent: 'flex-end',
+              background: '#FAFAFF', flexShrink: 0,
+            }}>
+              <button
+                onClick={() => setShowBaselineModal(false)}
+                style={{
+                  padding: '10px 22px', border: '1.5px solid #DCDFE8',
+                  borderRadius: 10, background: '#fff', color: '#636B78',
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                }}
+              >Batal</button>
               <button
                 onClick={() => {
                   setShowBaselineModal(false)
-                  showToastMsg('Data baseline klinis berhasil diperbarui!')
+                  showToastMsg('✅ Data baseline klinis berhasil diperbarui!')
                 }}
-                style={{ padding: '10px 22px', background: '#5B6BF0', color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 12px rgba(91,107,240,0.25)' }}
+                style={{
+                  padding: '10px 24px',
+                  background: 'linear-gradient(135deg, #5B6BF0 0%, #8B5CF6 100%)',
+                  color: '#fff', border: 'none', borderRadius: 10,
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(91,107,240,0.35)',
+                  display: 'flex', alignItems: 'center', gap: 7,
+                }}
               >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
                 Simpan Baseline
               </button>
             </div>
