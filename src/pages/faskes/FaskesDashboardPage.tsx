@@ -45,10 +45,22 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   // Toast State
   const [showToast, setShowToast] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success')
   const [toastTimer, setToastTimer] = useState<any | null>(null)
 
-  const showToastMsg = (msg: string) => {
+  const showToastMsg = (msg: string, type?: 'success' | 'error' | 'info') => {
     if (toastTimer) clearTimeout(toastTimer)
+    
+    let finalType: 'success' | 'error' | 'info' = type ?? 'success'
+    if (!type) {
+      if (msg.includes('⚠️') || msg.toLowerCase().includes('gagal') || msg.toLowerCase().includes('error')) {
+        finalType = 'error'
+      } else if (msg.toLowerCase().includes('info') || msg.toLowerCase().includes('detail')) {
+        finalType = 'info'
+      }
+    }
+    
+    setToastType(finalType)
     setToastMsg(msg)
     setShowToast(true)
     const timer = setTimeout(() => { setShowToast(false) }, 4200)
@@ -442,20 +454,59 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       </div>
 
       {/* ── TOAST MESSAGE ── */}
-      {showToast && (
-        <div style={{
-          position: 'fixed', bottom: 24, right: 24, background: C.slate, color: '#fff',
-          borderRadius: 12, padding: '14px 18px', fontSize: 13, fontWeight: 500,
-          boxShadow: '0 8px 30px rgba(15,36,68,0.22)', zIndex: 9999, maxWidth: 420,
-          display: 'flex', alignItems: 'flex-start', gap: 11,
-          borderLeft: `4px solid ${C.teal}`, animation: 'slideIn 0.3s ease-out', lineHeight: '1.45'
-        }}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
-            <polyline points="20,6 9,17 4,12" />
+      {showToast && (() => {
+        const cleanMsg = toastMsg.replace(/^[✓⚠️✗]\s*/, '')
+        
+        let bg = '#EEF0FF'
+        let color = '#1A2066'
+        let borderLeftColor = '#5B6BF0'
+        let borderColor = '#DCDFE8'
+        let icon = (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          {toastMsg}
-        </div>
-      )}
+        )
+
+        if (toastType === 'error') {
+          bg = '#FEF2F2'
+          color = '#991B1B'
+          borderLeftColor = '#EF4444'
+          borderColor = '#FEE2E2'
+          icon = (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          )
+        } else if (toastType === 'success') {
+          bg = '#ECFDF5'
+          color = '#065F46'
+          borderLeftColor = '#10B981'
+          borderColor = '#D1FAE5'
+          icon = (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+              <polyline points="20,6 9,17 4,12" />
+            </svg>
+          )
+        }
+
+        return (
+          <div style={{
+            position: 'fixed', bottom: 24, right: 24, 
+            background: bg, color: color,
+            borderRadius: 12, padding: '14px 18px', fontSize: 13, fontWeight: 600,
+            boxShadow: '0 8px 30px rgba(15,36,68,0.12)', zIndex: 9999, maxWidth: 420,
+            display: 'flex', alignItems: 'flex-start', gap: 11,
+            borderLeft: `4px solid ${borderLeftColor}`,
+            borderTop: `1px solid ${borderColor}`,
+            borderRight: `1px solid ${borderColor}`,
+            borderBottom: `1px solid ${borderColor}`,
+            animation: 'slideIn 0.3s ease-out', lineHeight: '1.45'
+          }}>
+            {icon}
+            <span>{cleanMsg}</span>
+          </div>
+        )
+      })()}
 
       {/* ── LOGOUT CONFIRM MODAL ── */}
       {showLogoutConfirm && (

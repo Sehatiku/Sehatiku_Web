@@ -135,13 +135,15 @@ function mockPatientLogin(): PatientLoginData {
   }
 }
 
+let currentMockNakes: NakesItem[] = [
+  { nakes_id: 'n1', full_name: 'Dr. Andi Wijaya, Sp.PD', role: 'dokter', username: 'dr.andi', phone_number: '628123456789', status: 'active', enrolled_at: '2025-01-10T08:00:00Z' },
+  { nakes_id: 'n2', full_name: 'Dr. Budi Santoso, Sp.JP', role: 'dokter', username: 'dr.budi', phone_number: '628134567890', status: 'active', enrolled_at: '2025-02-05T08:00:00Z' },
+  { nakes_id: 'n3', full_name: 'Siti Kader', role: 'kader', username: 'kader.siti', phone_number: '628145678901', status: 'active', enrolled_at: '2025-03-01T08:00:00Z' },
+  { nakes_id: 'n4', full_name: 'Admin Nakes', role: 'admin', username: 'admin.faskes', phone_number: '628156789012', status: 'inactive', enrolled_at: '2024-12-01T08:00:00Z' },
+]
+
 function mockNakesList(): NakesItem[] {
-  return [
-    { nakes_id: 'n1', full_name: 'Dr. Andi Wijaya, Sp.PD', role: 'dokter', username: 'dr.andi', phone_number: '628123456789', status: 'active', enrolled_at: '2025-01-10T08:00:00Z' },
-    { nakes_id: 'n2', full_name: 'Dr. Budi Santoso, Sp.JP', role: 'dokter', username: 'dr.budi', phone_number: '628134567890', status: 'active', enrolled_at: '2025-02-05T08:00:00Z' },
-    { nakes_id: 'n3', full_name: 'Siti Kader', role: 'kader', username: 'kader.siti', phone_number: '628145678901', status: 'active', enrolled_at: '2025-03-01T08:00:00Z' },
-    { nakes_id: 'n4', full_name: 'Admin Nakes', role: 'admin', username: 'admin.faskes', phone_number: '628156789012', status: 'inactive', enrolled_at: '2024-12-01T08:00:00Z' },
-  ]
+  return currentMockNakes
 }
 
 function mockOcrResult(): OcrKtpResult {
@@ -158,16 +160,31 @@ function mockDashboardSummary(): DashboardSummary {
   return { total_pasien: 8, risiko_bahaya: 2, status_aman: 3 }
 }
 
-function mockFaskesPatients(): FaskesPatientResponse {
+function mockFaskesPatients(page = 1, size = 10): FaskesPatientResponse {
+  const allPatients: FaskesPatientItem[] = [
+    { patient_id: 'fp1', full_name: 'Ahmad Suharto', nik: '3201010101670001', sex: 'male', age: 58, disease_type: 'diabetes_t2', phone_number: '628123456789', companion_name: 'Siti Suharto', companion_phone: '628123456780', status: 'active', enrolled_at: '2025-01-15T08:00:00Z' },
+    { patient_id: 'fp2', full_name: 'Siti Rahayu', nik: '3201010101620002', sex: 'female', age: 62, disease_type: 'hypertension', phone_number: '628134567890', companion_name: 'Budi Rahayu', companion_phone: '628134567891', status: 'active', enrolled_at: '2025-02-01T08:00:00Z' },
+    { patient_id: 'fp3', full_name: 'Budi Santoso', nik: '3201010101790003', sex: 'male', age: 45, disease_type: 'both', phone_number: '628145678901', companion_name: 'Maya Santoso', companion_phone: '628145678902', status: 'active', enrolled_at: '2025-02-20T08:00:00Z' },
+    { patient_id: 'fp4', full_name: 'Maya Kusuma', nik: '3201010101720004', sex: 'female', age: 52, disease_type: 'diabetes_t2', phone_number: '628156789012', companion_name: 'Rudi Kusuma', companion_phone: '628156789013', status: 'inactive', enrolled_at: '2025-03-05T08:00:00Z' },
+    { patient_id: 'fp5', full_name: 'Rini Wulandari', nik: '3201010101870005', sex: 'female', age: 39, disease_type: 'hypertension', phone_number: '628167890123', companion_name: 'Dodi Wulandari', companion_phone: '628167890124', status: 'active', enrolled_at: '2025-04-10T08:00:00Z' },
+    { patient_id: 'fp6', full_name: 'Hendra Wijaya', nik: '3201010101880006', sex: 'male', age: 41, disease_type: 'diabetes_t2', phone_number: '628178901234', companion_name: 'Dewi Wijaya', companion_phone: '628178901235', status: 'active', enrolled_at: '2025-04-12T08:00:00Z' },
+    { patient_id: 'fp7', full_name: 'Dewi Lestari', nik: '3201010101890007', sex: 'female', age: 35, disease_type: 'hypertension', phone_number: '628189012345', companion_name: 'Adi Lestari', companion_phone: '628189012346', status: 'active', enrolled_at: '2025-04-15T08:00:00Z' },
+    { patient_id: 'fp8', full_name: 'Joko Widodo', nik: '3201010101900008', sex: 'male', age: 64, disease_type: 'both', phone_number: '628190123456', companion_name: 'Iriana Widodo', companion_phone: '628190123457', status: 'active', enrolled_at: '2025-04-20T08:00:00Z' },
+    { patient_id: 'fp9', full_name: 'Susilo Bambang', nik: '3201010101910009', sex: 'male', age: 72, disease_type: 'diabetes_t2', phone_number: '628191234567', companion_name: 'Ani Bambang', companion_phone: '628191234568', status: 'active', enrolled_at: '2025-04-22T08:00:00Z' },
+    { patient_id: 'fp10', full_name: 'Megawati Soekarno', nik: '3201010101920010', sex: 'female', age: 75, disease_type: 'hypertension', phone_number: '628192345678', companion_name: 'Taufiq Kiemas', companion_phone: '628192345679', status: 'active', enrolled_at: '2025-04-25T08:00:00Z' },
+    { patient_id: 'fp11', full_name: 'Abdurrahman Wahid', nik: '3201010101930011', sex: 'male', age: 60, disease_type: 'both', phone_number: '628193456789', companion_name: 'Sinta Wahid', companion_phone: '628193456790', status: 'active', enrolled_at: '2025-04-28T08:00:00Z' },
+    { patient_id: 'fp12', full_name: 'Habibie Bacharuddin', nik: '3201010101940012', sex: 'male', age: 80, disease_type: 'diabetes_t2', phone_number: '628194567890', companion_name: 'Ainun Habibie', companion_phone: '628194567891', status: 'inactive', enrolled_at: '2025-05-01T08:00:00Z' },
+    { patient_id: 'fp13', full_name: 'Soeharto Tjokro', nik: '3201010101950013', sex: 'male', age: 82, disease_type: 'hypertension', phone_number: '628195678901', companion_name: 'Ibu Tien', companion_phone: '628195678902', status: 'active', enrolled_at: '2025-05-03T08:00:00Z' },
+    { patient_id: 'fp14', full_name: 'Soekarno Hatta', nik: '3201010101960014', sex: 'male', age: 70, disease_type: 'both', phone_number: '628196789012', companion_name: 'Fatmawati Soekarno', companion_phone: '628196789013', status: 'active', enrolled_at: '2025-05-05T08:00:00Z' },
+    { patient_id: 'fp15', full_name: 'Prabowo Subianto', nik: '3201010101970015', sex: 'male', age: 74, disease_type: 'diabetes_t2', phone_number: '628197890123', companion_name: 'Titiek Subianto', companion_phone: '628197890124', status: 'active', enrolled_at: '2025-05-10T08:00:00Z' },
+  ]
+  const totalItem = allPatients.length
+  const totalPage = Math.ceil(totalItem / size)
+  const start = (page - 1) * size
+  const end = start + size
   return {
-    data: [
-      { patient_id: 'fp1', full_name: 'Ahmad Suharto', nik: '3201010101670001', sex: 'male', age: 58, disease_type: 'diabetes_t2', phone_number: '628123456789', companion_name: 'Siti Suharto', companion_phone: '628123456780', status: 'active', enrolled_at: '2025-01-15T08:00:00Z' },
-      { patient_id: 'fp2', full_name: 'Siti Rahayu', nik: '3201010101620002', sex: 'female', age: 62, disease_type: 'hypertension', phone_number: '628134567890', companion_name: 'Budi Rahayu', companion_phone: '628134567891', status: 'active', enrolled_at: '2025-02-01T08:00:00Z' },
-      { patient_id: 'fp3', full_name: 'Budi Santoso', nik: '3201010101790003', sex: 'male', age: 45, disease_type: 'both', phone_number: '628145678901', companion_name: 'Maya Santoso', companion_phone: '628145678902', status: 'active', enrolled_at: '2025-02-20T08:00:00Z' },
-      { patient_id: 'fp4', full_name: 'Maya Kusuma', nik: '3201010101720004', sex: 'female', age: 52, disease_type: 'diabetes_t2', phone_number: '628156789012', companion_name: 'Rudi Kusuma', companion_phone: '628156789013', status: 'inactive', enrolled_at: '2025-03-05T08:00:00Z' },
-      { patient_id: 'fp5', full_name: 'Rini Wulandari', nik: '3201010101870005', sex: 'female', age: 39, disease_type: 'hypertension', phone_number: '628167890123', companion_name: 'Dodi Wulandari', companion_phone: '628167890124', status: 'active', enrolled_at: '2025-04-10T08:00:00Z' },
-    ],
-    paging: { page: 1, size: 20, total_item: 5, total_page: 1 },
+    data: allPatients.slice(start, end),
+    paging: { page, size, total_item: totalItem, total_page: totalPage },
   }
 }
 
@@ -309,11 +326,12 @@ export const faskesApi = {
   /** GET /api/v1/faskes/nakes/{id} */
   getNakesDetail: async (id: string): Promise<NakesDetail> => {
     if (MOCK) {
+      const found = currentMockNakes.find(n => n.nakes_id === id)
       return {
-        nakes_id: id, faskes_id: 'faskes-mock-001', full_name: 'Dr. Mock Nakes',
-        role: 'dokter', nik: '3201234567890001', alamat: 'Jl. Mock No. 1',
-        phone_number: '6281234567890', username: 'mock.nakes', status: 'active',
-        enrolled_at: '2025-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z',
+        nakes_id: id, faskes_id: 'faskes-mock-001', full_name: found?.full_name ?? 'Dr. Mock Nakes',
+        role: found?.role ?? 'dokter', nik: '3201234567890001', alamat: 'Jl. Mock No. 1',
+        phone_number: found?.phone_number ?? '6281234567890', username: found?.username ?? 'mock.nakes', status: found?.status ?? 'active',
+        enrolled_at: found?.enrolled_at ?? '2025-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z',
       }
     }
     const res = await request<ApiEnvelope<NakesDetail>>(`/api/v1/faskes/nakes/${id}`)
@@ -335,10 +353,22 @@ export const faskesApi = {
   /** POST /api/v1/faskes/nakes/register */
   registerNakes: async (body: RegisterNakesBody): Promise<RegisterNakesResult> => {
     if (MOCK) {
-      return {
-        nakes_id: `nakes-${Date.now()}`, faskes_id: 'faskes-mock-001',
-        full_name: body.full_name, role: body.role, nik: body.nik,
+      const newNakesId = `nakes-${Date.now()}`
+      const newNakes: NakesItem = {
+        nakes_id: newNakesId,
+        full_name: body.full_name,
+        role: body.role,
+        username: body.username,
+        phone_number: body.phone_number,
+        status: 'active',
         enrolled_at: new Date().toISOString(),
+        specialization: body.specialization,
+      }
+      currentMockNakes.push(newNakes)
+      return {
+        nakes_id: newNakesId, faskes_id: 'faskes-mock-001',
+        full_name: body.full_name, role: body.role, nik: body.nik,
+        enrolled_at: newNakes.enrolled_at,
         credentials: { username: body.username, password: body.password },
         wa_warmup: { bot_phone: '', nakes_link: '', status: 'unavailable' },
       }
@@ -352,7 +382,13 @@ export const faskesApi = {
 
   /** PATCH /api/v1/faskes/nakes/{id}/status */
   updateNakesStatus: async (nakesId: string, status: NakesStatus): Promise<UpdateNakesStatusResult> => {
-    if (MOCK) return { nakes_id: nakesId, full_name: '', status }
+    if (MOCK) {
+      const found = currentMockNakes.find(n => n.nakes_id === nakesId)
+      if (found) {
+        found.status = status
+      }
+      return { nakes_id: nakesId, full_name: found?.full_name ?? '', status }
+    }
     const res = await request<ApiEnvelope<UpdateNakesStatusResult>>(
       `/api/v1/faskes/nakes/${nakesId}/status`,
       { method: 'PATCH', body: JSON.stringify({ status }) },
@@ -361,8 +397,8 @@ export const faskesApi = {
   },
 
   /** GET /api/v1/faskes/patients */
-  getPatients: async (page = 1, size = 20): Promise<FaskesPatientResponse> => {
-    if (MOCK) return mockFaskesPatients()
+  getPatients: async (page = 1, size = 10): Promise<FaskesPatientResponse> => {
+    if (MOCK) return mockFaskesPatients(page, size)
     const envelope = await request<PaginatedEnvelope<FaskesPatientItem>>(
       `/api/v1/faskes/patients?page=${page}&size=${size}`,
     )
