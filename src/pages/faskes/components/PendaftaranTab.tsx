@@ -43,18 +43,18 @@ export default function PendaftaranTab({
     return d
   }
 
-  // Computed validation — normalize first so both 0xx and 62xx are accepted
-  const ptPhoneNormalized = normalizePhone(ptPhone)
-  const ptCompPhoneNormalized = normalizePhone(ptCompanionPhone)
+  // Computed validation
+  const ptPhoneDigits = ptPhone.replace(/\D/g, '')
+  const ptCompPhoneDigits = ptCompanionPhone.replace(/\D/g, '')
   const ptValidation = {
     nik: !/^\d{16}$/.test(ptNik) ? 'NIK harus 16 digit angka' : '',
     name: !ptName.trim() ? 'Nama lengkap wajib diisi' : '',
     dob: !ptDob ? 'Tanggal lahir wajib diisi' : '',
     sex: !ptSex ? 'Jenis kelamin wajib dipilih' : '',
     alamat: !ptAlamat.trim() ? 'Alamat wajib diisi' : '',
-    phone: !/^62\d{8,12}$/.test(ptPhoneNormalized) ? 'Nomor tidak valid (contoh: 08xx atau 628xx)' : '',
+    phone: !/^62\d{8,12}$/.test(ptPhoneDigits) ? 'Harus diawali 62 (contoh: 628123456789)' : '',
     companionName: !ptCompanionName.trim() ? 'Nama pendamping wajib diisi' : '',
-    companionPhone: !/^62\d{8,12}$/.test(ptCompPhoneNormalized) ? 'Nomor tidak valid (contoh: 08xx atau 628xx)' : '',
+    companionPhone: !/^62\d{8,12}$/.test(ptCompPhoneDigits) ? 'Harus diawali 62 (contoh: 628123456789)' : '',
     diseaseType: !ptDiseaseType ? 'Jenis penyakit wajib dipilih' : '',
     username: ptUsername.trim().length < 4 ? 'Username minimal 4 karakter' : '',
     password: ptPassword.length < 8 ? 'Password minimal 8 karakter' : '',
@@ -104,9 +104,9 @@ export default function PendaftaranTab({
         date_of_birth: ptDob,
         sex: ptSex as 'male' | 'female',
         alamat: ptAlamat.trim(),
-        phone_number: ptPhoneNormalized,
+        phone_number: ptPhoneDigits,
         companion_name: ptCompanionName.trim(),
-        companion_phone: ptCompPhoneNormalized,
+        companion_phone: ptCompPhoneDigits,
         disease_type: ptDiseaseType as DiseaseType,
         username: ptUsername.trim(),
         password: ptPassword,
@@ -258,13 +258,16 @@ export default function PendaftaranTab({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>No. WhatsApp Pasien *</label>
-                <input
-                  type="tel" value={ptPhone}
-                  onChange={e => setPtPhone(e.target.value)}
-                  onBlur={() => setPtPhone(normalizePhone(ptPhone))}
-                  placeholder="08xx atau 628xx"
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('phone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#8A93A1', fontWeight: 600 }}>+</span>
+                  <input
+                    type="tel" value={ptPhone}
+                    onChange={e => setPtPhone(e.target.value)}
+                    onBlur={() => setPtPhone(normalizePhone(ptPhone))}
+                    placeholder="628xxxxxxxxxx (awali dengan 62)"
+                    style={{ width: '100%', padding: '10px 13px 10px 22px', border: `1.5px solid ${ptErr('phone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
                 {ptErr('phone') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('phone')}</div>}
               </div>
 
@@ -289,7 +292,7 @@ export default function PendaftaranTab({
                   type="tel" value={ptCompanionPhone}
                   onChange={e => setPtCompanionPhone(e.target.value)}
                   onBlur={() => setPtCompanionPhone(normalizePhone(ptCompanionPhone))}
-                  placeholder="08xx atau 628xx"
+                  placeholder="628xxxxxxxxxx (awali dengan 62)"
                   style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('companionPhone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('companionPhone') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('companionPhone')}</div>}
