@@ -46,8 +46,8 @@ export interface PatientLoginData {
 
 // ─── Faskes Registration ──────────────────────────────────────────────────────
 
-/** API contract: puskesmas | klinik */
-export type FaskesType = 'puskesmas' | 'klinik'
+/** API contract: puskesmas | klinik (plus rumah_sakit supported by UI) */
+export type FaskesType = 'puskesmas' | 'klinik' | 'rumah_sakit'
 
 export interface RegisterFaskesBody {
   name: string

@@ -3,7 +3,6 @@ import { LogoImg } from '../../components/ui/Icons'
 import { faskesApi } from '../../lib/api'
 import { useAuth } from '../../auth/AuthContext'
 import type { NakesItem, FaskesProfile } from '../../lib/types'
-import { initials } from '../../lib/utils'
 
 // Import modular tab subcomponents
 import PendaftaranTab from './components/PendaftaranTab'
@@ -91,7 +90,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   // ── Tab meta ───────────────────────────────────────────────────────────────
-  const TAB_META: Record<string, { title: string; subtitle: string; icon: JSX.Element }> = {
+  const TAB_META: Record<string, { title: string; subtitle: string; icon: React.ReactNode }> = {
     pendaftaran: {
       title: 'Fase Pendaftaran',
       subtitle: 'Registrasi pasien & tenaga kesehatan baru',
@@ -186,7 +185,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>{faskesName}</div>
           <div style={{ fontSize: 9.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 1, fontFamily: 'monospace' }}>
-            {profile ? `ID: ${profile.faskes_id.slice(0, 16)}` : 'Memuat profil...'}
+            {profile ? `Kode: ${faskesCode}` : 'Memuat profil...'}
           </div>
         </div>
 

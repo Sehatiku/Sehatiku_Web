@@ -415,7 +415,7 @@ export default function OperasionalTab({
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.2px' }}>Update Baseline Klinis</div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
-                    Masukkan nilai terbaru untuk 7 parameter klinis
+                    Pasien: <strong style={{ color: '#fff' }}>{selectedPatientName}</strong> &bull; Masukkan nilai terbaru untuk 7 parameter klinis
                   </div>
                 </div>
               </div>
