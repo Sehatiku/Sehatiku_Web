@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import type { NakesItem } from '../../../lib/types'
+import { useState, useEffect } from 'react'
+import { faskesApi } from '../../../lib/api'
+import type { NakesItem, FaskesPatientItem } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
 
 interface Patient {
@@ -29,6 +30,16 @@ export default function OperasionalTab({
 }: OperasionalTabProps) {
   // Phase Operasional States
   const [patients] = useState<Patient[]>([])
+
+  // Patient summary (for Ringkasan Pasien card)
+  const [ptSummary, setPtSummary] = useState<FaskesPatientItem[]>([])
+  const [ptSummaryLoading, setPtSummaryLoading] = useState(true)
+
+  useEffect(() => {
+    faskesApi.getPatients(1, 100)
+      .then(res => { setPtSummary(res.data); setPtSummaryLoading(false) })
+      .catch(() => setPtSummaryLoading(false))
+  }, [])
 
   // Modals States
   const [showBaselineModal, setShowBaselineModal] = useState(false)
@@ -209,75 +220,63 @@ export default function OperasionalTab({
       {/* BPJS Integration & Baseline Periodik */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-        {/* Manajemen Nakes — real data dari GET /api/v1/faskes/nakes */}
+        {/* Ringkasan Pasien */}
         <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>Manajemen Nakes</div>
-              <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 2 }}>Kelola akun dokter &amp; perawat faskes</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>Ringkasan Pasien</div>
+              <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 2 }}>Distribusi kondisi pasien Prolanis</div>
             </div>
             <button
-              onClick={() => setActiveTab('dokter')}
+              onClick={() => setActiveTab('pasien')}
               style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#EEEFFE', color: '#5B6BF0', border: '1px solid rgba(91,107,240,0.18)', borderRadius: 9, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-              Kelola Nakes
+              Lihat Semua →
             </button>
           </div>
 
-          {/* Summary badges */}
-          <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          {/* Stat badges */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
             <div style={{ flex: 1, background: '#EEEFFE', borderRadius: 10, padding: '11px 14px', border: '1px solid rgba(91,107,240,0.12)', textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>{nakesLoading ? '…' : nakesItems.length}</div>
-              <div style={{ fontSize: 10, color: '#636B78', fontWeight: 600, marginTop: 3 }}>Total Nakes</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.length}</div>
+              <div style={{ fontSize: 10, color: '#636B78', fontWeight: 600, marginTop: 3 }}>Total Pasien</div>
             </div>
             <div style={{ flex: 1, background: '#F0FDF8', borderRadius: 10, padding: '11px 14px', border: '1px solid rgba(16,185,129,0.12)', textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#10B981', lineHeight: 1 }}>{nakesLoading ? '…' : nakesItems.filter(n => n.status === 'active').length}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#10B981', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status === 'active').length}</div>
               <div style={{ fontSize: 10, color: '#636B78', fontWeight: 600, marginTop: 3 }}>Aktif</div>
             </div>
             <div style={{ flex: 1, background: '#F7F8FA', borderRadius: 10, padding: '11px 14px', border: '1px solid #EEF2F7', textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#8A93A1', lineHeight: 1 }}>{nakesLoading ? '…' : nakesItems.filter(n => n.status !== 'active').length}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#8A93A1', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status !== 'active').length}</div>
               <div style={{ fontSize: 10, color: '#636B78', fontWeight: 600, marginTop: 3 }}>Nonaktif</div>
             </div>
           </div>
 
-          {/* Nakes list preview */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {nakesLoading && (
-              <div style={{ textAlign: 'center', padding: '16px 0', color: '#8A93A1', fontSize: 12 }}>Memuat daftar nakes...</div>
-            )}
-            {!nakesLoading && nakesError && (
-              <div style={{ textAlign: 'center', padding: '12px 0', color: '#EF4444', fontSize: 12 }}>{nakesError}</div>
-            )}
-            {!nakesLoading && !nakesError && nakesItems.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '16px 0', color: '#8A93A1', fontSize: 12 }}>Belum ada nakes terdaftar.</div>
-            )}
-            {!nakesLoading && nakesItems.slice(0, 4).map((n, idx) => {
-              const roleColors: Record<string, { bg: string; color: string }> = {
-                dokter: { bg: '#EEEFFE', color: '#5B6BF0' },
-                kader: { bg: '#F0FDF8', color: '#059669' },
-                admin: { bg: '#FFF7ED', color: '#D97706' },
-              }
-              const rc = roleColors[n.role] ?? roleColors.dokter
+          {/* Disease distribution */}
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#8A93A1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>Distribusi Penyakit</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {([
+              { key: 'diabetes_t2', label: 'Diabetes', color: '#5B6BF0', bg: '#EEEFFE' },
+              { key: 'hypertension', label: 'Hipertensi', color: '#0277BD', bg: 'rgba(79,195,247,0.12)' },
+              { key: 'both', label: 'DM + Hipertensi', color: '#7C3AED', bg: '#F5F3FF' },
+            ] as const).map(d => {
+              const count = ptSummary.filter(p => p.disease_type === d.key).length
+              const total = ptSummary.length || 1
+              const pct = ptSummaryLoading ? 0 : Math.round((count / total) * 100)
               return (
-                <div key={n.nakes_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: idx < Math.min(nakesItems.length, 4) - 1 ? '1px solid #F4F5F7' : 'none', opacity: n.status === 'active' ? 1 : 0.5 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: rc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: rc.color, flexShrink: 0 }}>{initials(n.full_name)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: '#2B2D42', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.full_name}</div>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
-                      <span style={{ ...rc, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 8, textTransform: 'capitalize' }}>{n.role}</span>
-                      <span style={{ fontSize: 10, color: '#8A93A1' }}>@{n.username}</span>
-                    </div>
+                <div key={d.key}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span style={{ background: d.bg, color: d.color, fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 8 }}>{d.label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#2B2D42' }}>
+                      {ptSummaryLoading ? '—' : count}
+                      <span style={{ fontSize: 10, fontWeight: 500, color: '#8A93A1', marginLeft: 4 }}>({pct}%)</span>
+                    </span>
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: n.status === 'active' ? '#1EC8A5' : '#8A93A1' }}>{n.status === 'active' ? 'Aktif' : 'Nonaktif'}</span>
+                  <div style={{ height: 5, borderRadius: 4, background: '#F4F5F7', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 4, background: d.color, transition: 'width 0.6s ease' }} />
+                  </div>
                 </div>
               )
             })}
-            {!nakesLoading && nakesItems.length > 4 && (
-              <button onClick={() => setActiveTab('dokter')} style={{ marginTop: 10, background: 'none', border: 'none', color: '#5B6BF0', fontSize: 12, fontWeight: 600, cursor: 'pointer', textAlign: 'left', padding: 0 }}>
-                + {nakesItems.length - 4} nakes lainnya →
-              </button>
-            )}
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { faskesApi, nakesApi } from '../../../lib/api'
+import { faskesApi } from '../../../lib/api'
 import type { NakesItem, DiseaseType } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
 
@@ -58,6 +58,7 @@ export default function PendaftaranTab({
     diseaseType: !ptDiseaseType ? 'Jenis penyakit wajib dipilih' : '',
     username: ptUsername.trim().length < 4 ? 'Username minimal 4 karakter' : '',
     password: ptPassword.length < 8 ? 'Password minimal 8 karakter' : '',
+    assignedNakes: !selectedDoctorId ? 'Nakes penanggung jawab wajib dipilih' : '',
   }
   const ptHasError = Object.values(ptValidation).some(Boolean)
   const ptErr = (k: keyof typeof ptValidation) => ptSubmitted ? ptValidation[k] : ''
@@ -68,7 +69,7 @@ export default function PendaftaranTab({
     e.target.value = ''
     setPtOcrLoading(true)
     try {
-      const result = await faskesApi.ocrKtp(file)
+      const result = await faskesApi.ocrKtpPatient(file)
       setPtNik(result.nik)
       setPtName(result.full_name)
       setPtDob(result.date_of_birth)
@@ -96,7 +97,8 @@ export default function PendaftaranTab({
 
     setPtRegisterLoading(true)
     try {
-      await nakesApi.registerPatient({
+      await faskesApi.registerPatient({
+        assigned_nakes_id: selectedDoctorId!,
         nik: ptNik,
         full_name: ptName.trim(),
         date_of_birth: ptDob,
@@ -358,11 +360,11 @@ export default function PendaftaranTab({
         </div>
 
         {/* RIGHT: Pilih Nakes PJ */}
-        <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
+        <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: `1px solid ${ptErr('assignedNakes') ? '#EF4444' : '#DCDFE8'}`, display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Nakes Penanggung Jawab</div>
-              <div style={{ fontSize: 10, color: '#8A93A1', marginTop: 2 }}>Pilih dokter / kader yang menangani</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Nakes Penanggung Jawab <span style={{ color: '#EF4444' }}>*</span></div>
+              <div style={{ fontSize: 10, color: '#8A93A1', marginTop: 2 }}>Wajib dipilih — dikirim ke API sebagai <code>assigned_nakes_id</code></div>
             </div>
             {selectedDoctorId && (
               <span style={{ background: '#F0FDF8', color: '#1EC8A5', fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, border: '1px solid rgba(30,200,165,0.2)', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -403,11 +405,9 @@ export default function PendaftaranTab({
             })}
           </div>
 
-          <div style={{ marginTop: 14, padding: '11px 13px', background: '#FFFDF0', borderRadius: 9, border: '1px solid rgba(245,158,11,0.2)' }}>
-            <div style={{ fontSize: 10, color: '#92400E', fontWeight: 600, lineHeight: 1.5 }}>
-              💡 Pemilihan nakes PJ bersifat informatif. Penugasan resmi dilakukan melalui sistem nakes.
-            </div>
-          </div>
+          {ptErr('assignedNakes') && (
+            <div style={{ marginTop: 10, fontSize: 11, color: '#EF4444', fontWeight: 600 }}>{ptErr('assignedNakes')}</div>
+          )}
         </div>
       </div>
 

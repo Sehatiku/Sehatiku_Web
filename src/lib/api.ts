@@ -8,6 +8,7 @@ import type {
   RegisterNakesBody,
   RegisterNakesResult,
   RegisterPatientBody,
+  RegisterFaskesPatientBody,
   RegisterPatientResult,
   OcrKtpResult,
   DashboardSummary,
@@ -264,6 +265,38 @@ export const faskesApi = {
       `/api/v1/faskes/patients?page=${page}&size=${size}`,
     )
     return { data: envelope.data, paging: envelope.paging }
+  },
+
+  /** POST /api/v1/faskes/patients/register — requires faskes JWT */
+  registerPatient: async (body: RegisterFaskesPatientBody): Promise<RegisterPatientResult> => {
+    if (MOCK) {
+      return {
+        patient_id: `patient-${Date.now()}`,
+        faskes_id: 'faskes-mock-001',
+        full_name: body.full_name,
+        nik: body.nik,
+        disease_type: body.disease_type,
+        enrolled_at: new Date().toISOString(),
+      }
+    }
+    const res = await request<ApiEnvelope<RegisterPatientResult>>(
+      '/api/v1/faskes/patients/register',
+      { method: 'POST', body: JSON.stringify(body) },
+    )
+    return res.data
+  },
+
+  /** POST /api/v1/faskes/patients/register/ktp-ocr — requires faskes JWT, multipart */
+  ocrKtpPatient: async (file: File): Promise<OcrKtpResult> => {
+    if (MOCK) return mockOcrResult()
+    const form = new FormData()
+    form.append('file', file)
+    const res = await request<ApiEnvelope<OcrKtpResult>>(
+      '/api/v1/faskes/patients/register/ktp-ocr',
+      { method: 'POST', body: form },
+      true,
+    )
+    return res.data
   },
 
   /** PATCH /api/v1/faskes/nakes/{id}/status — requires faskes JWT */
