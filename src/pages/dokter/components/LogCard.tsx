@@ -1,23 +1,10 @@
 import { MOCK_LOGS } from '../dokterMockData'
 
-const isMockMode = import.meta.env.VITE_MOCK === 'true'
-
 interface LogCardProps {
   patientIdx: number
 }
 
 export default function LogCard({ patientIdx }: LogCardProps) {
-  if (!isMockMode) {
-    return (
-      <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 180 }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8A93A1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
-        <span style={{ fontSize: 13, color: '#636B78', fontWeight: 600 }}>Belum ada log catatan harian</span>
-      </div>
-    )
-  }
-
   const safeIdx = Math.min(patientIdx, MOCK_LOGS.length - 1)
   const logs = MOCK_LOGS[safeIdx]
   return (

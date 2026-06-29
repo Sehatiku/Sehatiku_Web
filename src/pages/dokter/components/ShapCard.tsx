@@ -1,23 +1,10 @@
 import { MOCK_SHAP } from '../dokterMockData'
 
-const isMockMode = import.meta.env.VITE_MOCK === 'true'
-
 interface ShapCardProps {
   patientIdx: number
 }
 
 export default function ShapCard({ patientIdx }: ShapCardProps) {
-  if (!isMockMode) {
-    return (
-      <div style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1.5px solid #DCDFE8', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220 }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8A93A1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-        </svg>
-        <span style={{ fontSize: 13, color: '#636B78', fontWeight: 600 }}>Atribusi faktor AI belum tersedia</span>
-      </div>
-    )
-  }
-
   const safeIdx = Math.min(patientIdx, MOCK_SHAP.length - 1)
   const factors = MOCK_SHAP[safeIdx]
   return (

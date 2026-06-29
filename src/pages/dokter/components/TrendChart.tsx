@@ -1,8 +1,6 @@
 import { buildChart, StatusPill } from './Common'
 import { MOCK_GLUCOSE, MOCK_BP } from '../dokterMockData'
 
-const isMockMode = import.meta.env.VITE_MOCK === 'true'
-
 interface TrendChartProps {
   patientIdx: number
   chartParam: 'glucose' | 'bp'
@@ -18,17 +16,6 @@ export default function TrendChart({
   onParamChange,
   onRangeChange,
 }: TrendChartProps) {
-  if (!isMockMode) {
-    return (
-      <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220 }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8A93A1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-        <span style={{ fontSize: 13, color: '#636B78', fontWeight: 600 }}>Belum ada data parameter harian</span>
-      </div>
-    )
-  }
-
   const safeIdx = Math.min(patientIdx, MOCK_GLUCOSE.length - 1)
   const glucoseData = MOCK_GLUCOSE[safeIdx]
   const bpData = MOCK_BP[safeIdx]
