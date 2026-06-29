@@ -39,6 +39,8 @@ export default function NakesTab({
   
   // Registration result modal state
   const [registerResult, setRegisterResult] = useState<RegisterNakesResult | null>(null)
+  const [lastRegisteredPhone, setLastRegisteredPhone] = useState('')
+
   
   // OCR & Submission States
   const ocrInputRef = useRef<HTMLInputElement>(null)
@@ -153,8 +155,10 @@ export default function NakesTab({
         } : {}),
       })
       setRegisterResult(res)
+      setLastRegisteredPhone(drPhoneDigits)
       showToastMsg(`✓ ${newDrName} berhasil didaftarkan ke sistem Sehatiku!`)
       setNewDrName(''); setNewDrNik(''); setNewDrAlamat(''); setNewDrPhone('')
+
       setNewDrUsername(''); setNewDrPassword(''); setNewDrRole('dokter'); setNewDrSpecialization('')
       setSelectedDays([])
       setStartTime('08:00')
@@ -593,9 +597,37 @@ export default function NakesTab({
             {/* WA Action Buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
               {registerResult.wa_warmup.status === 'unavailable' ? (
-                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '12px 14px', fontSize: 12, color: '#B45309', lineHeight: 1.5, textAlign: 'center' }}>
-                  <strong>⚠️ WhatsApp Bot Offline:</strong> Kredensial tidak dapat dikirim otomatis via bot. Sampaikan detail akun di atas secara manual kepada nakes.
-                </div>
+                <>
+                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '12px 14px', fontSize: 12, color: '#B45309', lineHeight: 1.5, textAlign: 'center' }}>
+                    <strong>⚠️ WhatsApp Bot Offline:</strong> Kredensial tidak dapat dikirim otomatis via bot. Sampaikan detail akun di atas secara manual kepada nakes.
+                  </div>
+                  {lastRegisteredPhone && (
+                    <div>
+                      <button
+                        onClick={() => {
+                          const txt = `Halo Bapak/Ibu ${registerResult.full_name} 🙏\n\nAkun Sehatiku Anda sudah dibuat.\nUsername: ${registerResult.credentials.username}\nPassword: ${registerResult.credentials.password}\n\nSilakan gunakan kredensial ini untuk login ke aplikasi Sehatiku.`
+                          window.open(`https://wa.me/${lastRegisteredPhone}?text=${encodeURIComponent(txt)}`, '_blank')
+                        }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#25D366', color: '#fff', border: 'none', borderRadius: 10,
+                          padding: '11px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(37,211,102,0.2)', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#20ba59'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#25D366'}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        </svg>
+                        Kirim Kredensial via WA Manual
+                      </button>
+                      <p style={{ margin: '6px 0 0 4px', fontSize: 11, color: '#8A93A1', lineHeight: 1.45, textAlign: 'center' }}>
+                        Kirim detail username &amp; password langsung ke nomor WhatsApp nakes secara manual.
+                      </p>
+                    </div>
+                  )}
+                </>
               ) : (
                 <>
                   {registerResult.wa_warmup.nakes_direct_link && (
