@@ -108,7 +108,6 @@ export default function KeluhanView({ queue, consultations, onReviewConsultation
               const patient = queue.find(p => p.patient_id === c.patient_id)
               const name = c.patient_name || patient?.full_name || 'Pasien'
               const isPending = c.status === 'open'
-              const catColor = CAT_COLOR[c.complaint_type] || '#6B7280'
 
               return (
                 <div

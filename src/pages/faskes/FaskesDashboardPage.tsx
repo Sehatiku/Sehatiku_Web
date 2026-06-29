@@ -22,13 +22,6 @@ const C = {
   sidebarTo: '#161C5C',
 }
 
-// ── Helper: format today's date in Indonesian ───────────────────────────────
-function todayLabel(): string {
-  return new Intl.DateTimeFormat('id-ID', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(new Date())
-}
-
 // ── Helper: faskes type label ──────────────────────────────────────────────
 function faskesTypeLabel(type: string): string {
   if (type === 'puskesmas') return 'Puskesmas'
