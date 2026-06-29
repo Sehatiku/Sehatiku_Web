@@ -24,7 +24,6 @@ export interface PasienViewProps {
   filteredQueue: PatientQueueItem[]
   queueFilter: QueueFilter
   setQueueFilter: (f: QueueFilter) => void
-  selectedId: string | null
   setSelectedId: (id: string | null) => void
   selectedPatient: PatientQueueItem | null
   safeSelectedIdx: number
@@ -37,7 +36,6 @@ export interface PasienViewProps {
   chartRange: 7 | 14
   setChartRange: (r: 7 | 14) => void
   consultations: ConsultationResult[]
-  onReviewConsultation: (id: string, notes: string) => void
   totalCount: number
   bahayaCount: number
   waswasCount: number
@@ -165,13 +163,13 @@ export default function PasienView({
   queue,
   filteredQueue,
   queueFilter, setQueueFilter,
-  selectedId, setSelectedId,
+  setSelectedId,
   selectedPatient, safeSelectedIdx,
   contacted, handleContact,
   feedbacks, handleFeedback,
   chartParam, setChartParam,
   chartRange, setChartRange,
-  consultations, onReviewConsultation,
+  consultations,
   totalCount, bahayaCount, waswasCount, amanCount,
   setTrenPatientId, trenPatient,
   trenSearch, setTrenSearch,
