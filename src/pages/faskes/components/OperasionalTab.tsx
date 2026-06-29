@@ -903,7 +903,6 @@ export default function OperasionalTab({
             <div style={{ padding: '22px 26px' }}>
               {/* Trend header — score change badge sesuai grafik */}
               {(() => {
-                const isImproving = progressPatient.status === 'Sehat' || progressPatient.status === 'Waswas'
                 const trendVal  = progressPatient.status === 'Sehat' ? '+24' : progressPatient.status === 'Waswas' ? '+6' : '-18'
                 const trendLabel = progressPatient.status === 'Sehat' ? 'Membaik' : progressPatient.status === 'Waswas' ? 'Stabil' : 'Memburuk'
                 const trendColor = progressPatient.status === 'Sehat' ? '#10B981' : progressPatient.status === 'Waswas' ? '#F59E0B' : '#EF4444'
