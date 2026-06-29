@@ -22,10 +22,10 @@ module.exports = {
           900: '#1A2066',
         },
         teal: {
-          50:  '#E5FBF6',
-          100: '#BDFAEA',
-          DEFAULT: '#1EC8A5',
-          600: '#16A98C',
+          50:  '#F0FDFA',
+          100: '#CCFBF1',
+          DEFAULT: '#0D9488',
+          600: '#0F766E',
         },
         neutral: {
           0:   '#FFFFFF',

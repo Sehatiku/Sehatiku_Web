@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { LogoImg } from '../../components/ui/Icons'
 import { useAuth } from '../../auth/AuthContext'
 import { authFaskesApi } from '../../lib/api'
 import type { FaskesType } from '../../lib/types'
@@ -296,11 +295,12 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
         <div style={{ position: 'absolute', top: -80, right: -60, width: 280, height: 280, background: 'rgba(255,255,255,0.06)', borderRadius: '50%' }} />
         <div style={{ position: 'absolute', bottom: -100, left: -40, width: 240, height: 240, background: 'rgba(30,200,165,0.14)', borderRadius: '50%' }} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 }}>
-          <LogoImg size={38} />
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
-            sehat<span style={{ color: '#1EC8A5' }}>iku</span>
-          </div>
+        <div style={{ position: 'relative', zIndex: 1, marginBottom: 24 }}>
+          <img
+            src="/logo_sehatiku_horizontal.png"
+            alt="Sehatiku"
+            style={{ height: 34, objectFit: 'contain', display: 'block' }}
+          />
         </div>
 
         <div key={`panel-${role}-${isRegister}`} className="anim-fadein" style={{ position: 'relative', zIndex: 1 }}>

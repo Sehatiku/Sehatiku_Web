@@ -30,6 +30,7 @@ import type {
   HistoryRecord,
   ConsultationBody,
   ConsultationResult,
+  PatientNotification,
 } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8080'
@@ -135,9 +136,50 @@ function mockPatientLogin(): PatientLoginData {
   }
 }
 
+let currentMockConsultations: ConsultationResult[] = [
+  {
+    id: 'consult-1',
+    patient_id: 'p1',
+    patient_name: 'Ahmad Suharto',
+    complaint_since: '5 hari yang lalu',
+    complaint_type: 'Konsultasi Dokter',
+    complaint_detail: 'Kaki kiri terasa kesemutan hebat dan baal (mati rasa) terus-menerus, terutama saat malam hari sebelum tidur, disertai rasa nyeri seperti tertusuk jarum.',
+    status: 'open',
+    nakes_note: null,
+    replied_at: null,
+    created_at: '2025-06-25T08:00:00Z',
+  },
+  {
+    id: 'consult-2',
+    patient_id: 'p2',
+    patient_name: 'Siti Rahayu',
+    complaint_since: '3 hari terakhir',
+    complaint_type: 'Laporkan Keluhan',
+    complaint_detail: 'Saya merasakan pusing berputar dan tengkuk terasa sangat tegang. Tensi saya ukur mandiri di rumah menunjukkan angka 170/105 mmHg, padahal saya teratur minum Amlodipine 5mg setiap pagi.',
+    status: 'open',
+    nakes_note: null,
+    replied_at: null,
+    created_at: '2025-06-27T09:00:00Z',
+  },
+  {
+    id: 'consult-3',
+    patient_id: 'p3',
+    patient_name: 'Budi Santoso',
+    complaint_since: 'Sejak 2 hari yang lalu (setelah diresepkan obat baru)',
+    complaint_type: 'Minta Review Hasil',
+    complaint_detail: 'Perut saya terasa sangat kembung, begah, dan kadang disertai mual sesaat setelah mengonsumsi tablet Metformin 500mg pasca makan.',
+    status: 'open',
+    nakes_note: null,
+    replied_at: null,
+    created_at: '2025-06-28T10:00:00Z',
+  }
+]
+
+let currentMockNotifications: PatientNotification[] = []
+
 let currentMockNakes: NakesItem[] = [
-  { nakes_id: 'n1', full_name: 'Dr. Andi Wijaya, Sp.PD', role: 'dokter', username: 'dr.andi', phone_number: '628123456789', status: 'active', enrolled_at: '2025-01-10T08:00:00Z' },
-  { nakes_id: 'n2', full_name: 'Dr. Budi Santoso, Sp.JP', role: 'dokter', username: 'dr.budi', phone_number: '628134567890', status: 'active', enrolled_at: '2025-02-05T08:00:00Z' },
+  { nakes_id: 'n1', full_name: 'Dr. Andi Wijaya, Sp.PD', role: 'dokter', username: 'dr.andi', phone_number: '628123456789', status: 'active', enrolled_at: '2025-01-10T08:00:00Z', specialization: 'Penyakit Dalam', schedule: [{ days: 'Senin - Jumat', time: '08:00 - 14:00' }] },
+  { nakes_id: 'n2', full_name: 'Dr. Budi Santoso, Sp.JP', role: 'dokter', username: 'dr.budi', phone_number: '628134567890', status: 'active', enrolled_at: '2025-02-05T08:00:00Z', specialization: 'Jantung', schedule: [{ days: 'Senin, Rabu, Jumat', time: '09:00 - 12:00' }] },
   { nakes_id: 'n3', full_name: 'Siti Kader', role: 'kader', username: 'kader.siti', phone_number: '628145678901', status: 'active', enrolled_at: '2025-03-01T08:00:00Z' },
   { nakes_id: 'n4', full_name: 'Admin Nakes', role: 'admin', username: 'admin.faskes', phone_number: '628156789012', status: 'inactive', enrolled_at: '2024-12-01T08:00:00Z' },
 ]
@@ -332,6 +374,8 @@ export const faskesApi = {
         role: found?.role ?? 'dokter', nik: '3201234567890001', alamat: 'Jl. Mock No. 1',
         phone_number: found?.phone_number ?? '6281234567890', username: found?.username ?? 'mock.nakes', status: found?.status ?? 'active',
         enrolled_at: found?.enrolled_at ?? '2025-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z',
+        specialization: found?.specialization,
+        schedule: found?.schedule,
       }
     }
     const res = await request<ApiEnvelope<NakesDetail>>(`/api/v1/faskes/nakes/${id}`)
@@ -363,6 +407,8 @@ export const faskesApi = {
         status: 'active',
         enrolled_at: new Date().toISOString(),
         specialization: body.specialization,
+        hospital: body.hospital,
+        schedule: body.schedule,
       }
       currentMockNakes.push(newNakes)
       return {
@@ -370,7 +416,12 @@ export const faskesApi = {
         full_name: body.full_name, role: body.role, nik: body.nik,
         enrolled_at: newNakes.enrolled_at,
         credentials: { username: body.username, password: body.password },
-        wa_warmup: { bot_phone: '', nakes_link: '', status: 'unavailable' },
+        wa_warmup: {
+          bot_phone: '628975228858',
+          nakes_link: 'https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.',
+          nakes_direct_link: `https://wa.me/${body.phone_number}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.full_name)}+%F0%9F%99%8F%0A%0AAkun+Sehatiku+Anda+sudah+dibuat.%0AUsername%3A+${body.username}%0A%0AUntuk+mengaktifkan+dan+menerima+password%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.`,
+          status: 'pending',
+        },
       }
     }
     const res = await request<ApiEnvelope<RegisterNakesResult>>(
@@ -443,7 +494,14 @@ export const faskesApi = {
         full_name: body.full_name, nik: body.nik, disease_type: body.disease_type,
         enrolled_at: new Date().toISOString(),
         credentials: { username: body.username, password: body.password },
-        wa_warmup: { bot_phone: '', patient_link: '', status: 'unavailable' },
+        wa_warmup: {
+          bot_phone: '628975228858',
+          patient_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          companion_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          patient_direct_link: `https://wa.me/${body.phone_number}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.full_name)}+%F0%9F%99%8F%0A%0AAkun+Sehatiku+Anda+sudah+dibuat.%0AUsername%3A+${body.username}%0A%0AUntuk+mengaktifkan+dan+menerima+password%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+password+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.`,
+          companion_direct_link: body.companion_phone ? `https://wa.me/${body.companion_phone}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.companion_name)}+%F0%9F%99%8F%0A%0AAnda+terdaftar+sebagai+pendamping+${encodeURIComponent(body.full_name)}+di+Sehatiku.%0A%0AUntuk+mengaktifkan%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+detail+akun+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.` : undefined,
+          status: 'pending',
+        },
       }
     }
     const res = await request<ApiEnvelope<RegisterPatientResult>>(
@@ -493,7 +551,14 @@ export const nakesApi = {
         full_name: body.full_name, nik: body.nik, disease_type: body.disease_type,
         enrolled_at: new Date().toISOString(),
         credentials: { username: body.username, password: body.password },
-        wa_warmup: { bot_phone: '', patient_link: '', status: 'unavailable' },
+        wa_warmup: {
+          bot_phone: '628975228858',
+          patient_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          companion_link: `https://wa.me/628975228858?text=HALO+SEHATIKU%2C+saya+ingin+menerima+detail+akun+saya.`,
+          patient_direct_link: `https://wa.me/${body.phone_number}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.full_name)}+%F0%9F%99%8F%0A%0AAkun+Sehatiku+Anda+sudah+dibuat.%0AUsername%3A+${body.username}%0A%0AUntuk+mengaktifkan+dan+menerima+password%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+password+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.`,
+          companion_direct_link: body.companion_phone ? `https://wa.me/${body.companion_phone}?text=Halo+Bapak%2FIbu+${encodeURIComponent(body.companion_name)}+%F0%9F%99%8F%0A%0AAnda+terdaftar+sebagai+pendamping+${encodeURIComponent(body.full_name)}+di+Sehatiku.%0A%0AUntuk+mengaktifkan%2C+buka+tautan+ini+lalu+tekan+tombol+kirim%3A%0Ahttps%3A%2F%2Fwa.me%2F628975228858%3Ftext%3DHALO%2BSEHATIKU%252C%2Bsaya%2Bingin%2Bmenerima%2Bdetail%2Bakun%2Bsaya.%0A%0ASetelah+Anda+mengirim+pesan%2C+detail+akun+akan+otomatis+dikirim+oleh+Sehatiku+lewat+WhatsApp+ini.` : undefined,
+          status: 'pending',
+        },
       }
     }
     const res = await request<ApiEnvelope<RegisterPatientResult>>(
@@ -501,6 +566,68 @@ export const nakesApi = {
       { method: 'POST', body: JSON.stringify(body) },
     )
     return res.data
+  },
+
+  /** GET /api/v1/nakes/profile */
+  getProfile: async (): Promise<NakesDetail> => {
+    if (MOCK) {
+      return {
+        nakes_id: 'nakes-mock-001',
+        faskes_id: 'faskes-mock-001',
+        full_name: 'Dr. Andi Wijaya, Sp.PD',
+        role: 'dokter',
+        nik: '3201234567890001',
+        alamat: 'Jl. Sehat Sentosa No. 8, Bandung',
+        phone_number: '628123456789',
+        username: 'dr.andi',
+        status: 'active',
+        enrolled_at: '2025-01-10T08:00:00Z',
+        created_at: '2025-01-10T08:00:00Z',
+        updated_at: '2025-01-10T08:00:00Z',
+        specialization: 'Penyakit Dalam',
+        schedule: [{ days: 'Senin - Jumat', time: '08:00 - 14:00' }],
+      }
+    }
+    const res = await request<ApiEnvelope<NakesDetail>>('/api/v1/nakes/profile')
+    return res.data
+  },
+
+  /** GET /api/v1/nakes/consultations */
+  getConsultations: async (): Promise<ConsultationResult[]> => {
+    if (MOCK) {
+      return currentMockConsultations
+    }
+    const res = await request<ApiEnvelope<ConsultationResult[]>>('/api/v1/nakes/consultations')
+    return res.data
+  },
+
+  /** POST /api/v1/nakes/consultations/{id}/reply */
+  replyConsultation: async (id: string, note: string): Promise<void> => {
+    if (MOCK) {
+      const found = currentMockConsultations.find(c => c.id === id)
+      if (found) {
+        found.status = 'replied'
+        found.nakes_note = note
+        found.replied_at = new Date().toISOString()
+
+        // Create a notification for the patient
+        currentMockNotifications.unshift({
+          id: `notif-${Date.now()}`,
+          message_type: 'consultation_reply',
+          payload: JSON.stringify({
+            consultation_id: id,
+            nakes_id: 'nakes-mock-001',
+            nakes_note: note,
+          }),
+          created_at: new Date().toISOString(),
+        })
+      }
+      return
+    }
+    await request<ApiEnvelope<null>>(
+      `/api/v1/nakes/consultations/${id}/reply`,
+      { method: 'POST', body: JSON.stringify({ nakes_note: note }) }
+    )
   },
 }
 
@@ -599,16 +726,43 @@ export const patientApi = {
   /** POST /api/v1/patients/consultations */
   postConsultation: async (body: ConsultationBody): Promise<ConsultationResult> => {
     if (MOCK) {
-      return {
-        id: `consult-${Date.now()}`, patient_id: 'patient-mock-001',
-        complaint: body.complaint, status: 'open',
+      const newConsult: ConsultationResult = {
+        id: `consult-${Date.now()}`,
+        patient_id: 'patient-mock-001',
+        patient_name: 'Ahmad Suharto',
+        complaint_since: body.complaint_since,
+        complaint_type: body.complaint_type,
+        complaint_detail: body.complaint_detail,
+        status: 'open',
+        nakes_note: null,
+        replied_at: null,
         created_at: new Date().toISOString(),
       }
+      currentMockConsultations.unshift(newConsult)
+      return newConsult
     }
     const res = await request<ApiEnvelope<ConsultationResult>>(
       '/api/v1/patients/consultations',
       { method: 'POST', body: JSON.stringify(body) },
     )
+    return res.data
+  },
+
+  /** GET /api/v1/patients/consultations */
+  getConsultations: async (): Promise<ConsultationResult[]> => {
+    if (MOCK) {
+      return currentMockConsultations.filter(c => c.patient_id === 'patient-mock-001' || c.patient_id === 'p1')
+    }
+    const res = await request<ApiEnvelope<ConsultationResult[]>>('/api/v1/patients/consultations')
+    return res.data
+  },
+
+  /** GET /api/v1/patients/notifications */
+  getNotifications: async (): Promise<PatientNotification[]> => {
+    if (MOCK) {
+      return currentMockNotifications
+    }
+    const res = await request<ApiEnvelope<PatientNotification[]>>('/api/v1/patients/notifications')
     return res.data
   },
 }

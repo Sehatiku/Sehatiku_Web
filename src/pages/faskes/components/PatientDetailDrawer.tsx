@@ -42,7 +42,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
   return createPortal(
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{ width: 560, maxWidth: '92vw', maxHeight: '88vh', background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(15,36,68,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 

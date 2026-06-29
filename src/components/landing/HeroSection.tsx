@@ -42,8 +42,7 @@ export default function HeroSection({ onLoginClick }: { onLoginClick: () => void
               boxShadow: '0 1px 3px rgba(30,36,51,0.05)',
             }}>
               <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8 }}>
-                <span className="anim-blink" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: C.teal }} />
-                <span style={{ position: 'absolute', inset: -3, borderRadius: '50%', background: 'rgba(20,185,160,0.25)', animation: 'pulse-dot 2s ease infinite' }} />
+                <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: C.teal }} />
               </span>
               <span style={{ fontSize: 11.5, fontWeight: 700, color: C.tealLabel, letterSpacing: '0.2px' }}>
                 Platform Mitra Prolanis BPJS Kesehatan

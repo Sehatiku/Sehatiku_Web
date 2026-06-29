@@ -72,6 +72,8 @@ export interface NakesItem {
   status: NakesStatus
   enrolled_at: string
   specialization?: string
+  hospital?: string | null
+  schedule?: Array<{ days: string; time: string }>
 }
 
 export interface RegisterNakesBody {
@@ -83,6 +85,8 @@ export interface RegisterNakesBody {
   username: string
   password: string
   specialization?: string
+  hospital?: string | null
+  schedule?: Array<{ days: string; time: string }>
 }
 
 /** WhatsApp warm-up links returned after registering a nakes or patient */
@@ -279,6 +283,8 @@ export interface NakesDetail {
   created_at: string
   updated_at: string
   specialization?: string
+  hospital?: string | null
+  schedule?: Array<{ days: string; time: string }>
 }
 
 export interface FaskesPatientDetail {
@@ -423,16 +429,54 @@ export interface HistoryRecord {
   weight: number | null
 }
 
-// ─── Consultations ────────────────────────────────────────────────────────────
-
+// ─── Consultations & Notifications ────────────────────────────────────────────
+ 
 export interface ConsultationBody {
-  complaint: string   // 1–2000 chars
+  complaint_since: string
+  complaint_type: string
+  complaint_detail: string
 }
-
+ 
 export interface ConsultationResult {
   id: string
   patient_id: string
-  complaint: string
-  status: string      // 'open' when freshly created
+  patient_name?: string
+  complaint_since: string
+  complaint_type: string
+  complaint_detail: string
+  status: 'open' | 'replied'
+  nakes_note: string | null
+  replied_at: string | null
   created_at: string
+}
+ 
+export interface PatientComplaint {
+  id?: string
+  patient_id: string
+  category: 'Konsultasi Dokter' | 'Laporkan Keluhan' | 'Minta Review Hasil'
+  complaint: string
+  since_when: string
+  question: string
+  status: 'Waiting for Doctor Review' | 'Reviewed'
+  doctor_notes?: string
+  reviewed_at?: string
+  
+  // Synthesized fields for UI listings
+  patient_name?: string
+  age?: number
+  disease_type?: 'diabetes_t2' | 'hypertension' | 'both'
+  risk_label?: 'kritis' | 'sedang' | 'rendah'
+  status_kesehatan?: 'bahaya' | 'waswas' | 'aman'
+  risk_score?: number
+}
+
+export interface PatientNotification {
+  id: string
+  message_type: string
+  payload: string
+  created_at: string
+}
+
+export interface NakesReplyBody {
+  nakes_note: string
 }
