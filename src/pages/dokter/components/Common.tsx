@@ -6,7 +6,7 @@ import type { RiskLabel, DiseaseType } from '../../../lib/types'
 export const RISK_COLOR: Record<RiskLabel, { text: string; bg: string; border: string; edge: string; sqBg: string }> = {
   kritis: { text: '#DC2626', bg: '#FEF2F2', border: '#FECACA', edge: '#EF4444', sqBg: '#EF4444' },
   sedang: { text: '#D97706', bg: '#FFFBEB', border: '#FDE68A', edge: '#F59E0B', sqBg: '#F59E0B' },
-  rendah: { text: '#059669', bg: '#F0FDF4', border: '#A7F3D0', edge: '#1EC8A5', sqBg: '#1EC8A5' },
+  rendah: { text: '#059669', bg: '#F0FDF4', border: '#A7F3D0', edge: '#0D9488', sqBg: '#0D9488' },
 }
 
 export const DISEASE_LABEL: Record<DiseaseType, string> = {
@@ -55,7 +55,7 @@ export function ToastNotif({ msg, type, onClose }: { msg: string; type: 'ok' | '
   return (
     <div style={{
       position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-      background: type === 'ok' ? '#1EC8A5' : '#EF4444',
+      background: type === 'ok' ? '#0D9488' : '#EF4444',
       color: '#fff', padding: '10px 18px', borderRadius: 10,
       fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 14, fontWeight: 600,
       boxShadow: '0 4px 16px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', gap: 10,

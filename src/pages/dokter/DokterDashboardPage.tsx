@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { LogoImg } from '../../components/ui/Icons'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
 import type { DashboardSummary, PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
@@ -167,7 +166,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        .anim-blink { animation: blink 1.6s infinite; }
+        .anim-blink { }
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -176,107 +175,69 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
       {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
       <aside style={{
-        width: 256, minWidth: 256,
-        background: 'linear-gradient(180deg, #262F8A 0%, #1A2066 100%)',
+        width: 252, minWidth: 252,
+        background: 'linear-gradient(180deg, #1E2775 0%, #161C5C 100%)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        boxShadow: '4px 0 24px rgba(26,32,102,0.15)', color: '#fff',
-        position: 'relative', zIndex: 10,
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        color: '#fff', position: 'relative', zIndex: 10,
       }}>
         {/* Logo */}
-        <div style={{ padding: '16px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <LogoImg size={32} />
-            <div>
-              <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1 }}>
-                sehat<span style={{ color: '#1EC8A5' }}>iku</span>
-              </p>
-              <p style={{ margin: '2px 0 0', fontSize: 8.5, color: 'rgba(255,255,255,0.5)', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase' }}>Portal Dokter</p>
-            </div>
-          </div>
+        <div style={{ padding: '24px 24px 16px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+          <img
+            src="/logo_sehatiku_horizontal.png"
+            alt="Sehatiku"
+            style={{ height: 34, objectFit: 'contain', display: 'block' }}
+          />
         </div>
 
-        {/* Doctor badge */}
-        <div
-          onClick={handleDoctorBadgeClick}
-          style={{
-            margin: '10px 14px 0', background: 'rgba(255,255,255,0.05)', borderRadius: 10,
-            padding: '8px 10px', border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 10,
-            cursor: 'pointer', transition: 'background 0.2s ease',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
-        >
-          <div style={{
-            width: 34, height: 34, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #1EC8A5, #4FC3F7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 700, fontSize: 12, flexShrink: 0,
-          }}>
-            {initials(doctorProfile?.full_name ?? user?.name ?? 'DR')}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 12.5, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doctorProfile?.full_name ?? user?.name ?? 'Dokter'}
-            </p>
-            <p style={{ margin: '1px 0 0', fontSize: 9.5, color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>
-              {doctorProfile?.specialization ?? (user?.role === 'dokter' ? 'Dokter Umum' : user?.role === 'kader' ? 'Kader Kesehatan' : 'Admin')}
-            </p>
-          </div>
-          <span className="anim-blink" style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5', flexShrink: 0 }} />
-        </div>
         {/* Nav */}
-        <div style={{ padding: '16px 10px 8px', flex: 1, overflowY: 'auto' }}>
-          <p style={{ margin: '0 0 8px 8px', fontSize: 9.5, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', textTransform: 'uppercase' }}>Menu Klinis</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {([
-              { id: 'antrean' as const, label: 'Antrean Prioritas', icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-              ) },
-              { id: 'keluhan' as const, label: 'Review Keluhan', icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              ) },
-              { id: 'tren' as const, label: 'Tren & Riwayat', icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              ) },
-              { id: 'umpan' as const, label: 'Umpan Balik Model', icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-              ) },
-            ]).map(nav => {
+        <div style={{ padding: '14px 10px 8px', flex: 1, overflowY: 'auto' }}>
+          <p style={{ margin: '16px 0 10px 10px', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,0.42)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>Menu Klinis</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {[
+              {
+                id: 'antrean' as const, label: 'Antrean Prioritas', icon: (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
+                )
+              },
+              {
+                id: 'keluhan' as const, label: 'Review Keluhan', icon: (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                )
+              },
+              {
+                id: 'tren' as const, label: 'Tren & Riwayat', icon: (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>
+                )
+              },
+              {
+                id: 'umpan' as const, label: 'Umpan Balik Model', icon: (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
+                )
+              },
+            ].map(nav => {
               const active = activeView === nav.id
               return (
                 <button key={nav.id} onClick={() => setActiveView(nav.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10,
-                  border: 'none', background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
-                  boxShadow: active ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                  color: active ? '#fff' : 'rgba(255,255,255,0.7)', cursor: 'pointer', width: '100%', textAlign: 'left',
-                  fontWeight: active ? 700 : 600, fontSize: 13, fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8,
+                  border: 'none',
+                  background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                  color: active ? '#fff' : 'rgba(255,255,255,0.65)', cursor: 'pointer', width: '100%', textAlign: 'left',
+                  fontWeight: active ? 700 : 500, fontSize: 13, fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  transition: 'all 0.15s',
                 }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#fff' } }}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' } }}
+                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)' } }}
+                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)' } }}
                 >
-                  {active && (
-                    <div style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 10,
-                      bottom: 10,
-                      width: 4,
-                      borderRadius: '0 4px 4px 0',
-                      background: '#1EC8A5',
-                    }} />
-                  )}
-                  <span style={{ color: active ? '#1EC8A5' : 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, flexShrink: 0 }}>{nav.icon}</span>
+                  <span style={{ opacity: active ? 1 : 0.75, display: 'flex', alignItems: 'center', width: 18, flexShrink: 0, color: active ? '#0D9488' : 'currentColor' }}>{nav.icon}</span>
                   <span style={{ flex: 1 }}>{nav.label}</span>
                   {nav.id === 'antrean' && totalCount > 0 && (
-                    <span style={{ background: '#1EC8A5', color: '#fff', borderRadius: 10, padding: '2px 8px', fontSize: 10, fontWeight: 800 }}>
+                    <span style={{ background: '#0D9488', color: '#fff', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>
                       {totalCount}
                     </span>
                   )}
                   {nav.id === 'keluhan' && pendingComplaintsCount > 0 && (
-                    <span style={{ background: '#F59E0B', color: '#fff', borderRadius: 10, padding: '2px 8px', fontSize: 10, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <span className="anim-blink" style={{ width: 4, height: 4, borderRadius: '50%', background: '#fff' }} />
+                    <span style={{ background: '#F59E0B', color: '#fff', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>
                       {pendingComplaintsCount}
                     </span>
                   )}
@@ -285,64 +246,71 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             })}
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '16px 12px 8px', paddingTop: 16 }}>
-            <p style={{ margin: '0 0 10px 4px', fontSize: 9.5, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', textTransform: 'uppercase' }}>Ringkasan Pasien Saya</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {/* Risiko Bahaya */}
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 12px', background: 'rgba(239,68,68,0.06)', borderRadius: 10,
-                border: '1px solid rgba(239,68,68,0.15)',
-                transition: 'all 0.2s',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
-                  <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Risiko Bahaya</span>
+          {/* Patient summary */}
+          <div style={{ margin: '20px 2px 0', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+            <p style={{ margin: '12px 0 10px 10px', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,0.42)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>Ringkasan Pasien Saya</p>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {[
+                { dot: '#EF4444', label: 'Risiko Bahaya', val: bahayaCount, valColor: '#FCA5A5' },
+                { dot: '#F59E0B', label: 'Perlu Pantau', val: waswasCount, valColor: '#FCD34D' },
+                { dot: '#0D9488', label: 'Status Aman', val: amanCount, valColor: '#5EEAD4' },
+              ].map(item => (
+                <div key={item.label} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '8px 10px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{item.label}</span>
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: item.valColor, fontFamily: 'IBM Plex Mono, monospace' }}>{item.val}</span>
                 </div>
-                <span style={{ fontSize: 15, fontWeight: 800, color: '#FCA5A5', fontFamily: 'IBM Plex Mono, monospace' }}>{bahayaCount}</span>
-              </div>
-
-              {/* Perlu Pantau */}
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 12px', background: 'rgba(245,158,11,0.06)', borderRadius: 10,
-                border: '1px solid rgba(245,158,11,0.15)',
-                transition: 'all 0.2s',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B' }} />
-                  <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Perlu Pantau</span>
-                </div>
-                <span style={{ fontSize: 15, fontWeight: 800, color: '#FDE68A', fontFamily: 'IBM Plex Mono, monospace' }}>{waswasCount}</span>
-              </div>
-
-              {/* Status Aman */}
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 12px', background: 'rgba(30,200,165,0.06)', borderRadius: 10,
-                border: '1px solid rgba(30,200,165,0.15)',
-                transition: 'all 0.2s',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5' }} />
-                  <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Status Aman</span>
-                </div>
-                <span style={{ fontSize: 15, fontWeight: 800, color: '#A7F3D0', fontFamily: 'IBM Plex Mono, monospace' }}>{amanCount}</span>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
+        {/* Doctor badge */}
+        <div
+          onClick={handleDoctorBadgeClick}
+          style={{
+            margin: '8px 12px 14px', borderRadius: 10,
+            padding: '10px 12px', background: 'rgba(255,255,255,0.06)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            cursor: 'pointer', transition: 'background 0.18s',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+        >
+          <div style={{
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #0D9488, #38BDF8)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 800, fontSize: 13, flexShrink: 0,
+          }}>
+            {initials(doctorProfile?.full_name ?? user?.name ?? 'DR')}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {doctorProfile?.full_name ?? user?.name ?? 'Dokter'}
+            </p>
+            <p style={{ margin: '2px 0 0', fontSize: 10, color: 'rgba(255,255,255,0.42)', fontWeight: 500 }}>
+              {doctorProfile?.specialization ?? (user?.role === 'dokter' ? 'Dokter Umum' : user?.role === 'kader' ? 'Kader Kesehatan' : 'Admin')}
+            </p>
+          </div>
+        </div>
+
         {/* Logout */}
-        <div style={{ padding: '10px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ padding: '8px 12px 16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <button onClick={() => setShowLogoutConfirm(true)} style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10,
-            padding: '8px 12px', fontSize: 12.5, fontWeight: 700, color: '#EF4444', cursor: 'pointer',
-            fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.2s ease',
+            background: 'transparent', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8,
+            padding: '9px 12px', fontSize: 12.5, fontWeight: 600, color: '#F87171', cursor: 'pointer',
+            fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.18s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.35)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -364,21 +332,27 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
         }}>
           <div>
             <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: '#2B2D42' }}>
-              {activeView === 'antrean' ? 'Antrean Prioritas' : activeView === 'tren' ? 'Tren & Riwayat Klinis' : activeView === 'umpan' ? 'Umpan Balik Model' : 'Profil Tenaga Medis'}
+              {activeView === 'antrean' ? 'Antrean Prioritas'
+                : activeView === 'tren' ? 'Tren & Riwayat Klinis'
+                  : activeView === 'umpan' ? 'Umpan Balik Model'
+                    : activeView === 'keluhan' ? 'Review Keluhan Pasien'
+                      : 'Profil Tenaga Medis'}
             </p>
             <p style={{ margin: 0, fontSize: 12, color: '#636B78' }}>
               {activeView === 'antrean'
                 ? `${totalCount} pasien terdaftar`
                 : activeView === 'tren'
-                ? 'Riwayat 6 bulan terakhir'
-                : activeView === 'umpan'
-                ? 'Evaluasi eskalasi AI'
-                : 'Informasi akun Portal Sehatiku'}
+                  ? 'Riwayat 6 bulan terakhir'
+                  : activeView === 'umpan'
+                    ? 'Evaluasi eskalasi AI'
+                    : activeView === 'keluhan'
+                      ? `${pendingComplaintsCount} keluhan menunggu respons`
+                      : 'Informasi akun Portal Sehatiku'}
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F0FDF8', border: '1px solid #A7ECD9', borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 700, color: '#159E84' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#1EC8A5', animation: 'blink 1.5s infinite', display: 'inline-block' }} />
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#0D9488', display: 'inline-block' }} />
               Mode: Dokter
             </span>
             <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
@@ -439,6 +413,10 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               setChartRange={setChartRange}
               consultations={consultations}
               onReviewConsultation={handleReviewConsultation}
+              totalCount={totalCount}
+              bahayaCount={bahayaCount}
+              waswasCount={waswasCount}
+              amanCount={amanCount}
             />
           )}
 

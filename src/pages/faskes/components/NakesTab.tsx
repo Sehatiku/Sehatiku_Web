@@ -469,8 +469,8 @@ export default function NakesTab({
                   <span style={{
                     flexShrink: 0,
                     background: isActive ? '#F0FDF8' : '#F7F8FA',
-                    color: isActive ? '#1EC8A5' : '#8A93A1',
-                    border: `1.5px solid ${isActive ? 'rgba(30,200,165,0.2)' : '#DCDFE8'}`,
+                    color: isActive ? '#0D9488' : '#8A93A1',
+                    border: `1.5px solid ${isActive ? 'rgba(13,148,136,0.2)' : '#DCDFE8'}`,
                     fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
                   }}>
                     {isActive ? 'Aktif' : 'Nonaktif'}

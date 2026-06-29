@@ -124,7 +124,7 @@ body {
 
 /* ===== ANIMATION CLASSES ===== */
 .anim-blink {
-  animation: blink 2s ease infinite;
+  /* disabled animation to prevent blinking */
 }
 
 .anim-float {

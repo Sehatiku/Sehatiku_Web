@@ -7,82 +7,74 @@ interface LogCardProps {
 export default function LogCard({ patientIdx }: LogCardProps) {
   const safeIdx = Math.min(patientIdx, MOCK_LOGS.length - 1)
   const logs = MOCK_LOGS[safeIdx]
+
   return (
     <div style={{
       background: '#fff',
-      borderRadius: 20,
-      padding: '24px',
-      boxShadow: '0 4px 20px -2px rgba(43,45,66,0.04), 0 2px 6px -1px rgba(43,45,66,0.02)',
-      border: '1px solid #E2E8F0',
+      borderRadius: 14,
+      padding: '18px 20px',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+      border: '1px solid #F0F1F4',
+      fontFamily: '"Plus Jakarta Sans", "Inter", sans-serif',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, borderBottom: '1px solid #EFF1F5', paddingBottom: 14 }}>
-        <span style={{ fontWeight: 800, fontSize: 15.5, color: '#1A2066', letterSpacing: '-0.2px' }}>Log Harian Pasien</span>
-        <span style={{
-          background: '#ECFDF5',
-          border: '1px solid #A7F3D0',
-          borderRadius: 20,
-          padding: '4px 12px',
-          fontSize: 11,
-          fontWeight: 700,
-          color: '#065F46',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid #F1F5F9',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8,
+            background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            boxShadow: '0 2px 8px rgba(16,185,129,0.1)',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <span style={{ fontWeight: 800, fontSize: 14.5, color: '#1E293B', letterSpacing: '-0.2px' }}>Log Harian Pasien</span>
+        </div>
+        {/* <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          background: '#F0FDF9', border: '1px solid #D1FAE5',
+          borderRadius: 6, padding: '3px 9px',
+          fontSize: 10.5, fontWeight: 600, color: '#059669',
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
-          via WhatsApp &middot; hari ini
-        </span>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981' }} />
+          via WhatsApp · hari ini
+        </span> */}
       </div>
+
+      {/* Timeline */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {logs.map((log, i) => (
-          <div key={i} style={{ display: 'flex', gap: 16, paddingBottom: i < logs.length - 1 ? 16 : 0 }}>
-            {/* Time label */}
+          <div key={i} style={{ display: 'flex', gap: 12, paddingBottom: i < logs.length - 1 ? 18 : 0 }}>
+            {/* Time */}
             <span style={{
-              fontSize: 11.5,
-              color: '#64748B',
+              fontSize: 10.5, color: '#B0B7C3',
               fontFamily: 'IBM Plex Mono, monospace',
-              minWidth: 42,
-              textAlign: 'right',
-              paddingTop: 3,
-              fontWeight: 700,
+              minWidth: 38, textAlign: 'right',
+              paddingTop: 1, fontWeight: 500, flexShrink: 0,
             }}>
               {log.time}
             </span>
 
-            {/* Timeline node */}
+            {/* Dot + line */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                background: '#fff',
-                border: `3px solid ${log.dot}`,
-                boxShadow: `0 0 0 3px ${log.dot}20`,
-                flexShrink: 0,
+                width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+                background: log.dot, marginTop: 2,
               }} />
               {i < logs.length - 1 && (
-                <div style={{
-                  width: 2,
-                  flex: 1,
-                  background: '#E2E8F0',
-                  marginTop: 6,
-                  marginBottom: 2,
-                  minHeight: 24,
-                }} />
+                <div style={{ width: 1, flex: 1, background: '#E8ECF2', marginTop: 5, minHeight: 18 }} />
               )}
             </div>
 
-            {/* Content box */}
-            <div style={{
-              flex: 1,
-              paddingBottom: i < logs.length - 1 ? 4 : 0,
-              background: '#F8FAFC',
-              padding: '10px 14px',
-              borderRadius: 12,
-              border: '1px solid #EFF1F5',
-            }}>
-              <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: '#1E293B' }}>{log.text}</p>
-              <p style={{ margin: '3px 0 0', fontSize: 11.5, color: '#64748B', fontWeight: 500, lineHeight: 1.4 }}>{log.detail}</p>
+            {/* Content */}
+            <div style={{ flex: 1, paddingBottom: 2, paddingTop: 1 }}>
+              <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#1F2937' }}>{log.text}</p>
+              <p style={{ margin: 0, fontSize: 11, color: '#9CA3AF', lineHeight: 1.4 }}>{log.detail}</p>
             </div>
           </div>
         ))}
