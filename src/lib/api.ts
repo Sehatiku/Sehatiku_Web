@@ -516,6 +516,29 @@ export const nakesApi = {
     )
     return res.data
   },
+
+  /** GET /api/v1/nakes/profile */
+  getProfile: async (): Promise<NakesDetail> => {
+    if (MOCK) {
+      return {
+        nakes_id: 'nakes-mock-001',
+        faskes_id: 'faskes-mock-001',
+        full_name: 'Dr. Andi Wijaya, Sp.PD',
+        role: 'dokter',
+        nik: '3201234567890001',
+        alamat: 'Jl. Sehat Sentosa No. 8, Bandung',
+        phone_number: '628123456789',
+        username: 'dr.andi',
+        status: 'active',
+        enrolled_at: '2025-01-10T08:00:00Z',
+        created_at: '2025-01-10T08:00:00Z',
+        updated_at: '2025-01-10T08:00:00Z',
+        specialization: 'Penyakit Dalam',
+      }
+    }
+    const res = await request<ApiEnvelope<NakesDetail>>('/api/v1/nakes/profile')
+    return res.data
+  },
 }
 
 // ─── Patient API ──────────────────────────────────────────────────────────────
