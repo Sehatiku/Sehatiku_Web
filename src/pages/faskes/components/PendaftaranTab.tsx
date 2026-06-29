@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { faskesApi } from '../../../lib/api'
 import type { NakesItem, DiseaseType, RegisterPatientResult } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
+import DatePicker from '../../../components/ui/DatePicker'
 
 interface PendaftaranTabProps {
   nakesItems: NakesItem[]
@@ -36,6 +37,10 @@ export default function PendaftaranTab({
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null)
   const [ptSubmitted, setPtSubmitted] = useState(false)
   const [registerResult, setRegisterResult] = useState<RegisterPatientResult | null>(null)
+  const [lastRegisteredPtPhone, setLastRegisteredPtPhone] = useState('')
+  const [lastRegisteredCompPhone, setLastRegisteredCompPhone] = useState('')
+  const [lastRegisteredCompName, setLastRegisteredCompName] = useState('')
+
 
   const normalizePhone = (val: string): string => {
     const d = val.replace(/\D/g, '')
@@ -114,8 +119,12 @@ export default function PendaftaranTab({
         password: ptPassword,
       })
       setRegisterResult(res)
+      setLastRegisteredPtPhone(ptPhoneDigits)
+      setLastRegisteredCompPhone(ptCompPhoneDigits)
+      setLastRegisteredCompName(ptCompanionName.trim())
       showToastMsg(`✓ ${ptName} berhasil didaftarkan ke Sehatiku!`)
       resetPtForm()
+
     } catch (err: unknown) {
       const apiErr = err as { status?: number; body?: { message?: string } }
       if (apiErr.status === 409) {
@@ -213,9 +222,11 @@ export default function PendaftaranTab({
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tanggal Lahir *</label>
-                <input
-                  type="date" value={ptDob} onChange={e => setPtDob(e.target.value)}
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('dob') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                <DatePicker
+                  value={ptDob}
+                  onChange={setPtDob}
+                  error={!!ptErr('dob')}
+                  placeholder="Pilih tanggal lahir"
                 />
                 {ptErr('dob') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('dob')}</div>}
               </div>
@@ -444,11 +455,14 @@ export default function PendaftaranTab({
 
       {/* ── SUCCESS REGISTRATION WHATSAPP MODAL ── */}
       {registerResult && createPortal(
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 10000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          backdropFilter: 'blur(5px)', animation: 'fadeIn 0.2s ease-out'
-        }}>
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setRegisterResult(null) }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 10000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(5px)', animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
           <div style={{
             background: '#fff', borderRadius: 20, padding: 32, width: 480, maxWidth: '90vw',
             boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8',
@@ -486,9 +500,57 @@ export default function PendaftaranTab({
             {/* WA Action Buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {registerResult.wa_warmup.status === 'unavailable' ? (
-                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '12px 14px', fontSize: 12, color: '#B45309', lineHeight: 1.5, textAlign: 'center' }}>
-                  <strong>⚠️ WhatsApp Bot Offline:</strong> Kredensial tidak dapat dikirim otomatis via bot. Sampaikan detail akun di atas secara manual kepada pasien.
-                </div>
+                <>
+                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '12px 14px', fontSize: 12, color: '#B45309', lineHeight: 1.5, textAlign: 'center' }}>
+                    <strong>⚠️ WhatsApp Bot Offline:</strong> Kredensial tidak dapat dikirim otomatis via bot. Sampaikan detail akun di atas secara manual kepada pasien.
+                  </div>
+                  {lastRegisteredPtPhone && (
+                    <div>
+                      <button
+                        onClick={() => {
+                          const txt = `Halo Bapak/Ibu ${registerResult.full_name} 🙏\n\nAkun Sehatiku Anda sudah dibuat.\nUsername: ${registerResult.credentials.username}\nPassword: ${registerResult.credentials.password}\n\nSilakan gunakan kredensial ini untuk login ke aplikasi Sehatiku.`
+                          window.open(`https://wa.me/${lastRegisteredPtPhone}?text=${encodeURIComponent(txt)}`, '_blank')
+                        }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#25D366', color: '#fff', border: 'none', borderRadius: 10,
+                          padding: '11px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(37,211,102,0.2)', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#20ba59'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#25D366'}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        </svg>
+                        Kirim Kredensial ke Pasien (WA Manual)
+                      </button>
+                    </div>
+                  )}
+                  {lastRegisteredCompPhone && (
+                    <div style={{ borderTop: '1px dashed #DCDFE8', paddingTop: 14 }}>
+                      <button
+                        onClick={() => {
+                          const txt = `Halo Bapak/Ibu ${lastRegisteredCompName} 🙏\n\nAnda terdaftar sebagai pendamping ${registerResult.full_name} di Sehatiku.\nBerikut kredensial login pasien:\nUsername: ${registerResult.credentials.username}\nPassword: ${registerResult.credentials.password}\n\nSilakan gunakan kredensial ini untuk login ke aplikasi Sehatiku.`
+                          window.open(`https://wa.me/${lastRegisteredCompPhone}?text=${encodeURIComponent(txt)}`, '_blank')
+                        }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#128C7E', color: '#fff', border: 'none', borderRadius: 10,
+                          padding: '11px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(18,140,126,0.2)', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#0e7569'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#128C7E'}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                        </svg>
+                        Kirim Kredensial ke Pendamping (WA Manual)
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <>
                   {registerResult.wa_warmup.patient_direct_link && (

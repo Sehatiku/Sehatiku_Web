@@ -122,39 +122,57 @@ export default function ProfilNakesView({
       {/* Detail grid info & stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: 18, alignItems: 'start' }}>
         
-        {/* Profile details card */}
-        <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: 15, fontWeight: 800, color: '#2B2D42', borderBottom: '2px solid #F0F2F6', paddingBottom: 10 }}>
-            Detail Data Diri
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {[
-              { label: 'Nomor NIK', value: profile.nik, mono: true },
-              { label: 'Nama Lengkap', value: profile.full_name },
-              { label: 'Username Portal', value: `@${profile.username}`, mono: true },
-              { label: 'Nomor WhatsApp', value: `+${profile.phone_number}`, link: `https://wa.me/${profile.phone_number}` },
-              { label: 'Alamat Tinggal', value: profile.alamat },
-              { label: 'Tingkat Otoritas', value: profile.role === 'dokter' ? 'Dokter Pengawas Klinis' : profile.role === 'kader' ? 'Kader Kesehatan Lapangan' : 'Administrator' },
-              { label: 'Fasilitas Kesehatan', value: 'Faskes Utama Sehatiku (Bandung)' },
-            ].map((item, idx) => (
-              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 16, fontSize: 13, borderBottom: idx < 6 ? '1px solid #F9FAFC' : 'none', paddingBottom: idx < 6 ? 10 : 0 }}>
-                <span style={{ color: '#636B78', fontWeight: 600 }}>{item.label}</span>
-                {item.link ? (
-                  <a href={item.link} target="_blank" rel="noreferrer" style={{ color: '#5B6BF0', fontWeight: 700, textDecoration: 'none' }}>
-                    {item.value}
-                  </a>
-                ) : (
-                  <span style={{
-                    color: '#2B2D42',
-                    fontWeight: 700,
-                    fontFamily: item.mono ? 'IBM Plex Mono, monospace' : 'inherit',
-                  }}>
-                    {item.value}
-                  </span>
-                )}
-              </div>
-            ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Profile details card */}
+          <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: 15, fontWeight: 800, color: '#2B2D42', borderBottom: '2px solid #F0F2F6', paddingBottom: 10 }}>
+              Detail Data Diri
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                { label: 'Nomor NIK', value: profile.nik, mono: true },
+                { label: 'Nama Lengkap', value: profile.full_name },
+                { label: 'Username Portal', value: `@${profile.username}`, mono: true },
+                { label: 'Nomor WhatsApp', value: `+${profile.phone_number}`, link: `https://wa.me/${profile.phone_number}` },
+                { label: 'Alamat Tinggal', value: profile.alamat },
+                { label: 'Tingkat Otoritas', value: profile.role === 'dokter' ? 'Dokter Pengawas Klinis' : profile.role === 'kader' ? 'Kader Kesehatan Lapangan' : 'Administrator' },
+                { label: 'Fasilitas Kesehatan', value: 'Faskes Utama Sehatiku (Bandung)' },
+              ].map((item, idx) => (
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 16, fontSize: 13, borderBottom: idx < 6 ? '1px solid #F9FAFC' : 'none', paddingBottom: idx < 6 ? 10 : 0 }}>
+                  <span style={{ color: '#636B78', fontWeight: 600 }}>{item.label}</span>
+                  {item.link ? (
+                    <a href={item.link} target="_blank" rel="noreferrer" style={{ color: '#5B6BF0', fontWeight: 700, textDecoration: 'none' }}>
+                      {item.value}
+                    </a>
+                  ) : (
+                    <span style={{
+                      color: '#2B2D42',
+                      fontWeight: 700,
+                      fontFamily: item.mono ? 'IBM Plex Mono, monospace' : 'inherit',
+                    }}>
+                      {item.value}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+
+          {profile.role === 'dokter' && profile.schedule && profile.schedule.length > 0 && (
+            <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: 15, fontWeight: 800, color: '#2B2D42', borderBottom: '2px solid #F0F2F6', paddingBottom: 10 }}>
+                Jadwal Praktek Dokter
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {profile.schedule.map((s, idx) => (
+                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 16, fontSize: 13, borderBottom: idx < profile.schedule!.length - 1 ? '1px solid #F9FAFC' : 'none', paddingBottom: idx < profile.schedule!.length - 1 ? 10 : 0 }}>
+                    <span style={{ color: '#636B78', fontWeight: 600 }}>{s.days}</span>
+                    <span style={{ color: '#2B2D42', fontWeight: 700 }}>{s.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Clinical metrics stats summary */}

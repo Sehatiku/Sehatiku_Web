@@ -426,13 +426,16 @@ export default function OperasionalTab({
 
       {/* ── BASELINE MODAL ── */}
       {showBaselineModal && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 2000,
-          background: 'rgba(43,45,66,0.55)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(3px)',
-          padding: 20,
-        }}>
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setShowBaselineModal(false) }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(43,45,66,0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(3px)',
+            padding: 20,
+          }}
+        >
           <div style={{
             width: 560, maxWidth: '95vw', maxHeight: '92vh',
             background: '#fff', borderRadius: 18,
@@ -597,7 +600,10 @@ export default function OperasionalTab({
 
       {/* ── PROGRESS MODAL ── */}
       {showProgressModal && progressPatient && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(2px)', padding: 24 }}>
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setShowProgressModal(false) }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(2px)', padding: 24 }}
+        >
           <div style={{ background: '#fff', borderRadius: 18, width: 620, maxWidth: '95vw', boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8', maxHeight: '92vh', overflowY: 'auto' }}>
 
             {/* Modal Header */}

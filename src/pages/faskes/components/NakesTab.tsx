@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
 import { faskesApi } from '../../../lib/api'
-import type { NakesItem, NakesRole, NakesStatus, NakesDetail } from '../../../lib/types'
+import type { NakesItem, NakesRole, NakesStatus, NakesDetail, RegisterNakesResult } from '../../../lib/types'
 import { initials, formatDate } from '../../../lib/utils'
 import NakesDetailDrawer from './NakesDetailDrawer'
+import TimePicker from '../../../components/ui/TimePicker'
 
 interface NakesTabProps {
   nakesItems: NakesItem[]
@@ -30,6 +31,16 @@ export default function NakesTab({
   const [newDrPassword, setNewDrPassword] = useState('')
   const [registerLoading, setRegisterLoading] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
+  
+  // Doctor Schedule states
+  const [selectedDays, setSelectedDays] = useState<string[]>([])
+  const [startTime, setStartTime] = useState('08:00')
+  const [endTime, setEndTime] = useState('14:00')
+  
+  // Registration result modal state
+  const [registerResult, setRegisterResult] = useState<RegisterNakesResult | null>(null)
+  const [lastRegisteredPhone, setLastRegisteredPhone] = useState('')
+
   
   // OCR & Submission States
   const ocrInputRef = useRef<HTMLInputElement>(null)
@@ -65,6 +76,28 @@ export default function NakesTab({
     return d
   }
 
+  const formatSelectedDays = (days: string[]): string => {
+    if (days.length === 0) return ''
+    if (days.length === 7) return 'Setiap Hari'
+    
+    const DAYS_ORDER = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
+    const indices = days.map(d => DAYS_ORDER.indexOf(d)).sort((a, b) => a - b)
+    
+    let isConsecutive = true
+    for (let i = 1; i < indices.length; i++) {
+      if (indices[i] !== indices[i - 1] + 1) {
+        isConsecutive = false
+        break
+      }
+    }
+    
+    if (isConsecutive && indices.length >= 3) {
+      return `${DAYS_ORDER[indices[0]]} - ${DAYS_ORDER[indices[indices.length - 1]]}`
+    }
+    
+    return days.join(', ')
+  }
+
   // Computed Validation
   const drPhoneDigits = newDrPhone.replace(/\D/g, '')
   const drValidation = {
@@ -74,6 +107,8 @@ export default function NakesTab({
     phone: !/^62\d{8,12}$/.test(drPhoneDigits) ? 'Harus diawali 62 (contoh: 628123456789)' : '',
     username: newDrUsername.trim().length < 4 ? 'Username minimal 4 karakter' : '',
     password: newDrPassword.length < 8 ? 'Password minimal 8 karakter' : '',
+    scheduleDays: newDrRole === 'dokter' && selectedDays.length === 0 ? 'Pilih minimal satu hari praktek' : '',
+    scheduleTime: newDrRole === 'dokter' && (!startTime || !endTime || startTime >= endTime) ? 'Jam selesai harus setelah jam mulai' : '',
   }
   const drHasError = Object.values(drValidation).some(Boolean)
   const drErr = (k: keyof typeof drValidation) => drSubmitted ? drValidation[k] : ''
@@ -103,7 +138,7 @@ export default function NakesTab({
 
     setRegisterLoading(true)
     try {
-      await faskesApi.registerNakes({
+      const res = await faskesApi.registerNakes({
         nik: newDrNik,
         full_name: newDrName.trim(),
         alamat: newDrAlamat.trim(),
@@ -111,11 +146,23 @@ export default function NakesTab({
         role: newDrRole,
         username: newDrUsername.trim(),
         password: newDrPassword,
-        ...(newDrRole === 'dokter' && newDrSpecialization.trim() ? { specialization: newDrSpecialization.trim() } : {}),
+        ...(newDrRole === 'dokter' ? {
+          specialization: newDrSpecialization.trim() || 'Dokter Umum',
+          schedule: [{
+            days: formatSelectedDays(selectedDays),
+            time: `${startTime} - ${endTime}`
+          }]
+        } : {}),
       })
+      setRegisterResult(res)
+      setLastRegisteredPhone(drPhoneDigits)
       showToastMsg(`✓ ${newDrName} berhasil didaftarkan ke sistem Sehatiku!`)
       setNewDrName(''); setNewDrNik(''); setNewDrAlamat(''); setNewDrPhone('')
+
       setNewDrUsername(''); setNewDrPassword(''); setNewDrRole('dokter'); setNewDrSpecialization('')
+      setSelectedDays([])
+      setStartTime('08:00')
+      setEndTime('14:00')
       setDrSubmitted(false)
       refreshNakes()
     } catch (err: unknown) {
@@ -239,20 +286,73 @@ export default function NakesTab({
                   style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
                 >
                   <option value="dokter">Dokter</option>
-                  <option value="kader">Kader</option>
-                  <option value="admin">Admin</option>
                 </select>
               </div>
             </div>
             {newDrRole === 'dokter' && (
-              <div>
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Spesialisasi Dokter</label>
-                <input
-                  type="text" value={newDrSpecialization} onChange={e => setNewDrSpecialization(e.target.value)}
-                  placeholder="mis. Penyakit Dalam, Jantung, Umum, dll."
-                  style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
+              <>
+                <div>
+                  <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Spesialisasi Dokter</label>
+                  <input
+                    type="text" value={newDrSpecialization} onChange={e => setNewDrSpecialization(e.target.value)}
+                    placeholder="mis. Penyakit Dalam, Jantung, Umum, dll."
+                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Hari Praktek</label>
+                  <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
+                    {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(day => {
+                      const isSelected = selectedDays.includes(day)
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDays(prev =>
+                              prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+                            )
+                          }}
+                          style={{
+                            padding: '6px 10px',
+                            borderRadius: 18,
+                            border: '1.5px solid',
+                            borderColor: isSelected ? '#5B6BF0' : '#DCDFE8',
+                            background: isSelected ? '#EEEFFE' : '#F7F8FA',
+                            color: isSelected ? '#5B6BF0' : '#636B78',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {day}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {drErr('scheduleDays') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{drErr('scheduleDays')}</div>}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jam Mulai</label>
+                    <TimePicker
+                      value={startTime}
+                      onChange={setStartTime}
+                      error={!!drErr('scheduleTime')}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jam Selesai</label>
+                    <TimePicker
+                      value={endTime}
+                      onChange={setEndTime}
+                      error={!!drErr('scheduleTime')}
+                    />
+                  </div>
+                </div>
+                {drErr('scheduleTime') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{drErr('scheduleTime')}</div>}
+              </>
             )}
             <div>
               <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Alamat Lengkap</label>
@@ -400,7 +500,10 @@ export default function NakesTab({
 
       {/* ── NAKES STATUS TOGGLE CONFIRM MODAL ── */}
       {nakesToToggle && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}>
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setNakesToToggle(null) }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
+        >
           <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: 400, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8' }}>
             {(() => {
               const isActive = nakesToToggle.status === 'active'
@@ -451,6 +554,118 @@ export default function NakesTab({
                 </>
               )
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* ── NAKES REGISTRATION SUCCESS / CREDENTIALS MODAL ── */}
+      {registerResult && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setRegisterResult(null) }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
+        >
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: 440, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(15,36,68,0.25)', display: 'flex', flexDirection: 'column' }}>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 20 }}>
+              <div style={{
+                width: 60, height: 60, borderRadius: '50%', background: '#25D366',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 8px 24px rgba(37,211,102,0.3)', marginBottom: 16
+              }}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+              </div>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#2B2D42' }}>Nakes Berhasil Didaftarkan</h3>
+              <p style={{ margin: '6px 0 0', fontSize: 12, color: '#636B78', lineHeight: 1.5 }}>
+                Undangan aktivasi &amp; kredensial siap dikirimkan kepada nakes <strong>{registerResult.full_name}</strong>.
+              </p>
+            </div>
+
+            {/* Credentials Card */}
+            <div style={{ background: '#F5F3FF', border: '1.5px solid #DDD6FE', borderRadius: 12, padding: '16px 20px', marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Username</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', fontFamily: 'IBM Plex Mono, monospace' }}>{registerResult.credentials.username}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kata Sandi</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', fontFamily: 'IBM Plex Mono, monospace' }}>{registerResult.credentials.password}</span>
+              </div>
+            </div>
+
+            {/* WA Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+              {registerResult.wa_warmup.status === 'unavailable' ? (
+                <>
+                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '12px 14px', fontSize: 12, color: '#B45309', lineHeight: 1.5, textAlign: 'center' }}>
+                    <strong>⚠️ WhatsApp Bot Offline:</strong> Kredensial tidak dapat dikirim otomatis via bot. Sampaikan detail akun di atas secara manual kepada nakes.
+                  </div>
+                  {lastRegisteredPhone && (
+                    <div>
+                      <button
+                        onClick={() => {
+                          const txt = `Halo Bapak/Ibu ${registerResult.full_name} 🙏\n\nAkun Sehatiku Anda sudah dibuat.\nUsername: ${registerResult.credentials.username}\nPassword: ${registerResult.credentials.password}\n\nSilakan gunakan kredensial ini untuk login ke aplikasi Sehatiku.`
+                          window.open(`https://wa.me/${lastRegisteredPhone}?text=${encodeURIComponent(txt)}`, '_blank')
+                        }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#25D366', color: '#fff', border: 'none', borderRadius: 10,
+                          padding: '11px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(37,211,102,0.2)', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#20ba59'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#25D366'}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        </svg>
+                        Kirim Kredensial via WA Manual
+                      </button>
+                      <p style={{ margin: '6px 0 0 4px', fontSize: 11, color: '#8A93A1', lineHeight: 1.45, textAlign: 'center' }}>
+                        Kirim detail username &amp; password langsung ke nomor WhatsApp nakes secara manual.
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {registerResult.wa_warmup.nakes_direct_link && (
+                    <div>
+                      <button
+                        onClick={() => window.open(registerResult.wa_warmup.nakes_direct_link, '_blank')}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#25D366', color: '#fff', border: 'none', borderRadius: 10,
+                          padding: '11px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(37,211,102,0.2)', transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#20ba59'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#25D366'}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        </svg>
+                        Hubungkan WhatsApp Nakes
+                      </button>
+                      <p style={{ margin: '6px 0 0 4px', fontSize: 11, color: '#8A93A1', lineHeight: 1.45, textAlign: 'center' }}>
+                        Membuka chat WhatsApp faskes langsung ke nomor nakes dengan teks undangan aktivasi. Nakes tinggal klik kirim pesan.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={() => setRegisterResult(null)}
+              style={{
+                width: '100%', padding: '11px 0', background: '#F4F5F7', border: '1px solid #DCDFE8',
+                borderRadius: 10, fontSize: 14, fontWeight: 700, color: '#636B78', cursor: 'pointer'
+              }}
+            >
+              Tutup
+            </button>
           </div>
         </div>
       )}

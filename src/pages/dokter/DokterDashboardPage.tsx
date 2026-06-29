@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { LogoImg } from '../../components/ui/Icons'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
-import type { DashboardSummary, PatientQueueItem, NakesDetail } from '../../lib/types'
+import type { DashboardSummary, PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
 import { initials } from '../../lib/utils'
 
 // Subcomponents & Views
@@ -11,11 +11,12 @@ import AntreanView from './components/AntreanView'
 import TrenView from './components/TrenView'
 import UmpanBalikView from './components/UmpanBalikView'
 import ProfilNakesView from './components/ProfilNakesView'
+import KeluhanView from './components/KeluhanView'
 
 // Mock Data
 import { MOCK_METRICS } from './dokterMockData'
 
-type ActiveView = 'antrean' | 'tren' | 'umpan' | 'profil'
+type ActiveView = 'antrean' | 'tren' | 'umpan' | 'profil' | 'keluhan'
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 
 export default function DokterDashboardPage({ onLogout }: { onLogout: () => void }) {
@@ -43,6 +44,8 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [profileError, setProfileError] = useState<string | null>(null)
 
+  const [consultations, setConsultations] = useState<ConsultationResult[]>([])
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -54,12 +57,14 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
   const fetchData = useCallback(async () => {
     try {
-      const [sum, queueRes] = await Promise.all([
+      const [sum, queueRes, consultationsRes] = await Promise.all([
         nakesApi.getDashboardSummary(),
         nakesApi.getPatientQueue(),
+        nakesApi.getConsultations(),
       ])
       setSummary(sum)
       setQueue(queueRes.data)
+      setConsultations(consultationsRes)
       setFetchError(null)
     } catch {
       setFetchError('Gagal memuat data. Periksa koneksi Anda.')
@@ -85,6 +90,16 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
     setActiveView('profil')
     fetchDoctorProfile()
   }, [setActiveView, fetchDoctorProfile])
+
+  const handleReviewConsultation = useCallback(async (id: string, notes: string) => {
+    try {
+      await nakesApi.replyConsultation(id, notes)
+      showToast('Rekomendasi keluhan berhasil dikirim', 'ok')
+      fetchData()
+    } catch {
+      showToast('Gagal mengirim rekomendasi keluhan', 'err')
+    }
+  }, [fetchData, showToast])
 
   useEffect(() => {
     fetchData()
@@ -134,6 +149,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const waswasCount = queue.filter(p => p.status === 'waswas').length
   const amanCount = summary?.status_aman ?? 0
   const totalCount = summary?.total_pasien ?? queue.length
+  const pendingComplaintsCount = consultations.filter(c => c.status === 'open').length
 
   // Umpan balik stats
   const tepat = Object.values(feedbacks).filter(v => v === 'tepat').length
@@ -209,39 +225,59 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
           </div>
           <span className="anim-blink" style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5', flexShrink: 0 }} />
         </div>
-
         {/* Nav */}
-        <div style={{ padding: '14px 10px 8px', flex: 1, overflowY: 'auto' }}>
-          <p style={{ margin: '0 0 6px 8px', fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', textTransform: 'uppercase' }}>Menu Klinis</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <div style={{ padding: '16px 10px 8px', flex: 1, overflowY: 'auto' }}>
+          <p style={{ margin: '0 0 8px 8px', fontSize: 9.5, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', textTransform: 'uppercase' }}>Menu Klinis</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {([
               { id: 'antrean' as const, label: 'Antrean Prioritas', icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              ) },
+              { id: 'keluhan' as const, label: 'Review Keluhan', icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               ) },
               { id: 'tren' as const, label: 'Tren & Riwayat', icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
               ) },
               { id: 'umpan' as const, label: 'Umpan Balik Model', icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
               ) },
             ]).map(nav => {
               const active = activeView === nav.id
               return (
                 <button key={nav.id} onClick={() => setActiveView(nav.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8,
-                  border: 'none', background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  borderLeft: `3px solid ${active ? '#1EC8A5' : 'transparent'}`,
-                  color: active ? '#fff' : 'rgba(255,255,255,0.65)', cursor: 'pointer', width: '100%', textAlign: 'left',
-                  fontWeight: active ? 700 : 600, fontSize: 12.5, fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.2s ease',
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10,
+                  border: 'none', background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  boxShadow: active ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                  color: active ? '#fff' : 'rgba(255,255,255,0.7)', cursor: 'pointer', width: '100%', textAlign: 'left',
+                  fontWeight: active ? 700 : 600, fontSize: 13, fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
                 }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = '#fff' } }}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)' } }}
+                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#fff' } }}
+                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' } }}
                 >
+                  {active && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 10,
+                      bottom: 10,
+                      width: 4,
+                      borderRadius: '0 4px 4px 0',
+                      background: '#1EC8A5',
+                    }} />
+                  )}
                   <span style={{ color: active ? '#1EC8A5' : 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, flexShrink: 0 }}>{nav.icon}</span>
                   <span style={{ flex: 1 }}>{nav.label}</span>
                   {nav.id === 'antrean' && totalCount > 0 && (
-                    <span style={{ background: '#1EC8A5', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 800 }}>
+                    <span style={{ background: '#1EC8A5', color: '#fff', borderRadius: 10, padding: '2px 8px', fontSize: 10, fontWeight: 800 }}>
                       {totalCount}
+                    </span>
+                  )}
+                  {nav.id === 'keluhan' && pendingComplaintsCount > 0 && (
+                    <span style={{ background: '#F59E0B', color: '#fff', borderRadius: 10, padding: '2px 8px', fontSize: 10, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span className="anim-blink" style={{ width: 4, height: 4, borderRadius: '50%', background: '#fff' }} />
+                      {pendingComplaintsCount}
                     </span>
                   )}
                 </button>
@@ -249,20 +285,49 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             })}
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '12px 12px 8px', paddingTop: 12 }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.35)', letterSpacing: '1px', textTransform: 'uppercase' }}>Ringkasan Pasien Saya</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(137,92,246,0.08)', borderRadius: 8, border: '1px solid rgba(137,92,246,0.15)' }}>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Risiko Bahaya</span>
-                <span style={{ fontSize: 15, fontWeight: 800, color: '#B79CFB', fontFamily: 'IBM Plex Mono, monospace' }}>{bahayaCount}</span>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '16px 12px 8px', paddingTop: 16 }}>
+            <p style={{ margin: '0 0 10px 4px', fontSize: 9.5, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', textTransform: 'uppercase' }}>Ringkasan Pasien Saya</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {/* Risiko Bahaya */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '10px 12px', background: 'rgba(239,68,68,0.06)', borderRadius: 10,
+                border: '1px solid rgba(239,68,68,0.15)',
+                transition: 'all 0.2s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
+                  <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Risiko Bahaya</span>
+                </div>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#FCA5A5', fontFamily: 'IBM Plex Mono, monospace' }}>{bahayaCount}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(79,195,247,0.08)', borderRadius: 8, border: '1px solid rgba(79,195,247,0.15)' }}>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Perlu Pantau</span>
-                <span style={{ fontSize: 15, fontWeight: 800, color: '#7FD4F8', fontFamily: 'IBM Plex Mono, monospace' }}>{waswasCount}</span>
+
+              {/* Perlu Pantau */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '10px 12px', background: 'rgba(245,158,11,0.06)', borderRadius: 10,
+                border: '1px solid rgba(245,158,11,0.15)',
+                transition: 'all 0.2s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B' }} />
+                  <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Perlu Pantau</span>
+                </div>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#FDE68A', fontFamily: 'IBM Plex Mono, monospace' }}>{waswasCount}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(30,200,165,0.08)', borderRadius: 8, border: '1px solid rgba(30,200,165,0.15)' }}>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Status Aman</span>
-                <span style={{ fontSize: 15, fontWeight: 800, color: '#1EC8A5', fontFamily: 'IBM Plex Mono, monospace' }}>{amanCount}</span>
+
+              {/* Status Aman */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '10px 12px', background: 'rgba(30,200,165,0.06)', borderRadius: 10,
+                border: '1px solid rgba(30,200,165,0.15)',
+                transition: 'all 0.2s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1EC8A5' }} />
+                  <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Status Aman</span>
+                </div>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#A7F3D0', fontFamily: 'IBM Plex Mono, monospace' }}>{amanCount}</span>
               </div>
             </div>
           </div>
@@ -372,6 +437,17 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               setChartParam={setChartParam}
               chartRange={chartRange}
               setChartRange={setChartRange}
+              consultations={consultations}
+              onReviewConsultation={handleReviewConsultation}
+            />
+          )}
+
+          {/* ── VIEW: Review Keluhan Pasien ─────────────────────────────────── */}
+          {!fetchError && activeView === 'keluhan' && (
+            <KeluhanView
+              queue={queue}
+              consultations={consultations}
+              onReviewConsultation={handleReviewConsultation}
             />
           )}
 
