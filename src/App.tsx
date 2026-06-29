@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './index.css'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import FaskesDashboardPage from './pages/faskes/FaskesDashboardPage'
-import DokterDashboardPage from './pages/dokter/DokterDashboardPage'
+import NakesDashboardPage from './pages/nakes/NakesDashboardPage'
 import Navbar from './components/landing/Navbar'
 import HeroSection from './components/landing/HeroSection'
 import FiturSection from './components/landing/FiturSection'
@@ -42,7 +42,7 @@ function AppInner() {
   }
 
   if (user?.actor_type === 'nakes') {
-    return <DokterDashboardPage onLogout={handleLogout} />
+    return <NakesDashboardPage onLogout={handleLogout} />
   }
 
   // ── Landing / Login ──
