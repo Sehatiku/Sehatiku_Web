@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { C } from '../../lib/constants'
-import { Arr, LogoImg } from '../ui/Icons'
+import { Arr } from '../ui/Icons'
 
 export default function Navbar({ onLoginClick }: { onLoginClick: () => void }) {
   const [scrolled, setScrolled] = useState(false)
@@ -26,21 +26,20 @@ export default function Navbar({ onLoginClick }: { onLoginClick: () => void }) {
       {/* Brand */}
       <button
         onClick={() => scrollTo('sec-hero')}
-        style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
-        <LogoImg size={34} />
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px', color: C.wordmark }}>
-            sehat<span style={{ color: '#895CF6' }}>iku</span>
-          </div>
-          <span style={{
-            fontSize: 9, fontWeight: 700, color: C.primary,
-            background: 'rgb(238,240,254)',
-            border: `1px solid rgba(99,102,241,0.16)`,
-            padding: '3px 8px', borderRadius: 20,
-            textTransform: 'uppercase', letterSpacing: '0.6px',
-          }}>Prolanis PTM</span>
-        </div>
+        <img
+          src="/logo_sehatiku_horizontal.png"
+          alt="Sehatiku"
+          style={{ height: 30, objectFit: 'contain', display: 'block', filter: 'brightness(0) invert(0.2)' }}
+        />
+        <span style={{
+          fontSize: 9, fontWeight: 700, color: C.primary,
+          background: 'rgb(238,240,254)',
+          border: `1px solid rgba(99,102,241,0.16)`,
+          padding: '3px 8px', borderRadius: 20,
+          textTransform: 'uppercase', letterSpacing: '0.6px',
+        }}>Prolanis PTM</span>
       </button>
 
       {/* Nav */}

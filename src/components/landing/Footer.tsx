@@ -1,5 +1,3 @@
-import { LogoImg } from '../ui/Icons'
-
 export default function Footer() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   return (
@@ -12,11 +10,12 @@ export default function Footer() {
         }}>
           {/* Brand */}
           <div style={{ maxWidth: 300 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
-              <LogoImg size={32} />
-              <div style={{ fontSize: 19, fontWeight: 800, color: '#fff', letterSpacing: '-0.4px' }}>
-                sehat<span style={{ color: 'rgb(167,139,250)' }}>iku</span>
-              </div>
+            <div style={{ marginBottom: 16 }}>
+              <img
+                src="/logo_sehatiku_horizontal.png"
+                alt="Sehatiku"
+                style={{ height: 28, objectFit: 'contain', display: 'block' }}
+              />
             </div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
               Terhubung, Terpantau, Terlindungi. Platform predictive monitoring penyakit kronis, mitra Prolanis BPJS Kesehatan.

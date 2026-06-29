@@ -81,7 +81,7 @@ export default function DashboardMockup() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 }}>
           <div style={{ fontSize: 12.5, fontWeight: 800, color: C.dark }}>Antrean Prioritas</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgb(238,240,254)', borderRadius: 7, padding: '4px 9px' }}>
-            <span className="anim-blink" style={{ width: 5, height: 5, borderRadius: '50%', background: C.primary }} />
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: C.primary }} />
             <span style={{ fontSize: 9, fontWeight: 700, color: C.primary }}>AI Auto-Sorted</span>
           </div>
         </div>

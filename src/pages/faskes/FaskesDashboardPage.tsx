@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { LogoImg } from '../../components/ui/Icons'
 import { faskesApi } from '../../lib/api'
 import { useAuth } from '../../auth/AuthContext'
 import type { NakesItem, FaskesProfile } from '../../lib/types'
@@ -15,19 +14,12 @@ import PasienTab from './components/PasienTab'
 const C = {
   indigo: '#5B6BF0',
   indigoDark: '#4558E8',
-  teal: '#1EC8A5',
+  teal: '#0D9488',
   purple: '#8B5CF6',
   lavender: '#EEF0FF',
   slate: '#2D3748',
-  sidebarFrom: '#262F8A',
-  sidebarTo: '#1A2066',
-}
-
-// ── Helper: format today's date in Indonesian ───────────────────────────────
-function todayLabel(): string {
-  return new Intl.DateTimeFormat('id-ID', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(new Date())
+  sidebarFrom: '#1E2775',
+  sidebarTo: '#161C5C',
 }
 
 // ── Helper: faskes type label ──────────────────────────────────────────────
@@ -50,7 +42,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
   const showToastMsg = (msg: string, type?: 'success' | 'error' | 'info') => {
     if (toastTimer) clearTimeout(toastTimer)
-    
+
     let finalType: 'success' | 'error' | 'info' = type ?? 'success'
     if (!type) {
       if (msg.includes('⚠️') || msg.toLowerCase().includes('gagal') || msg.toLowerCase().includes('error')) {
@@ -59,7 +51,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
         finalType = 'info'
       }
     }
-    
+
     setToastType(finalType)
     setToastMsg(msg)
     setShowToast(true)
@@ -153,7 +145,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   const currentTab = TAB_META[activeTab]
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Inter, sans-serif', background: '#F0F1FE' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif', background: '#F4F5F7' }}>
 
       {/* ── SIDEBAR ── */}
       <div style={{
@@ -170,47 +162,27 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       }}>
 
         {/* Logo */}
-        <div style={{ padding: '16px 20px 14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <LogoImg size={32} />
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.3px', lineHeight: 1 }}>
-                sehat<span style={{ color: C.teal }}>iku</span>
-              </div>
-              <div style={{ fontSize: 8.5, color: 'rgba(255, 255, 255, 0.5)', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: 2 }}>Admin Faskes</div>
-            </div>
-          </div>
+        <div style={{ padding: '28px 24px 18px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+          <img
+            src="/logo_sehatiku_horizontal.png"
+            alt="Sehatiku"
+            style={{ height: 36, objectFit: 'contain', display: 'block' }}
+          />
+          {/* <div style={{ fontSize: 8.5, color: 'rgba(255, 255, 255, 0.5)', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: 6, paddingLeft: 2 }}>Admin Faskes</div> */}
         </div>
 
-        {/* Faskes Badge — populated from real API */}
-        <div style={{
-          margin: '10px 14px 0',
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: 10,
-          padding: '8px 12px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.05)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <div className="anim-blink" style={{ width: 6, height: 6, borderRadius: '50%', background: C.teal }} />
-            <span style={{ fontSize: 8.5, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Mitra Prolanis Aktif</span>
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>{faskesName}</div>
-          <div style={{ fontSize: 9.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 1, fontFamily: 'monospace' }}>
-            {profile ? `Kode: ${faskesCode}` : 'Memuat profil...'}
-          </div>
-        </div>
+
 
         {/* Nav Menu Header */}
-        <div style={{ padding: '12px 18px 4px' }}>
-          <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255, 255, 255, 0.35)', textTransform: 'uppercase', letterSpacing: '1px' }}>Menu Utama</div>
+        <div style={{ padding: '16px 18px 10px 18px' }}>
+          <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255, 255, 255, 0.42)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Menu Utama</div>
         </div>
 
         {/* Nav Items */}
         <div style={{ padding: '0 10px', flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
           {[
-            { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon },
             { id: 'operasional', label: 'Fase Operasional', icon: TAB_META.operasional.icon },
+            { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon },
             { id: 'eskalasi', label: 'Notifikasi & Eskalasi', badge: '3', icon: TAB_META.eskalasi.icon },
             { id: 'dokter', label: 'Manajemen Nakes', icon: TAB_META.dokter.icon },
             { id: 'pasien', label: 'Daftar Pasien', icon: TAB_META.pasien.icon },
@@ -224,18 +196,17 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
-                  padding: '8px 12px',
+                  padding: '10px 14px',
                   borderRadius: 8,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  borderLeft: `3px solid ${isSelected ? C.teal : 'transparent'}`,
                   color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
                 }}
                 onMouseEnter={e => {
                   if (!isSelected) {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
-                    e.currentTarget.style.color = '#ffffff'
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
+                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'
                   }
                 }}
                 onMouseLeave={e => {
@@ -253,7 +224,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                   {item.icon}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: isSelected ? 700 : 600 }}>{item.label}</div>
+                  <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500 }}>{item.label}</div>
                 </div>
                 {item.badge && (
                   <span style={{
@@ -269,8 +240,8 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           })}
 
           {/* Divider */}
-          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', margin: '10px 12px 6px' }} />
-          <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255, 255, 255, 0.35)', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 12px', marginBottom: 4 }}>Ringkasan</div>
+          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.07)', margin: '16px 12px 10px' }} />
+          <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255, 255, 255, 0.42)', textTransform: 'uppercase', letterSpacing: '1.5px', padding: '0 12px', marginBottom: 10 }}>Ringkasan</div>
 
           {/* Stat pills */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -282,6 +253,22 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>Nakes Aktif</span>
               <span style={{ fontSize: 11.5, fontWeight: 700, color: C.teal }}>{nakesLoading ? '…' : nakesItems.filter(n => n.status === 'active').length}</span>
             </div>
+          </div>
+        </div>
+
+        {/* Faskes Badge — populated from real API */}
+        <div style={{
+          margin: '8px 12px 14px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: 10,
+          padding: '10px 12px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.05)'
+        }}>
+
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>{faskesName}</div>
+          <div style={{ fontSize: 9.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 2, fontFamily: 'monospace' }}>
+            {profile ? `Kode: ${faskesCode}` : 'Memuat profil...'}
           </div>
         </div>
 
@@ -316,105 +303,48 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       {/* ── MAIN AREA ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
-        {/* ── TOP HEADER BAR — beautiful redesign ── */}
-        <div style={{
-          background: '#ffffff',
-          borderBottom: '1px solid #E2E5F1',
-          padding: '0 28px',
-          height: 64,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexShrink: 0,
-          boxShadow: '0 1px 12px rgba(91,107,240,0.07)',
+        {/* ── TOP HEADER BAR ── */}
+        <header style={{
+          height: 58, background: '#fff', borderBottom: '1px solid #ECEEF3', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px',
         }}>
-          {/* Left: breadcrumb + page title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Accent stripe */}
-            <div style={{
-              width: 3.5, height: 36, borderRadius: 2,
-              background: `linear-gradient(180deg, ${C.indigo} 0%, ${C.purple} 100%)`,
-              flexShrink: 0,
-            }} />
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.indigo, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                  Platform Sehatiku
-                </span>
-                <span style={{ fontSize: 10, color: '#C5CAE3' }}>·</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: '#8A93A1' }}>Prolanis PTM</span>
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.slate, lineHeight: 1, letterSpacing: '-0.2px' }}>
-                {currentTab.title}
-              </div>
-              <div style={{ fontSize: 11, color: '#9AA0B9', marginTop: 2, fontWeight: 500 }}>
-                {currentTab.subtitle}
-              </div>
-            </div>
+          {/* Left: title */}
+          <div>
+            <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#0F172A', fontFamily: 'Plus Jakarta Sans, sans-serif', letterSpacing: '-0.3px' }}>
+              {activeTab === 'operasional' ? 'Dashboard' : currentTab.title}
+            </p>
           </div>
 
-          {/* Right: date + mode badge + bell */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-
-            {/* Live date pill */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              background: C.lavender, border: `1px solid rgba(91,107,240,0.18)`,
-              borderRadius: 10, padding: '7px 14px',
-            }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.indigo} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: C.indigo, whiteSpace: 'nowrap' }}>
-                {todayLabel()}
-              </span>
-            </div>
-
-            {/* Mode badge */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)',
-              borderRadius: 10, padding: '7px 14px',
-            }}>
-              <div className="anim-blink" style={{ width: 7, height: 7, borderRadius: '50%', background: C.purple }} />
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: C.purple }}>Mode: Faskes</span>
-            </div>
+          {/* Right: bell */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
 
             {/* Notification bell */}
-            <div
+            <button
               onClick={() => setActiveTab('eskalasi')}
               style={{
-                position: 'relative', width: 40, height: 40,
-                background: '#F7F8FF', border: `1px solid #E2E5F1`, borderRadius: 10,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                transition: 'all 0.2s',
+                position: 'relative', background: '#ffffff', border: '1px solid #E2E8F0',
+                borderRadius: 10, width: 38, height: 38, display: 'flex', alignItems: 'center',
+                justifyContent: 'center', cursor: 'pointer', outline: 'none', transition: 'all 0.2s',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
               }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = C.lavender
-                e.currentTarget.style.borderColor = `rgba(91,107,240,0.3)`
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = '#F7F8FF'
-                e.currentTarget.style.borderColor = '#E2E5F1'
-              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+              onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636B78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
               <span style={{
-                position: 'absolute', top: -5, right: -5,
-                background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 800,
-                width: 17, height: 17, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
-                border: '2px solid #ffffff',
+                position: 'absolute', top: -2, right: -2,
+                background: '#EF4444', borderRadius: '50%', fontSize: 9, fontWeight: 700,
+                width: 15, height: 15, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', border: '2px solid #fff'
               }}>3</span>
-            </div>
+            </button>
           </div>
-        </div>
+        </header>
 
         {/* ── SCROLLABLE TAB CONTENTS ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px', background: '#F0F1FE' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: '#F4F5F7' }}>
 
           {activeTab === 'pendaftaran' && (
             <PendaftaranTab
@@ -429,6 +359,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             <OperasionalTab
               setActiveTab={setActiveTab}
               showToastMsg={showToastMsg}
+              faskesName={faskesName}
             />
           )}
 
@@ -456,7 +387,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       {/* ── TOAST MESSAGE ── */}
       {showToast && (() => {
         const cleanMsg = toastMsg.replace(/^[✓⚠️✗]\s*/, '')
-        
+
         let bg = '#EEF0FF'
         let color = '#1A2066'
         let borderLeftColor = '#5B6BF0'
@@ -491,7 +422,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
         return (
           <div style={{
-            position: 'fixed', bottom: 24, right: 24, 
+            position: 'fixed', bottom: 24, right: 24,
             background: bg, color: color,
             borderRadius: 12, padding: '14px 18px', fontSize: 13, fontWeight: 600,
             boxShadow: '0 8px 30px rgba(15,36,68,0.12)', zIndex: 9999, maxWidth: 420,
