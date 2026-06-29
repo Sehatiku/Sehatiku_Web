@@ -37,7 +37,7 @@ export default function NakesDetailDrawer({ detail, loading, onClose, onToggleSt
   return createPortal(
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{ width: 520, maxWidth: '92vw', maxHeight: '88vh', background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(15,36,68,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
@@ -74,7 +74,18 @@ export default function NakesDetailDrawer({ detail, loading, onClose, onToggleSt
                 <Section title="Data Identitas">
                   <Row label="NIK" value={detail.nik} />
                   <Row label="Alamat" value={detail.alamat} />
+                  {detail.role === 'dokter' && (
+                    <Row label="Spesialisasi" value={detail.specialization || 'Dokter Umum'} />
+                  )}
                 </Section>
+
+                {detail.role === 'dokter' && detail.schedule && detail.schedule.length > 0 && (
+                  <Section title="Jadwal Praktek">
+                    {detail.schedule.map((s, idx) => (
+                      <Row key={idx} label={s.days} value={s.time} />
+                    ))}
+                  </Section>
+                )}
 
                 <Section title="Kontak">
                   <Row label="No. WhatsApp" value={detail.phone_number} />

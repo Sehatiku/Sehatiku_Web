@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { faskesApi } from '../../../lib/api'
 import type { NakesItem, DiseaseType, RegisterPatientResult } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
+import DatePicker from '../../../components/ui/DatePicker'
 
 interface PendaftaranTabProps {
   nakesItems: NakesItem[]
@@ -213,9 +214,11 @@ export default function PendaftaranTab({
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tanggal Lahir *</label>
-                <input
-                  type="date" value={ptDob} onChange={e => setPtDob(e.target.value)}
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('dob') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                <DatePicker
+                  value={ptDob}
+                  onChange={setPtDob}
+                  error={!!ptErr('dob')}
+                  placeholder="Pilih tanggal lahir"
                 />
                 {ptErr('dob') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('dob')}</div>}
               </div>
@@ -444,11 +447,14 @@ export default function PendaftaranTab({
 
       {/* ── SUCCESS REGISTRATION WHATSAPP MODAL ── */}
       {registerResult && createPortal(
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 10000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          backdropFilter: 'blur(5px)', animation: 'fadeIn 0.2s ease-out'
-        }}>
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setRegisterResult(null) }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 10000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(5px)', animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
           <div style={{
             background: '#fff', borderRadius: 20, padding: 32, width: 480, maxWidth: '90vw',
             boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8',

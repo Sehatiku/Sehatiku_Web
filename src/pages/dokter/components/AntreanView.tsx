@@ -1,4 +1,4 @@
-import type { PatientQueueItem } from '../../../lib/types'
+import type { PatientQueueItem, ConsultationResult } from '../../../lib/types'
 import {
   SkeletonCard,
   AvatarCircle,
@@ -12,6 +12,7 @@ import TrendChart from './TrendChart'
 import ShapCard from './ShapCard'
 import LogCard from './LogCard'
 import FeedbackCard from './FeedbackCard'
+import ReviewKeluhanCard from './ReviewKeluhanCard'
 
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 
@@ -33,6 +34,8 @@ interface AntreanViewProps {
   setChartParam: (p: 'glucose' | 'bp') => void
   chartRange: 7 | 14
   setChartRange: (r: 7 | 14) => void
+  consultations: ConsultationResult[]
+  onReviewConsultation: (id: string, notes: string) => void
 }
 
 export default function AntreanView({
@@ -53,6 +56,8 @@ export default function AntreanView({
   setChartParam,
   chartRange,
   setChartRange,
+  consultations,
+  onReviewConsultation,
 }: AntreanViewProps) {
   return (
     <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -116,6 +121,16 @@ export default function AntreanView({
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5, flexWrap: 'wrap' }}>
                           <StatusPill label={p.status === 'bahaya' ? 'Bahaya' : p.status === 'waswas' ? 'Waswas' : 'Aman'} risk={p.risk_label} />
                           {p.main_factor && <span style={{ fontSize: 10, color: '#8A93A1' }}>{p.main_factor}</span>}
+                          {consultations.some(c => c.patient_id === p.patient_id && c.status === 'open') && (
+                            <span style={{
+                              background: '#FFF9F0', border: '1px solid #FFE2B7', borderRadius: 4,
+                              padding: '1px 6px', fontSize: 9, fontWeight: 700, color: '#D97706',
+                              display: 'inline-flex', alignItems: 'center', gap: 3
+                            }}>
+                              <span className="anim-blink" style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B' }} />
+                              Butuh Review
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -203,6 +218,17 @@ export default function AntreanView({
                 </p>
               </div>
             </div>
+
+            {/* Review Keluhan Card */}
+            {(() => {
+              const activeConsultation = consultations.find(c => c.patient_id === selectedPatient.patient_id && c.status === 'open') ?? consultations.find(c => c.patient_id === selectedPatient.patient_id)
+              return (
+                <ReviewKeluhanCard
+                  consultation={activeConsultation}
+                  onReview={onReviewConsultation}
+                />
+              )
+            })()}
 
             {/* Chart + SHAP */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: 14 }}>

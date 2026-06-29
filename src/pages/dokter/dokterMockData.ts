@@ -1,3 +1,5 @@
+import type { PatientComplaint } from '../../lib/types'
+
 export interface ShapFactor {
   label: string
   valText: string
@@ -216,3 +218,30 @@ export const MOCK_METRICS: MockMetricSet[] = [
     deltaColor: '#059669', delta: '-7', deltaLabel: '↓ membaik',
   },
 ]
+
+export const INITIAL_COMPLAINTS: Record<string, PatientComplaint> = {
+  p1: {
+    patient_id: 'p1',
+    category: 'Konsultasi Dokter',
+    complaint: 'Kaki kiri terasa kesemutan hebat dan baal (mati rasa) terus-menerus, terutama saat malam hari sebelum tidur, disertai rasa nyeri seperti tertusuk jarum.',
+    since_when: '5 hari yang lalu',
+    question: 'Apakah kesemutan ini merupakan tanda komplikasi saraf akibat penyakit diabetes saya? Bagaimana cara meredakannya dok?',
+    status: 'Waiting for Doctor Review',
+  },
+  p2: {
+    patient_id: 'p2',
+    category: 'Laporkan Keluhan',
+    complaint: 'Saya merasakan pusing berputar dan tengkuk terasa sangat tegang. Tensi saya ukur mandiri di rumah menunjukkan angka 170/105 mmHg, padahal saya teratur minum Amlodipine 5mg setiap pagi.',
+    since_when: '3 hari terakhir',
+    question: 'Apakah tensi setinggi ini berbahaya dok? Apakah saya perlu minum obat tambahan atau segera periksa langsung?',
+    status: 'Waiting for Doctor Review',
+  },
+  p3: {
+    patient_id: 'p3',
+    category: 'Minta Review Hasil',
+    complaint: 'Perut saya terasa sangat kembung, begah, dan kadang disertai mual sesaat setelah mengonsumsi tablet Metformin 500mg pasca makan.',
+    since_when: 'Sejak 2 hari yang lalu (setelah diresepkan obat baru)',
+    question: 'Bagaimana cara meminimalkan rasa mual ini dok? Apakah obatnya boleh dijeda atau diminum di tengah-tengah makan?',
+    status: 'Waiting for Doctor Review',
+  }
+}
