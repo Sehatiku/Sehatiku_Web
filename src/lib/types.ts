@@ -111,6 +111,41 @@ export interface RegisterNakesResult {
 
 export type DiseaseType = 'diabetes_t2' | 'hypertension' | 'both'
 
+export interface PatientBaselineBody {
+  age_years: number
+  sex: 'male' | 'female'
+  bmi: number
+  bmi_category: 'underweight' | 'normal' | 'overweight' | 'obese'
+  waist_circumference_cm: number
+  central_obesity: boolean
+  smoking_status: 'never' | 'former' | 'current'
+  alcohol_use: boolean
+  physical_activity: 'sedentary' | 'light' | 'moderate' | 'active'
+  family_history_diabetes: boolean
+  family_history_cvd: boolean
+  systolic_bp_mmhg: number
+  diastolic_bp_mmhg: number
+  hypertension_status: 'normal' | 'elevated' | 'stage1' | 'stage2'
+  fasting_glucose_mgdl: number
+  hba1c_pct: number
+  diabetes_status: 'none' | 'prediabetes' | 'type2' | 'controlled' | 'uncontrolled'
+  total_cholesterol_mgdl: number
+  hdl_mgdl: number
+  ldl_mgdl: number
+  triglycerides_mgdl: number
+  cvd_risk_10yr_pct: number
+  cvd_risk_category: 'low' | 'moderate' | 'high' | 'very_high'
+  on_antihypertensive: boolean
+  on_antidiabetic: boolean
+  on_statin: boolean
+  target_risk: string
+  egfr: number
+  uacr: number
+  cluster_id: number | null
+  diagnosis_cluster: string | null
+  clinical_group: string | null
+}
+
 export interface RegisterPatientBody {
   nik: string
   full_name: string
@@ -123,6 +158,7 @@ export interface RegisterPatientBody {
   disease_type: DiseaseType
   username: string
   password: string
+  baseline: PatientBaselineBody
 }
 
 /** Body for POST /api/v1/faskes/patients/register — requires assigned_nakes_id */
