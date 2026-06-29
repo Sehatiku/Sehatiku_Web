@@ -10,7 +10,7 @@ export const RISK_COLOR: Record<RiskLabel, { text: string; bg: string; border: s
 }
 
 export const DISEASE_LABEL: Record<DiseaseType, string> = {
-  diabetes_t2: 'Diabetes T2',
+  diabetes_t2: 'Diabetes',
   hypertension: 'Hipertensi',
   both: 'DM + HT',
 }

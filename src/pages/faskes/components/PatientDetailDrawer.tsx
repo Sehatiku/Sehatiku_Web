@@ -9,7 +9,7 @@ interface Props {
 }
 
 const DISEASE_LABEL: Record<string, string> = {
-  diabetes_t2: 'Diabetes T2',
+  diabetes_t2: 'Diabetes',
   hypertension: 'Hipertensi',
   both: 'DM + Hipertensi',
 }
