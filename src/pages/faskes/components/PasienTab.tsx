@@ -119,7 +119,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                 {patientItems.map((p, idx) => {
                   const isActive = p.status === 'active'
                   const diseaseLabel: Record<string, string> = {
-                    diabetes_t2: 'Diabetes T2',
+                    diabetes_t2: 'Diabetes',
                     hypertension: 'Hipertensi',
                     both: 'DM + HT',
                   }

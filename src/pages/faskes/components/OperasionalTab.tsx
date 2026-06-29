@@ -53,7 +53,7 @@ export default function OperasionalTab({
             cause = 'Kepatuhan Obat Rendah'
           }
 
-          let disease = 'Diabetes T2'
+          let disease = 'Diabetes'
           if (p.disease_type === 'hypertension') {
             disease = 'Hipertensi'
           } else if (p.disease_type === 'both') {
@@ -535,7 +535,7 @@ export default function OperasionalTab({
           <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Distribusi Penyakit</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {([
-              { key: 'diabetes_t2', label: 'Diabetes T2', color: '#5B6BF0', bg: '#EEF0FF' },
+              { key: 'diabetes_t2', label: 'Diabetes', color: '#5B6BF0', bg: '#EEF0FF' },
               { key: 'hypertension', label: 'Hipertensi', color: '#0277BD', bg: 'rgba(79,195,247,0.1)' },
               { key: 'both', label: 'DM + Hipertensi', color: '#7C3AED', bg: '#F5F3FF' },
             ] as const).map(d => {
@@ -883,9 +883,17 @@ export default function OperasionalTab({
                 </div>
               </div>
 
-              <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 58, height: 58, borderRadius: 15, background: getHealthColor(progressPatient.healthScore), boxShadow: '0 4px 14px rgba(0,0,0,0.12)', flexShrink: 0 }}>
+              {/* Score badge — top-right of modal header */}
+              <div style={{
+                display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                width: 58, height: 58, borderRadius: 15,
+                background: getHealthColor(progressPatient.healthScore),
+                boxShadow: '0 4px 14px rgba(0,0,0,0.12)', flexShrink: 0,
+              }}>
                 <span style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1 }}>{progressPatient.healthScore}</span>
-                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>Sehat</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>
+                  {progressPatient.status === 'Sehat' ? 'Sehat' : progressPatient.status === 'Waswas' ? 'Waswas' : 'Parah'}
+                </span>
               </div>
 
               <button onClick={() => setShowProgressModal(false)} style={{ background: '#F4F5F7', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16, flexShrink: 0, marginLeft: 8 }}>✕</button>
@@ -893,20 +901,35 @@ export default function OperasionalTab({
 
             {/* Modal Body */}
             <div style={{ padding: '22px 26px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Tren Health Score</div>
-                  <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 1 }}>6 bulan terakhir</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#F7F8FA', border: '1px solid #EEF2F7', borderRadius: 9, padding: '6px 12px' }}>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: progressPatient.status === 'Sehat' ? '#0D9488' : '#EF4444' }}>
-                    {progressPatient.status === 'Sehat' ? '+24' : '-18'}
-                  </span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: progressPatient.status === 'Sehat' ? '#0D9488' : '#EF4444' }}>
-                    {progressPatient.status === 'Sehat' ? 'Membaik' : 'Memburuk'}
-                  </span>
-                </div>
-              </div>
+              {/* Trend header — score change badge sesuai grafik */}
+              {(() => {
+                const isImproving = progressPatient.status === 'Sehat' || progressPatient.status === 'Waswas'
+                const trendVal  = progressPatient.status === 'Sehat' ? '+24' : progressPatient.status === 'Waswas' ? '+6' : '-18'
+                const trendLabel = progressPatient.status === 'Sehat' ? 'Membaik' : progressPatient.status === 'Waswas' ? 'Stabil' : 'Memburuk'
+                const trendColor = progressPatient.status === 'Sehat' ? '#10B981' : progressPatient.status === 'Waswas' ? '#F59E0B' : '#EF4444'
+                const trendBg   = progressPatient.status === 'Sehat' ? 'rgba(16,185,129,0.08)' : progressPatient.status === 'Waswas' ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)'
+                const trendBorder = progressPatient.status === 'Sehat' ? 'rgba(16,185,129,0.2)' : progressPatient.status === 'Waswas' ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'
+                const arrow = progressPatient.status === 'Sehat' ? '↑' : progressPatient.status === 'Waswas' ? '→' : '↓'
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Tren Health Score</div>
+                      <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 1 }}>6 bulan terakhir</div>
+                    </div>
+                    <div style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      background: trendBg, border: `1.5px solid ${trendBorder}`,
+                      borderRadius: 10, padding: '7px 14px', minWidth: 64,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 16, fontWeight: 900, color: trendColor, lineHeight: 1 }}>{arrow}</span>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: trendColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{trendVal}</span>
+                      </div>
+                      <span style={{ fontSize: 9.5, fontWeight: 700, color: trendColor, marginTop: 3, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{trendLabel}</span>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Monthly progress bars */}
               <div style={{ background: '#FAFBFE', border: '1px solid #EEF2F7', borderRadius: 13, padding: '18px 16px 12px', marginBottom: 22 }}>
@@ -918,6 +941,15 @@ export default function OperasionalTab({
                       { month: 'Mar', score: 56 },
                       { month: 'Apr', score: 62 },
                       { month: 'Mei', score: 65 },
+                      { month: 'Jun', score: progressPatient.healthScore },
+                    ]
+                    : progressPatient.status === 'Waswas'
+                    ? [
+                      { month: 'Jan', score: 48 },
+                      { month: 'Feb', score: 50 },
+                      { month: 'Mar', score: 52 },
+                      { month: 'Apr', score: 53 },
+                      { month: 'Mei', score: 54 },
                       { month: 'Jun', score: progressPatient.healthScore },
                     ]
                     : [
@@ -946,23 +978,80 @@ export default function OperasionalTab({
               {/* Metrics changes list */}
               <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 12 }}>Perubahan Indikator Klinis</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
-                {[
-                  { label: 'HbA1c', value: progressPatient.disease === 'Diabetes' ? '7.4' : '5.8', unit: '%', arrow: '↓', delta: '-1.2', isGood: true },
-                  { label: 'Gula Darah / Tensi', value: progressPatient.disease === 'Diabetes' ? '128' : '132/84', unit: progressPatient.disease === 'Diabetes' ? 'mg/dL' : 'mmHg', arrow: '↓', delta: progressPatient.disease === 'Diabetes' ? '-34' : '-18', isGood: true },
-                  { label: 'BMI', value: '26.1', unit: 'kg/m²', arrow: '↓', delta: '-1.4', isGood: true },
-                  { label: 'eGFR / Natrium', value: progressPatient.disease === 'Diabetes' ? '78' : 'Normal', unit: progressPatient.disease === 'Diabetes' ? 'mL/min' : '', arrow: '↑', delta: progressPatient.disease === 'Diabetes' ? '+4' : '-15%', isGood: true },
-                ].map((m, idx) => (
-                  <div key={idx} style={{ background: '#fff', border: '1px solid #EEF2F7', borderRadius: 11, padding: '13px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 4 }}>{m.label}</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#2B2D42' }}>{m.value} <span style={{ fontSize: 11, fontWeight: 600, color: '#8A93A1' }}>{m.unit}</span></div>
+                {((): Array<{ label: string; value: string; unit: string; delta: string; isImproving: boolean }> => {
+                  // isImproving: true = ↑ hijau (membaik klinis), false = ↓ merah (memburuk klinis)
+                  const isGood = progressPatient.status === 'Sehat' || progressPatient.status === 'Waswas'
+                  if (isGood) {
+                    return [
+                      { label: 'HbA1c',             value: progressPatient.disease === 'Diabetes' ? '7.4' : '5.8',   unit: '%',      delta: '-1.2',  isImproving: true  },
+                      { label: 'Gula Darah / Tensi', value: progressPatient.disease === 'Diabetes' ? '128'  : '132/84', unit: progressPatient.disease === 'Diabetes' ? 'mg/dL' : 'mmHg', delta: progressPatient.disease === 'Diabetes' ? '-34' : '-18', isImproving: true  },
+                      { label: 'BMI',                value: '26.1', unit: 'kg/m²', delta: '-1.4',  isImproving: true  },
+                      { label: 'eGFR / Natrium',     value: progressPatient.disease === 'Diabetes' ? '78' : 'Normal', unit: progressPatient.disease === 'Diabetes' ? 'mL/min' : '', delta: progressPatient.disease === 'Diabetes' ? '+4' : '-15%', isImproving: true  },
+                    ]
+                  }
+                  return [
+                    { label: 'HbA1c',             value: progressPatient.disease === 'Diabetes' ? '9.8' : '6.7',   unit: '%',      delta: '+1.6',  isImproving: false },
+                    { label: 'Gula Darah / Tensi', value: progressPatient.disease === 'Diabetes' ? '189'  : '150/96', unit: progressPatient.disease === 'Diabetes' ? 'mg/dL' : 'mmHg', delta: progressPatient.disease === 'Diabetes' ? '+42' : '+18', isImproving: false },
+                    { label: 'BMI',                value: '29.8', unit: 'kg/m²', delta: '+1.8',  isImproving: false },
+                    { label: 'eGFR / Natrium',     value: progressPatient.disease === 'Diabetes' ? '55' : 'Rendah', unit: progressPatient.disease === 'Diabetes' ? 'mL/min' : '', delta: progressPatient.disease === 'Diabetes' ? '-8' : '+15%', isImproving: false },
+                  ]
+                })().map((m, idx) => {
+                  const goodColor = '#10B981'
+                  const badColor  = '#EF4444'
+                  const goodBg    = 'rgba(16,185,129,0.10)'
+                  const badBg     = 'rgba(239,68,68,0.10)'
+                  const arrowColor = m.isImproving ? goodColor : badColor
+                  const arrowBg   = m.isImproving ? goodBg   : badBg
+                  const borderCol = m.isImproving ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'
+                  const shadowCol = m.isImproving ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)'
+                  const arrowIcon  = m.isImproving ? '↑' : '↓'
+                  const trendLabel = m.isImproving ? 'Membaik' : 'Memburuk'
+                  return (
+                    <div key={idx} style={{
+                      background: '#fff',
+                      border: `1.5px solid ${borderCol}`,
+                      borderRadius: 12,
+                      padding: '14px 14px 12px',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: `0 2px 10px ${shadowCol}`,
+                    }}>
+                      {/* Score badge — kanan atas */}
+                      <div style={{
+                        position: 'absolute', top: 10, right: 10,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        background: arrowBg, borderRadius: 8, padding: '4px 8px', minWidth: 42,
+                      }}>
+                        <span style={{ fontSize: 13, fontWeight: 900, color: arrowColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{m.delta}</span>
+                        <span style={{ fontSize: 8, fontWeight: 700, color: arrowColor, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{trendLabel}</span>
+                      </div>
+
+                      {/* Label + nilai */}
+                      <div style={{ paddingRight: 58 }}>
+                        <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 6 }}>{m.label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: '#2B2D42', lineHeight: 1.1 }}>
+                          {m.value}{' '}
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#8A93A1' }}>{m.unit}</span>
+                        </div>
+                      </div>
+
+                      {/* Panah klinis */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 10 }}>
+                        <div style={{
+                          width: 22, height: 22, borderRadius: 6,
+                          background: arrowBg,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 14, fontWeight: 900, color: arrowColor, lineHeight: 1,
+                        }}>
+                          {arrowIcon}
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: arrowColor }}>
+                          {m.isImproving ? 'Kondisi membaik' : 'Kondisi memburuk'}
+                        </span>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: m.isGood ? 'rgba(13,148,136,0.1)' : 'rgba(239,68,68,0.1)', borderRadius: 8, padding: '5px 9px' }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: m.isGood ? '#0D9488' : '#EF4444' }}>{m.arrow}</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: m.isGood ? '#0D9488' : '#EF4444' }}>{m.delta}</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               {/* Riwayat Kunjungan */}
