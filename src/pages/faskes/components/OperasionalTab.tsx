@@ -52,14 +52,10 @@ export default function OperasionalTab({
             else if (lowerRisk === 'aman' || lowerRisk === 'sehat') status = 'Sehat'
           }
 
-          let cause = '—'
+          let cause = 'Kondisi Terkontrol'
           if (p.top_factors && p.top_factors.length > 0) {
             cause = p.top_factors[0]
           }
-
-          const cause = p.top_factors && p.top_factors.length > 0
-            ? translateFactor(p.top_factors[0].feature)
-            : 'Kondisi Terkontrol'
 
           let disease = 'Diabetes'
           if (p.disease_type === 'hypertension') {
@@ -133,13 +129,6 @@ export default function OperasionalTab({
     if (score >= 70) return 'rgba(16,185,129,0.2)'
     if (score >= 40) return 'rgba(245,158,11,0.2)'
     return 'rgba(239,68,68,0.2)'
-  }
-
-  const getHealthTier = (score: number | null) => {
-    if (score === null || score === undefined) return 'Belum Dihitung'
-    if (score >= 70) return 'Tinggi (Sehat)'
-    if (score >= 40) return 'Sedang (Waswas)'
-    return 'Rendah (Parah)'
   }
 
   const getStatusStyle = (st: string | null) => {
@@ -387,7 +376,6 @@ export default function OperasionalTab({
                 const style = getStatusStyle(p.status)
                 const color = getHealthColor(p.healthScore)
                 const shadow = getHealthShadow(p.healthScore)
-                const tier = getHealthTier(p.healthScore)
 
                 let avatarBg = '#EEF0FF'
                 let avatarColor = '#5B6BF0'
@@ -929,20 +917,20 @@ export default function OperasionalTab({
                   <span style={{
                     background: getStatusStyle(
                       (() => {
-                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
                         return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
                       })()
                     ).bg,
                     color: getStatusStyle(
                       (() => {
-                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
                         return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
                       })()
                     ).color,
                     fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20
                   }}>
                     {(() => {
-                      const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                      const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
                       return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
                     })()}
                   </span>
@@ -953,15 +941,15 @@ export default function OperasionalTab({
               <div style={{
                 display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 width: 58, height: 58, borderRadius: 15,
-                background: getHealthColor(progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore),
+                background: getHealthColor(progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)),
                 boxShadow: '0 4px 14px rgba(0,0,0,0.12)', flexShrink: 0,
               }}>
                 <span style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1 }}>
-                  {progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore}
+                  {progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)}
                 </span>
                 <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>
                   {(() => {
-                    const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                    const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
                     return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
                   })()}
                 </span>

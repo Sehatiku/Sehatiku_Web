@@ -32,6 +32,10 @@ import type {
   ConsultationResult,
   PatientNotification,
   NakesPatientSummary,
+  PatientBaselineDetail,
+  CreatePatientBaselineBody,
+  PatientBaselineHistoryResponse,
+  BaselineHistoryItem,
 } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8080'
