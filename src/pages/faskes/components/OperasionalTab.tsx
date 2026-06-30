@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { faskesApi } from '../../../lib/api'
-import type { FaskesPatientItem } from '../../../lib/types'
+import type { FaskesPatientItem, BaselineHistoryItem } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
 
 interface Patient {
@@ -33,25 +33,38 @@ export default function OperasionalTab({
 
   useEffect(() => {
     faskesApi.getPatients(1, 100)
-      .then(res => { 
+      .then(res => {
         setPtSummary(res.data)
         setPtSummaryLoading(false)
-        
-        // Map real patient items to operasional table state
-        const mapped = res.data.map((p, idx) => {
-          const healthScores = [35, 78, 55, 92, 48, 88, 72, 64, 45, 90, 82, 38, 70, 52, 60]
-          const score = healthScores[idx % healthScores.length]
-          
-          let status = 'Sehat'
-          if (score < 40) status = 'Parah'
-          else if (score < 70) status = 'Waswas'
 
-          let cause = 'HbA1c Stabil'
-          if (status === 'Parah') {
-            cause = p.disease_type === 'hypertension' ? 'Tekanan Darah Tinggi' : 'HbA1c Tinggi'
-          } else if (status === 'Waswas') {
-            cause = 'Kepatuhan Obat Rendah'
+        // Map real patient items to operasional table state
+        const translateFactor = (factorName: string) => {
+          const f = factorName.toLowerCase()
+          if (f.includes('hba1c')) return 'HbA1c Tinggi'
+          if (f.includes('bp') || f.includes('systolic') || f.includes('diastolic') || f.includes('tensi')) return 'Tekanan Darah Tinggi'
+          if (f.includes('glucose') || f.includes('gula')) return 'Gula Darah Tinggi'
+          if (f.includes('adherence') || f.includes('med') || f.includes('obat') || f.includes('kepatuhan')) return 'Kepatuhan Obat Rendah'
+          if (f.includes('bmi') || f.includes('berat')) return 'BMI Berlebih'
+          if (f.includes('smoke') || f.includes('rokok')) return 'Status Merokok'
+          return factorName
+        }
+
+        const mapped = res.data.map((p) => {
+          const rawRisk = p.health_score != null ? p.health_score : null
+          const score = rawRisk !== null ? Math.max(0, 100 - rawRisk) : 80
+
+          let status = 'Sehat'
+          if (p.risk_status === 'bahaya') status = 'Parah'
+          else if (p.risk_status === 'waswas') status = 'Waswas'
+          else if (p.risk_status === 'aman') status = 'Sehat'
+          else {
+            if (score < 40) status = 'Parah'
+            else if (score < 70) status = 'Waswas'
           }
+
+          const cause = p.top_factors && p.top_factors.length > 0
+            ? translateFactor(p.top_factors[0].feature)
+            : 'Kondisi Terkontrol'
 
           let disease = 'Diabetes'
           if (p.disease_type === 'hypertension') {
@@ -80,6 +93,27 @@ export default function OperasionalTab({
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const [showProgressModal, setShowProgressModal] = useState(false)
   const [progressPatientId, setProgressPatientId] = useState<string | null>(null)
+
+  const [loadingProgress, setLoadingProgress] = useState(false)
+  const [progressHistory, setProgressHistory] = useState<BaselineHistoryItem[]>([])
+
+  useEffect(() => {
+    if (!progressPatientId || !showProgressModal) return
+
+    const loadHistory = async () => {
+      setLoadingProgress(true)
+      try {
+        const res = await faskesApi.getPatientBaselineHistory(progressPatientId)
+        setProgressHistory(res.data || [])
+      } catch (err) {
+        console.error('Error fetching progress history:', err)
+        setProgressHistory([])
+      } finally {
+        setLoadingProgress(false)
+      }
+    }
+    loadHistory()
+  }, [progressPatientId, showProgressModal])
 
   // Helper functions
   const getHealthColor = (score: number) => {
@@ -117,7 +151,7 @@ export default function OperasionalTab({
   return (
     <div>
       <div className="anim-fadein">
-        
+
         {/* Welcome Greeting Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
@@ -160,7 +194,7 @@ export default function OperasionalTab({
 
         {/* 4 Cards Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18, marginBottom: 24 }}>
-          
+
           {/* Card 1: Total Pasien */}
           <div style={{
             background: '#ffffff',
@@ -298,376 +332,371 @@ export default function OperasionalTab({
 
         </div>
 
-      {/* Priority Queue Table */}
-      <div style={{
-        background: '#ffffff',
-        borderRadius: 16,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-        border: '1px solid #ECEEF3',
-        marginBottom: 24,
-        overflow: 'hidden'
-      }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #ECEEF3', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Antrian Prioritas Pasien</div>
-            <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Diurutkan otomatis berdasarkan Health Score terendah — tertinggi</div>
+        {/* Priority Queue Table */}
+        <div style={{
+          background: '#ffffff',
+          borderRadius: 16,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
+          border: '1px solid #ECEEF3',
+          marginBottom: 24,
+          overflow: 'hidden'
+        }}>
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid #ECEEF3', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Antrian Prioritas Pasien</div>
+              <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Diurutkan otomatis berdasarkan Health Score terendah — tertinggi</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '6px 12px' }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#5B6BF0' }}></div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>AI Auto-Sorted</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '6px 12px' }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#5B6BF0' }}></div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>AI Auto-Sorted</span>
-          </div>
-        </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 820 }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC' }}>
-                <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 60 }}>Rank</th>
-                <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pasien</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Penyakit</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 160 }}>Health Score</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Faktor Penyebab Utama</th>
-                <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patients.length === 0 && (
-                <tr>
-                  <td colSpan={7} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
-                    Belum ada data pasien. Endpoint daftar pasien faskes belum tersedia di backend.
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 820 }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC' }}>
+                  <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 60 }}>Rank</th>
+                  <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pasien</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Penyakit</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 160 }}>Health Score</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Faktor Penyebab Utama</th>
+                  <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aksi</th>
                 </tr>
-              )}
-              {patients.map((p, i) => {
-                const style = getStatusStyle(p.status)
-                const color = getHealthColor(p.healthScore)
-                const shadow = getHealthShadow(p.healthScore)
-                const tier = getHealthTier(p.healthScore)
-
-                let avatarBg = '#EEF0FF'
-                let avatarColor = '#5B6BF0'
-                if (p.healthScore < 40) {
-                  avatarBg = '#FEF2F2'
-                  avatarColor = '#EF4444'
-                } else if (p.healthScore < 70) {
-                  avatarBg = '#FFFBEB'
-                  avatarColor = '#D97706'
-                } else {
-                  avatarBg = '#ECFDF5'
-                  avatarColor = '#10B981'
-                }
-
-                return (
-                  <tr key={p.id} className="qrow" style={{ borderTop: '1px solid #ECEEF3', transition: 'background 0.12s' }}>
-                    <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
-                      <div style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        width: 26, height: 26, borderRadius: 8,
-                        background: i < 2 ? '#FEF2F2' : '#F8FAFC',
-                        color: i < 2 ? '#EF4444' : '#64748B',
-                        fontSize: 12, fontWeight: 800
-                      }}>{i + 1}</div>
-                    </td>
-                    <td style={{ padding: '14px 12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{
-                          width: 38, height: 38, borderRadius: '50%',
-                          background: avatarBg, display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', fontSize: 13, fontWeight: 700,
-                          color: avatarColor, flexShrink: 0
-                        }}>
-                          {initials(p.name)}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap' }}>{p.name}</div>
-                          <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{p.age} tahun</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{
-                        background: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#EEF0FF' : 'rgba(79,195,247,0.1)',
-                        color: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#5B6BF0' : '#0277BD',
-                        fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 20, whiteSpace: 'nowrap'
-                      }}>
-                        {p.disease}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
-                        <div style={{
-                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          width: 38, height: 38, borderRadius: 10, background: color,
-                          boxShadow: `0 2px 8px ${shadow}`, flexShrink: 0
-                        }}>
-                          <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>{p.healthScore}</span>
-                        </div>
-                        <div style={{ flex: 1, minWidth: 48 }}>
-                          <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${p.healthScore}%`, borderRadius: 4, background: color }}></div>
-                          </div>
-                          <div style={{ fontSize: 9.5, color: '#64748B', fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{tier}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      <span style={{
-                        background: style.bg, color: style.color,
-                        fontSize: 11.5, fontWeight: 700, padding: '4px 12px',
-                        borderRadius: 20, whiteSpace: 'nowrap'
-                      }}>{p.status}</span>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }}></div>
-                        <span style={{ fontSize: 12.5, color: '#334155' }}>{p.cause}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-                        <button
-                          onClick={() => { setProgressPatientId(p.id); setShowProgressModal(true) }}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 6, background: '#EEF0FF',
-                            border: 'none', borderRadius: 8, padding: '7px 12px',
-                            fontSize: 12, fontWeight: 600, color: '#5B6BF0',
-                            cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
-                          onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                          </svg>
-                          Progress
-                        </button>
-                        <button
-                          onClick={() => { setSelectedPatientId(p.id); setShowBaselineModal(true) }}
-                          style={{
-                            background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
-                            padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#64748B',
-                            cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                          onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
-                        >
-                          Baseline
-                        </button>
-                      </div>
+              </thead>
+              <tbody>
+                {patients.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
+                      Belum ada data pasien. Endpoint daftar pasien faskes belum tersedia di backend.
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                )}
+                {patients.map((p, i) => {
+                  const style = getStatusStyle(p.status)
+                  const color = getHealthColor(p.healthScore)
+                  const shadow = getHealthShadow(p.healthScore)
+                  const tier = getHealthTier(p.healthScore)
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderTop: '1px solid #ECEEF3', background: '#FAFBFC' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          <span style={{ fontSize: 11.5, color: '#64748B', lineHeight: 1.4 }}>
-            Health Score bersifat <strong style={{ color: '#475569', fontWeight: 700 }}>indikatif — bukan diagnosis medis</strong>. Keputusan klinis tetap pada penilaian tenaga kesehatan.
-          </span>
-        </div>
-      </div>
+                  let avatarBg = '#EEF0FF'
+                  let avatarColor = '#5B6BF0'
+                  if (p.healthScore < 40) {
+                    avatarBg = '#FEF2F2'
+                    avatarColor = '#EF4444'
+                  } else if (p.healthScore < 70) {
+                    avatarBg = '#FFFBEB'
+                    avatarColor = '#D97706'
+                  } else {
+                    avatarBg = '#ECFDF5'
+                    avatarColor = '#10B981'
+                  }
 
-      {/* BPJS Integration & Baseline Periodik */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-
-        {/* Ringkasan Pasien */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: 16,
-          padding: 24,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-          border: '1px solid #ECEEF3',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Ringkasan Pasien</div>
-              <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Distribusi kondisi pasien Prolanis</div>
-            </div>
-            <button
-              onClick={() => setActiveTab('pasien')}
-              style={{
-                background: '#EEF0FF',
-                border: 'none',
-                borderRadius: 8,
-                color: '#5B6BF0',
-                fontSize: 12,
-                padding: '6px 12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
-              onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
-            >
-              Lihat semua
-            </button>
+                  return (
+                    <tr key={p.id} className="qrow" style={{ borderTop: '1px solid #ECEEF3', transition: 'background 0.12s' }}>
+                      <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 26, height: 26, borderRadius: 8,
+                          background: i < 2 ? '#FEF2F2' : '#F8FAFC',
+                          color: i < 2 ? '#EF4444' : '#64748B',
+                          fontSize: 12, fontWeight: 800
+                        }}>{i + 1}</div>
+                      </td>
+                      <td style={{ padding: '14px 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{
+                            width: 38, height: 38, borderRadius: '50%',
+                            background: avatarBg, display: 'flex', alignItems: 'center',
+                            justifyContent: 'center', fontSize: 13, fontWeight: 700,
+                            color: avatarColor, flexShrink: 0
+                          }}>
+                            {initials(p.name)}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap' }}>{p.name}</div>
+                            <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{p.age} tahun</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{
+                          background: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#EEF0FF' : 'rgba(79,195,247,0.1)',
+                          color: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#5B6BF0' : '#0277BD',
+                          fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 20, whiteSpace: 'nowrap'
+                        }}>
+                          {p.disease}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
+                          <div style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            width: 38, height: 38, borderRadius: 10, background: color,
+                            boxShadow: `0 2px 8px ${shadow}`, flexShrink: 0
+                          }}>
+                            <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>{p.healthScore}</span>
+                          </div>
+                          <div style={{ flex: 1, minWidth: 48 }}>
+                            <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${p.healthScore}%`, borderRadius: 4, background: color }}></div>
+                            </div>
+                            <div style={{ fontSize: 9.5, color: '#64748B', fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{tier}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                        <span style={{
+                          background: style.bg, color: style.color,
+                          fontSize: 11.5, fontWeight: 700, padding: '4px 12px',
+                          borderRadius: 20, whiteSpace: 'nowrap'
+                        }}>{p.status}</span>
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }}></div>
+                          <span style={{ fontSize: 12.5, color: '#334155' }}>{p.cause}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 24px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+                          <button
+                            onClick={() => { setProgressPatientId(p.id); setShowProgressModal(true) }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6, background: '#EEF0FF',
+                              border: 'none', borderRadius: 8, padding: '7px 12px',
+                              fontSize: 12, fontWeight: 600, color: '#5B6BF0',
+                              cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
+                            onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="20" x2="18" y2="10" />
+                              <line x1="12" y1="20" x2="12" y2="4" />
+                              <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg>
+                            Progress
+                          </button>
+                          <button
+                            onClick={() => { setSelectedPatientId(p.id); setShowBaselineModal(true) }}
+                            style={{
+                              background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
+                              padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#64748B',
+                              cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                            onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
+                          >
+                            Baseline
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
 
-          {/* Stat badges */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-            <div style={{ flex: 1, background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.08)', textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.length}</div>
-              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Total Pasien</div>
-            </div>
-            <div style={{ flex: 1, background: '#ECFDF5', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(16,185,129,0.08)', textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#10B981', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status === 'active').length}</div>
-              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Aktif</div>
-            </div>
-            <div style={{ flex: 1, background: '#F8FAFC', borderRadius: 12, padding: '12px 14px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#64748B', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status !== 'active').length}</div>
-              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Nonaktif</div>
-            </div>
-          </div>
-
-          {/* Disease distribution */}
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Distribusi Penyakit</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {([
-              { key: 'diabetes_t2', label: 'Diabetes', color: '#5B6BF0', bg: '#EEF0FF' },
-              { key: 'hypertension', label: 'Hipertensi', color: '#0277BD', bg: 'rgba(79,195,247,0.1)' },
-              { key: 'both', label: 'DM + Hipertensi', color: '#7C3AED', bg: '#F5F3FF' },
-            ] as const).map(d => {
-              const count = ptSummary.filter(p => p.disease_type === d.key).length
-              const total = ptSummary.length || 1
-              const pct = ptSummaryLoading ? 0 : Math.round((count / total) * 100)
-              return (
-                <div key={d.key}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ background: d.bg, color: d.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6 }}>{d.label}</span>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0F172A' }}>
-                      {ptSummaryLoading ? '—' : count}
-                      <span style={{ fontSize: 11, fontWeight: 500, color: '#94A3B8', marginLeft: 4 }}>({pct}%)</span>
-                    </span>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 4, background: d.color, transition: 'width 0.6s ease' }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Baseline Klinis Periodik */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: 16,
-          padding: 24,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-          border: '1px solid #ECEEF3',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {/* Card Header — same style as Ringkasan Pasien */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Baseline Klinis Periodik</div>
-              <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Klik "Update Baseline" pada tabel pasien di atas</div>
-            </div>
-            <div style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Metric grid — palette colors: indigo / purple / teal */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-
-            {/* HbA1c — INDIGO */}
-            <div style={{ background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.15)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>HbA1c</span>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '2px 6px' }}>Kritis</span>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>10.2%</div>
-              <div style={{ fontSize: 9.5, color: '#5B6BF0', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>&gt;9% = bahaya</div>
-            </div>
-
-            {/* LDL Kolesterol — PURPLE */}
-            <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(139,92,246,0.15)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>LDL Kolesterol</span>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '2px 6px' }}>Tinggi</span>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>145 mg/dL</div>
-              <div style={{ fontSize: 9.5, color: '#8B5CF6', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>&gt;100 = waspada</div>
-            </div>
-
-            {/* eGFR — TEAL */}
-            <div style={{ background: 'rgba(13,148,136,0.05)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(13,148,136,0.15)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>eGFR</span>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#0D9488', background: 'rgba(13,148,136,0.12)', borderRadius: 5, padding: '2px 6px' }}>Normal</span>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#0D9488', lineHeight: 1 }}>72 mL/min</div>
-              <div style={{ fontSize: 9.5, color: '#0D9488', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Target ≥60</div>
-            </div>
-
-            {/* UACR — INDIGO */}
-            <div style={{ background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.15)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>UACR</span>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '2px 6px' }}>Mikro</span>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>42 mg/g</div>
-              <div style={{ fontSize: 9.5, color: '#5B6BF0', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>30–300 pantau</div>
-            </div>
-
-            {/* BMI — PURPLE */}
-            <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(139,92,246,0.15)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>BMI</span>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '2px 6px' }}>Overweight</span>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>29.3 kg/m²</div>
-              <div style={{ fontSize: 9.5, color: '#8B5CF6', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Target 18.5–24.9</div>
-            </div>
-
-            {/* Tensi Baseline — TEAL */}
-            <div style={{ background: 'rgba(13,148,136,0.05)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(13,148,136,0.15)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Tensi Baseline</span>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#0D9488', background: 'rgba(13,148,136,0.12)', borderRadius: 5, padding: '2px 6px' }}>HTN I</span>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#0D9488', lineHeight: 1 }}>148/92</div>
-              <div style={{ fontSize: 9.5, color: '#0D9488', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Grade 1 hipertensi</div>
-            </div>
-          </div>
-
-          {/* Lingkar Pinggang — full width, PURPLE */}
-          <div style={{
-            marginTop: 10,
-            background: 'linear-gradient(135deg, #F5F3FF 0%, #EEF0FF 100%)',
-            borderRadius: 12,
-            padding: '12px 14px',
-            border: '1px solid rgba(139,92,246,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 4 }}>Lingkar Pinggang</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>94 cm</div>
-            </div>
-            <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.08)', borderRadius: 8, padding: '4px 10px', border: '1px solid rgba(139,92,246,0.15)' }}>
-              Risiko ≥90cm (L) / ≥80cm (P)
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderTop: '1px solid #ECEEF3', background: '#FAFBFC' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span style={{ fontSize: 11.5, color: '#64748B', lineHeight: 1.4 }}>
+              Health Score bersifat <strong style={{ color: '#475569', fontWeight: 700 }}>indikatif — bukan diagnosis medis</strong>. Keputusan klinis tetap pada penilaian tenaga kesehatan.
             </span>
           </div>
         </div>
-      </div>
+
+        {/* BPJS Integration & Baseline Periodik */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+
+          {/* Ringkasan Pasien */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: 24,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
+            border: '1px solid #ECEEF3',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Ringkasan Pasien</div>
+                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Distribusi kondisi pasien Prolanis</div>
+              </div>
+              <button
+                onClick={() => setActiveTab('pasien')}
+                style={{
+                  background: '#EEF0FF',
+                  border: 'none',
+                  borderRadius: 8,
+                  color: '#5B6BF0',
+                  fontSize: 12,
+                  padding: '6px 12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
+                onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
+              >
+                Lihat semua
+              </button>
+            </div>
+
+            {/* Stat badges */}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+              <div style={{ flex: 1, background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.08)', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.length}</div>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Total Pasien</div>
+              </div>
+              <div style={{ flex: 1, background: '#ECFDF5', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(16,185,129,0.08)', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#10B981', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status === 'active').length}</div>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Aktif</div>
+              </div>
+              <div style={{ flex: 1, background: '#F8FAFC', borderRadius: 12, padding: '12px 14px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#64748B', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status !== 'active').length}</div>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Nonaktif</div>
+              </div>
+            </div>
+
+            {/* Disease distribution */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Distribusi Penyakit</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {([
+                { key: 'diabetes_t2', label: 'Diabetes', color: '#5B6BF0', bg: '#EEF0FF' },
+                { key: 'hypertension', label: 'Hipertensi', color: '#0277BD', bg: 'rgba(79,195,247,0.1)' },
+                { key: 'both', label: 'DM + Hipertensi', color: '#7C3AED', bg: '#F5F3FF' },
+              ] as const).map(d => {
+                const count = ptSummary.filter(p => p.disease_type === d.key).length
+                const total = ptSummary.length || 1
+                const pct = ptSummaryLoading ? 0 : Math.round((count / total) * 100)
+                return (
+                  <div key={d.key}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span style={{ background: d.bg, color: d.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6 }}>{d.label}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0F172A' }}>
+                        {ptSummaryLoading ? '—' : count}
+                        <span style={{ fontSize: 11, fontWeight: 500, color: '#94A3B8', marginLeft: 4 }}>({pct}%)</span>
+                      </span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 4, background: d.color, transition: 'width 0.6s ease' }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Baseline Klinis Periodik */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: 24,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
+            border: '1px solid #ECEEF3',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Card Header — same style as Ringkasan Pasien */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Baseline Klinis Periodik</div>
+                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Klik "Update Baseline" pada tabel pasien di atas</div>
+              </div>
+            </div>
+
+            {/* Metric grid — palette colors: indigo / purple / teal */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+
+              {/* HbA1c — INDIGO */}
+              <div style={{ background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>HbA1c</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '2px 6px' }}>Kritis</span>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>10.2%</div>
+                <div style={{ fontSize: 9.5, color: '#5B6BF0', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>&gt;9% = bahaya</div>
+              </div>
+
+              {/* LDL Kolesterol — PURPLE */}
+              <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(139,92,246,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>LDL Kolesterol</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '2px 6px' }}>Tinggi</span>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>145 mg/dL</div>
+                <div style={{ fontSize: 9.5, color: '#8B5CF6', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>&gt;100 = waspada</div>
+              </div>
+
+              {/* eGFR — TEAL */}
+              <div style={{ background: 'rgba(13,148,136,0.05)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(13,148,136,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>eGFR</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#0D9488', background: 'rgba(13,148,136,0.12)', borderRadius: 5, padding: '2px 6px' }}>Normal</span>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#0D9488', lineHeight: 1 }}>72 mL/min</div>
+                <div style={{ fontSize: 9.5, color: '#0D9488', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Target ≥60</div>
+              </div>
+
+              {/* UACR — INDIGO */}
+              <div style={{ background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>UACR</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '2px 6px' }}>Mikro</span>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>42 mg/g</div>
+                <div style={{ fontSize: 9.5, color: '#5B6BF0', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>30–300 pantau</div>
+              </div>
+
+              {/* BMI — PURPLE */}
+              <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(139,92,246,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>BMI</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '2px 6px' }}>Overweight</span>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>29.3 kg/m²</div>
+                <div style={{ fontSize: 9.5, color: '#8B5CF6', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Target 18.5–24.9</div>
+              </div>
+
+              {/* Tensi Baseline — TEAL */}
+              <div style={{ background: 'rgba(13,148,136,0.05)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(13,148,136,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Tensi Baseline</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: '#0D9488', background: 'rgba(13,148,136,0.12)', borderRadius: 5, padding: '2px 6px' }}>HTN I</span>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#0D9488', lineHeight: 1 }}>148/92</div>
+                <div style={{ fontSize: 9.5, color: '#0D9488', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Grade 1 hipertensi</div>
+              </div>
+            </div>
+
+            {/* Lingkar Pinggang — full width, PURPLE */}
+            <div style={{
+              marginTop: 10,
+              background: 'linear-gradient(135deg, #F5F3FF 0%, #EEF0FF 100%)',
+              borderRadius: 12,
+              padding: '12px 14px',
+              border: '1px solid rgba(139,92,246,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 4 }}>Lingkar Pinggang</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>94 cm</div>
+              </div>
+              <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.08)', borderRadius: 8, padding: '4px 10px', border: '1px solid rgba(139,92,246,0.15)' }}>
+                Risiko ≥90cm (L) / ≥80cm (P)
+              </span>
+            </div>
+          </div>
+        </div>
 
       </div>
 
@@ -874,11 +903,24 @@ export default function OperasionalTab({
                     {progressPatient.disease}
                   </span>
                   <span style={{
-                    background: getStatusStyle(progressPatient.status).bg,
-                    color: getStatusStyle(progressPatient.status).color,
+                    background: getStatusStyle(
+                      (() => {
+                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                        return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
+                      })()
+                    ).bg,
+                    color: getStatusStyle(
+                      (() => {
+                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                        return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
+                      })()
+                    ).color,
                     fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20
                   }}>
-                    {progressPatient.status}
+                    {(() => {
+                      const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                      return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
+                    })()}
                   </span>
                 </div>
               </div>
@@ -887,12 +929,17 @@ export default function OperasionalTab({
               <div style={{
                 display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 width: 58, height: 58, borderRadius: 15,
-                background: getHealthColor(progressPatient.healthScore),
+                background: getHealthColor(progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore),
                 boxShadow: '0 4px 14px rgba(0,0,0,0.12)', flexShrink: 0,
               }}>
-                <span style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1 }}>{progressPatient.healthScore}</span>
+                <span style={{ color: '#fff', fontSize: 19, fontWeight: 800, lineHeight: 1 }}>
+                  {progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore}
+                </span>
                 <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>
-                  {progressPatient.status === 'Sehat' ? 'Sehat' : progressPatient.status === 'Waswas' ? 'Waswas' : 'Parah'}
+                  {(() => {
+                    const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : progressPatient.healthScore
+                    return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
+                  })()}
                 </span>
               </div>
 
@@ -901,179 +948,247 @@ export default function OperasionalTab({
 
             {/* Modal Body */}
             <div style={{ padding: '22px 26px' }}>
-              {/* Trend header — score change badge sesuai grafik */}
-              {(() => {
-                const trendVal  = progressPatient.status === 'Sehat' ? '+24' : progressPatient.status === 'Waswas' ? '+6' : '-18'
-                const trendLabel = progressPatient.status === 'Sehat' ? 'Membaik' : progressPatient.status === 'Waswas' ? 'Stabil' : 'Memburuk'
-                const trendColor = progressPatient.status === 'Sehat' ? '#10B981' : progressPatient.status === 'Waswas' ? '#F59E0B' : '#EF4444'
-                const trendBg   = progressPatient.status === 'Sehat' ? 'rgba(16,185,129,0.08)' : progressPatient.status === 'Waswas' ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)'
-                const trendBorder = progressPatient.status === 'Sehat' ? 'rgba(16,185,129,0.2)' : progressPatient.status === 'Waswas' ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'
-                const arrow = progressPatient.status === 'Sehat' ? '↑' : progressPatient.status === 'Waswas' ? '→' : '↓'
-                return (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Tren Health Score</div>
-                      <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 1 }}>6 bulan terakhir</div>
-                    </div>
-                    <div style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center',
-                      background: trendBg, border: `1.5px solid ${trendBorder}`,
-                      borderRadius: 10, padding: '7px 14px', minWidth: 64,
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontSize: 16, fontWeight: 900, color: trendColor, lineHeight: 1 }}>{arrow}</span>
-                        <span style={{ fontSize: 18, fontWeight: 900, color: trendColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{trendVal}</span>
-                      </div>
-                      <span style={{ fontSize: 9.5, fontWeight: 700, color: trendColor, marginTop: 3, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{trendLabel}</span>
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {/* Monthly progress bars */}
-              <div style={{ background: '#FAFBFE', border: '1px solid #EEF2F7', borderRadius: 13, padding: '18px 16px 12px', marginBottom: 22 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10, height: 130 }}>
-                  {(progressPatient.status === 'Sehat'
-                    ? [
-                      { month: 'Jan', score: 42 },
-                      { month: 'Feb', score: 50 },
-                      { month: 'Mar', score: 56 },
-                      { month: 'Apr', score: 62 },
-                      { month: 'Mei', score: 65 },
-                      { month: 'Jun', score: progressPatient.healthScore },
-                    ]
-                    : progressPatient.status === 'Waswas'
-                    ? [
-                      { month: 'Jan', score: 48 },
-                      { month: 'Feb', score: 50 },
-                      { month: 'Mar', score: 52 },
-                      { month: 'Apr', score: 53 },
-                      { month: 'Mei', score: 54 },
-                      { month: 'Jun', score: progressPatient.healthScore },
-                    ]
-                    : [
-                      { month: 'Jan', score: 42 },
-                      { month: 'Feb', score: 38 },
-                      { month: 'Mar', score: 30 },
-                      { month: 'Apr', score: 22 },
-                      { month: 'Mei', score: 15 },
-                      { month: 'Jun', score: progressPatient.healthScore },
-                    ]
-                  ).map((bar, idx) => {
-                    const barColor = getHealthColor(bar.score)
-                    return (
-                      <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', flex: 1, width: '100%' }}>
-                          <div style={{ fontSize: 11, fontWeight: 800, color: '#636B78', marginBottom: 6 }}>{bar.score}</div>
-                          <div style={{ width: '100%', maxWidth: 34, height: `${bar.score}%`, background: barColor, borderRadius: '7px 7px 3px 3px' }}></div>
-                        </div>
-                        <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 600, marginTop: 8 }}>{bar.month}</div>
-                      </div>
-                    )
-                  })}
+              {loadingProgress ? (
+                <div style={{ textAlign: 'center', padding: '60px 0', color: '#8a93a1', fontSize: 14 }}>
+                  <div style={{ display: 'inline-block', width: 24, height: 24, border: '3px solid #E2E8F0', borderTopColor: '#5B6BF0', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 12 }}></div>
+                  <div>Memuat data perkembangan...</div>
+                  <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                 </div>
-              </div>
+              ) : progressHistory.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 10px', background: '#F7F8FA', borderRadius: 12, border: '1px dashed #DCDFE8', color: '#8A93A1', fontSize: 13 }}>
+                  Belum ada rekam medis baseline klinis untuk pasien ini.
+                </div>
+              ) : (
+                <>
+                  {progressHistory.length === 1 && (
+                    <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 12px', fontSize: 11.5, color: '#1E40AF', marginBottom: 16 }}>
+                      ℹ️ Diperlukan minimal 2 rekaman kontrol baseline untuk menampilkan perbandingan tren perkembangan secara lengkap.
+                    </div>
+                  )}
 
-              {/* Metrics changes list */}
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 12 }}>Perubahan Indikator Klinis</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
-                {((): Array<{ label: string; value: string; unit: string; delta: string; isImproving: boolean }> => {
-                  // isImproving: true = ↑ hijau (membaik klinis), false = ↓ merah (memburuk klinis)
-                  const isGood = progressPatient.status === 'Sehat' || progressPatient.status === 'Waswas'
-                  if (isGood) {
-                    return [
-                      { label: 'HbA1c',             value: progressPatient.disease === 'Diabetes' ? '7.4' : '5.8',   unit: '%',      delta: '-1.2',  isImproving: true  },
-                      { label: 'Gula Darah / Tensi', value: progressPatient.disease === 'Diabetes' ? '128'  : '132/84', unit: progressPatient.disease === 'Diabetes' ? 'mg/dL' : 'mmHg', delta: progressPatient.disease === 'Diabetes' ? '-34' : '-18', isImproving: true  },
-                      { label: 'BMI',                value: '26.1', unit: 'kg/m²', delta: '-1.4',  isImproving: true  },
-                      { label: 'eGFR / Natrium',     value: progressPatient.disease === 'Diabetes' ? '78' : 'Normal', unit: progressPatient.disease === 'Diabetes' ? 'mL/min' : '', delta: progressPatient.disease === 'Diabetes' ? '+4' : '-15%', isImproving: true  },
+                  {(() => {
+                    const latest = progressHistory[0]
+                    const oldest = progressHistory[progressHistory.length - 1]
+
+                    const latestScore = Math.max(0, 100 - (latest.cvd_risk_10yr_pct ?? 0))
+                    const oldestScore = Math.max(0, 100 - (oldest.cvd_risk_10yr_pct ?? 0))
+                    const diff = latestScore - oldestScore
+
+                    const trendVal = diff >= 0 ? `+${diff}` : `${diff}`
+                    const trendLabel = diff > 0 ? 'Membaik' : diff === 0 ? 'Stabil' : 'Memburuk'
+                    const trendColor = diff > 0 ? '#10B981' : diff === 0 ? '#F59E0B' : '#EF4444'
+                    const trendBg = diff > 0 ? 'rgba(16,185,129,0.08)' : diff === 0 ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)'
+                    const trendBorder = diff > 0 ? 'rgba(16,185,129,0.2)' : diff === 0 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'
+                    const arrow = diff > 0 ? '↑' : diff === 0 ? '→' : '↓'
+
+                    const chartData = [...progressHistory].reverse().map(h => {
+                      const date = new Date(h.recorded_at)
+                      const monthName = date.toLocaleDateString('id-ID', { month: 'short' })
+                      const score = Math.max(0, 100 - (h.cvd_risk_10yr_pct ?? 0))
+                      return { month: monthName, score }
+                    }).slice(-6)
+
+                    const hba1cDelta = (latest.hba1c_pct ?? 0) - (oldest.hba1c_pct ?? 0)
+                    const bpDelta = (latest.systolic_bp_mmhg ?? 0) - (oldest.systolic_bp_mmhg ?? 0)
+                    const bmiDelta = (latest.bmi ?? 0) - (oldest.bmi ?? 0)
+                    const egfrDelta = (latest.egfr ?? 0) - (oldest.egfr ?? 0)
+
+                    const indicators = [
+                      {
+                        label: 'HbA1c',
+                        value: `${latest.hba1c_pct ?? 0}`,
+                        unit: '%',
+                        delta: hba1cDelta > 0 ? `+${hba1cDelta.toFixed(1)}` : `${hba1cDelta.toFixed(1)}`,
+                        isImproving: hba1cDelta <= 0
+                      },
+                      {
+                        label: 'Tekanan Darah',
+                        value: `${latest.systolic_bp_mmhg ?? 0}/${latest.diastolic_bp_mmhg ?? 0}`,
+                        unit: 'mmHg',
+                        delta: bpDelta > 0 ? `+${bpDelta}` : `${bpDelta}`,
+                        isImproving: bpDelta <= 0
+                      },
+                      {
+                        label: 'BMI',
+                        value: `${(latest.bmi ?? 0).toFixed(1)}`,
+                        unit: 'kg/m²',
+                        delta: bmiDelta > 0 ? `+${bmiDelta.toFixed(1)}` : `${bmiDelta.toFixed(1)}`,
+                        isImproving: bmiDelta <= 0
+                      },
+                      {
+                        label: 'Fungsi Ginjal (eGFR)',
+                        value: `${latest.egfr ?? 0}`,
+                        unit: 'mL/min',
+                        delta: egfrDelta > 0 ? `+${egfrDelta.toFixed(1)}` : `${egfrDelta.toFixed(1)}`,
+                        isImproving: egfrDelta >= 0
+                      }
                     ]
-                  }
-                  return [
-                    { label: 'HbA1c',             value: progressPatient.disease === 'Diabetes' ? '9.8' : '6.7',   unit: '%',      delta: '+1.6',  isImproving: false },
-                    { label: 'Gula Darah / Tensi', value: progressPatient.disease === 'Diabetes' ? '189'  : '150/96', unit: progressPatient.disease === 'Diabetes' ? 'mg/dL' : 'mmHg', delta: progressPatient.disease === 'Diabetes' ? '+42' : '+18', isImproving: false },
-                    { label: 'BMI',                value: '29.8', unit: 'kg/m²', delta: '+1.8',  isImproving: false },
-                    { label: 'eGFR / Natrium',     value: progressPatient.disease === 'Diabetes' ? '55' : 'Rendah', unit: progressPatient.disease === 'Diabetes' ? 'mL/min' : '', delta: progressPatient.disease === 'Diabetes' ? '-8' : '+15%', isImproving: false },
-                  ]
-                })().map((m, idx) => {
-                  const goodColor = '#10B981'
-                  const badColor  = '#EF4444'
-                  const goodBg    = 'rgba(16,185,129,0.10)'
-                  const badBg     = 'rgba(239,68,68,0.10)'
-                  const arrowColor = m.isImproving ? goodColor : badColor
-                  const arrowBg   = m.isImproving ? goodBg   : badBg
-                  const borderCol = m.isImproving ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'
-                  const shadowCol = m.isImproving ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)'
-                  const arrowIcon  = m.isImproving ? '↑' : '↓'
-                  const trendLabel = m.isImproving ? 'Membaik' : 'Memburuk'
-                  return (
-                    <div key={idx} style={{
-                      background: '#fff',
-                      border: `1.5px solid ${borderCol}`,
-                      borderRadius: 12,
-                      padding: '14px 14px 12px',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      boxShadow: `0 2px 10px ${shadowCol}`,
-                    }}>
-                      {/* Score badge — kanan atas */}
-                      <div style={{
-                        position: 'absolute', top: 10, right: 10,
-                        display: 'flex', flexDirection: 'column', alignItems: 'center',
-                        background: arrowBg, borderRadius: 8, padding: '4px 8px', minWidth: 42,
-                      }}>
-                        <span style={{ fontSize: 13, fontWeight: 900, color: arrowColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{m.delta}</span>
-                        <span style={{ fontSize: 8, fontWeight: 700, color: arrowColor, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{trendLabel}</span>
-                      </div>
 
-                      {/* Label + nilai */}
-                      <div style={{ paddingRight: 58 }}>
-                        <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 6 }}>{m.label}</div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: '#2B2D42', lineHeight: 1.1 }}>
-                          {m.value}{' '}
-                          <span style={{ fontSize: 11, fontWeight: 600, color: '#8A93A1' }}>{m.unit}</span>
+                    return (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Tren Health Score</div>
+                            <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 1 }}>{chartData.length} catatan terakhir</div>
+                          </div>
+                          <div style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                            background: trendBg, border: `1.5px solid ${trendBorder}`,
+                            borderRadius: 10, padding: '7px 14px', minWidth: 64,
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ fontSize: 16, fontWeight: 900, color: trendColor, lineHeight: 1 }}>{arrow}</span>
+                              <span style={{ fontSize: 18, fontWeight: 900, color: trendColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{trendVal}</span>
+                            </div>
+                            <span style={{ fontSize: 9.5, fontWeight: 700, color: trendColor, marginTop: 3, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{trendLabel}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Panah klinis */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 10 }}>
-                        <div style={{
-                          width: 22, height: 22, borderRadius: 6,
-                          background: arrowBg,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 14, fontWeight: 900, color: arrowColor, lineHeight: 1,
-                        }}>
-                          {arrowIcon}
+                        {/* Monthly progress bars */}
+                        <div style={{ background: '#FAFBFE', border: '1px solid #EEF2F7', borderRadius: 13, padding: '18px 16px 12px', marginBottom: 22 }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10, height: 130 }}>
+                            {chartData.map((bar, idx) => {
+                              const barColor = getHealthColor(bar.score)
+                              return (
+                                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', flex: 1, width: '100%' }}>
+                                    <div style={{ fontSize: 11, fontWeight: 800, color: '#636B78', marginBottom: 6 }}>{bar.score}</div>
+                                    <div style={{ width: '100%', maxWidth: 34, height: `${bar.score}%`, background: barColor, borderRadius: '7px 7px 3px 3px' }}></div>
+                                  </div>
+                                  <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 600, marginTop: 8 }}>{bar.month}</div>
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: arrowColor }}>
-                          {m.isImproving ? 'Kondisi membaik' : 'Kondisi memburuk'}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
 
-              {/* Riwayat Kunjungan */}
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 14 }}>Riwayat Kunjungan</div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {[
-                  { date: '18 Jun 2026', title: 'Kontrol rutin — membaik', note: `Health Score meningkat signifikan sejak pendaftaran. Terapi dilanjutkan.`, color: '#0D9488' },
-                  { date: '20 Mei 2026', title: 'Update baseline klinis', note: 'Hasil laboratorium menunjukkan perbaikan parameter klinis.', color: '#5B6BF0' },
-                  { date: '15 Apr 2026', title: 'Edukasi gizi & aktivitas', note: 'Konsultasi dengan ahli gizi faskes untuk pola makan rendah garam/karbo.', color: '#4FC3F7' },
-                ].map((t, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: 13 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                      <div style={{ width: 11, height: 11, borderRadius: '50%', background: t.color, border: '2.5px solid #fff', boxShadow: `0 0 0 1.5px ${t.color}` }}></div>
-                      <div style={{ width: 2, flex: 1, background: '#EEF2F7', margin: '3px 0' }}></div>
-                    </div>
-                    <div style={{ paddingBottom: 16 }}>
-                      <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 600, marginBottom: 2 }}>{t.date}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 2 }}>{t.title}</div>
-                      <div style={{ fontSize: 12, color: '#636B78', lineHeight: 1.5 }}>{t.note}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        {/* Metrics changes list */}
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 12 }}>Perubahan Indikator Klinis (Dari Pertama s.d. Terbaru)</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+                          {indicators.map((m, idx) => {
+                            const goodColor = '#10B981'
+                            const badColor = '#EF4444'
+                            const goodBg = 'rgba(16,185,129,0.10)'
+                            const badBg = 'rgba(239,68,68,0.10)'
+                            const arrowColor = m.isImproving ? goodColor : badColor
+                            const arrowBg = m.isImproving ? goodBg : badBg
+                            const borderCol = m.isImproving ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'
+                            const shadowCol = m.isImproving ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)'
+                            const arrowIcon = m.isImproving ? '↑' : '↓'
+                            const trendLabel = m.isImproving ? 'Membaik' : 'Memburuk'
+                            return (
+                              <div key={idx} style={{
+                                background: '#fff',
+                                border: `1.5px solid ${borderCol}`,
+                                borderRadius: 12,
+                                padding: '14px 14px 12px',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                boxShadow: `0 2px 10px ${shadowCol}`,
+                              }}>
+                                {/* Score badge — kanan atas */}
+                                <div style={{
+                                  position: 'absolute', top: 10, right: 10,
+                                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                  background: arrowBg, borderRadius: 8, padding: '4px 8px', minWidth: 42,
+                                }}>
+                                  <span style={{ fontSize: 13, fontWeight: 900, color: arrowColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{m.delta}</span>
+                                  <span style={{ fontSize: 8, fontWeight: 700, color: arrowColor, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{trendLabel}</span>
+                                </div>
+
+                                {/* Label + nilai */}
+                                <div style={{ paddingRight: 58 }}>
+                                  <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 6 }}>{m.label}</div>
+                                  <div style={{ fontSize: 18, fontWeight: 800, color: '#2B2D42', lineHeight: 1.1 }}>
+                                    {m.value}{' '}
+                                    <span style={{ fontSize: 11, fontWeight: 600, color: '#8A93A1' }}>{m.unit}</span>
+                                  </div>
+                                </div>
+
+                                {/* Panah klinis */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 10 }}>
+                                  <div style={{
+                                    width: 22, height: 22, borderRadius: 6,
+                                    background: arrowBg,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 14, fontWeight: 900, color: arrowColor, lineHeight: 1,
+                                  }}>
+                                    {arrowIcon}
+                                  </div>
+                                  <span style={{ fontSize: 11, fontWeight: 600, color: arrowColor }}>
+                                    {m.isImproving ? 'Kondisi membaik' : 'Kondisi memburuk'}
+                                  </span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        {/* Riwayat Kontrol Baseline */}
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 14 }}>Riwayat Kontrol Baseline</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                          {progressHistory.map((h, idx) => {
+                            const date = new Date(h.recorded_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            const nakesName = h.recorded_by_nakes_name || 'Kader/Sistem'
+                            const hs = Math.max(0, 100 - (h.cvd_risk_10yr_pct ?? 0))
+                            const color = getHealthColor(hs)
+
+                            return (
+                              <div key={h.id || idx} style={{ display: 'flex', gap: 13 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                                  <div style={{ width: 11, height: 11, borderRadius: '50%', background: color, border: '2.5px solid #fff', boxShadow: `0 0 0 1.5px ${color}` }}></div>
+                                  {idx < progressHistory.length - 1 && <div style={{ width: 2, flex: 1, background: '#EEF2F7', margin: '3px 0' }}></div>}
+                                </div>
+                                <div style={{ flex: 1, paddingBottom: 16, borderBottom: idx < progressHistory.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                    <span style={{ fontSize: 11, color: '#8A93A1', fontWeight: 600 }}>{date}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: color, padding: '2px 8px', borderRadius: 6 }}>Skor: {hs}</span>
+                                  </div>
+                                  <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 6 }}>Dicatat oleh: {nakesName}</div>
+
+                                  {/* Compact parameters grid */}
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px 12px', background: '#F8FAFC', padding: 10, borderRadius: 8, border: '1px solid #ECEEF3', marginBottom: 8 }}>
+                                    <div>
+                                      <span style={{ display: 'block', fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>Tensi</span>
+                                      <strong style={{ fontSize: 11.5, color: '#334155' }}>{h.systolic_bp_mmhg}/{h.diastolic_bp_mmhg} <span style={{ fontSize: 9, fontWeight: 500, color: '#64748B' }}>({h.hypertension_status})</span></strong>
+                                    </div>
+                                    <div>
+                                      <span style={{ display: 'block', fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>Gula Puasa / HbA1c</span>
+                                      <strong style={{ fontSize: 11.5, color: '#334155' }}>{h.fasting_glucose_mgdl} mg/dL <span style={{ fontSize: 9, fontWeight: 500, color: '#64748B' }}>({h.hba1c_pct}%)</span></strong>
+                                    </div>
+                                    <div>
+                                      <span style={{ display: 'block', fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>BMI / LP</span>
+                                      <strong style={{ fontSize: 11.5, color: '#334155' }}>{h.bmi} <span style={{ fontSize: 9, fontWeight: 500, color: '#64748B' }}>({h.bmi_category})</span></strong>
+                                    </div>
+                                    <div>
+                                      <span style={{ display: 'block', fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>eGFR / UACR</span>
+                                      <strong style={{ fontSize: 11.5, color: '#334155' }}>{h.egfr} <span style={{ fontSize: 9, fontWeight: 500, color: '#64748B' }}>/ {h.uacr} mg/g</span></strong>
+                                    </div>
+                                    <div>
+                                      <span style={{ display: 'block', fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>Kolesterol Total</span>
+                                      <strong style={{ fontSize: 11.5, color: '#334155' }}>{h.total_cholesterol_mgdl} mg/dL</strong>
+                                    </div>
+                                    <div>
+                                      <span style={{ display: 'block', fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>HDL / LDL</span>
+                                      <strong style={{ fontSize: 11.5, color: '#334155' }}>{h.hdl_mgdl} / {h.ldl_mgdl}</strong>
+                                    </div>
+                                  </div>
+
+                                  {h.notes && (
+                                    <div style={{ fontSize: 11.5, color: '#636B78', fontStyle: 'italic', background: '#FFFBEB', padding: '6px 10px', borderRadius: 6, border: '1px solid #FDE68A' }}>
+                                      Catatan: {h.notes}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )
+                  })()}
+                </>
+              )}
             </div>
           </div>
         </div>

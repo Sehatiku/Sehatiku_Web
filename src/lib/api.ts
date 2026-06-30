@@ -31,10 +31,14 @@ import type {
   ConsultationBody,
   ConsultationResult,
   PatientNotification,
+  PatientBaselineDetail,
+  CreatePatientBaselineBody,
+  BaselineHistoryItem,
+  PatientBaselineHistoryResponse,
 } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8080'
-const MOCK = import.meta.env.VITE_MOCK === 'true'
+const MOCK = false
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 
@@ -183,6 +187,93 @@ let currentMockNakes: NakesItem[] = [
   { nakes_id: 'n3', full_name: 'Siti Kader', role: 'kader', username: 'kader.siti', phone_number: '628145678901', status: 'active', enrolled_at: '2025-03-01T08:00:00Z' },
   { nakes_id: 'n4', full_name: 'Admin Nakes', role: 'admin', username: 'admin.faskes', phone_number: '628156789012', status: 'inactive', enrolled_at: '2024-12-01T08:00:00Z' },
 ]
+
+let mockBaselines: Record<string, PatientBaselineDetail[]> = {
+  fp1: [
+    {
+      id: 'b1',
+      patient_id: 'fp1',
+      recorded_at: '2025-06-15T08:00:00Z',
+      recorded_by_nakes_id: 'n1',
+      recorded_by_nakes_name: 'Dr. Andi Wijaya, Sp.PD',
+      notes: 'Hasil lab dan kontrol rutin',
+      age_years: 58,
+      sex: 'male',
+      bmi: 28.5,
+      bmi_category: 'overweight',
+      waist_circumference_cm: 94,
+      central_obesity: true,
+      smoking_status: 'former',
+      alcohol_use: false,
+      physical_activity: 'light',
+      family_history_diabetes: true,
+      family_history_cvd: false,
+      systolic_bp_mmhg: 135,
+      diastolic_bp_mmhg: 85,
+      hypertension_status: 'stage1',
+      fasting_glucose_mgdl: 145,
+      hba1c_pct: 7.2,
+      diabetes_status: 'type2',
+      total_cholesterol_mgdl: 210,
+      hdl_mgdl: 45,
+      ldl_mgdl: 130,
+      triglycerides_mgdl: 175,
+      cvd_risk_10yr_pct: 12.5,
+      cvd_risk_category: 'moderate',
+      on_antihypertensive: true,
+      on_antidiabetic: true,
+      on_statin: true,
+      target_risk: 'Menurunkan HbA1c ke < 7%',
+      egfr: 82,
+      uacr: 15,
+      cluster_id: 2,
+      diagnosis_cluster: 'Cluster 2',
+      clinical_group: 'Diabetes T2 Controlled'
+    }
+  ],
+  fp2: [
+    {
+      id: 'b2',
+      patient_id: 'fp2',
+      recorded_at: '2025-06-10T09:00:00Z',
+      recorded_by_nakes_id: 'n2',
+      recorded_by_nakes_name: 'Dr. Budi Santoso, Sp.JP',
+      notes: 'Kontrol rutin tekanan darah',
+      age_years: 62,
+      sex: 'female',
+      bmi: 24.2,
+      bmi_category: 'normal',
+      waist_circumference_cm: 78,
+      central_obesity: false,
+      smoking_status: 'never',
+      alcohol_use: false,
+      physical_activity: 'moderate',
+      family_history_diabetes: false,
+      family_history_cvd: true,
+      systolic_bp_mmhg: 145,
+      diastolic_bp_mmhg: 92,
+      hypertension_status: 'stage2',
+      fasting_glucose_mgdl: 98,
+      hba1c_pct: 5.4,
+      diabetes_status: 'none',
+      total_cholesterol_mgdl: 235,
+      hdl_mgdl: 50,
+      ldl_mgdl: 155,
+      triglycerides_mgdl: 150,
+      cvd_risk_10yr_pct: 18.2,
+      cvd_risk_category: 'high',
+      on_antihypertensive: true,
+      on_antidiabetic: false,
+      on_statin: true,
+      target_risk: 'Menurunkan tensi ke < 130/80',
+      egfr: 75,
+      uacr: 8,
+      cluster_id: 1,
+      diagnosis_cluster: 'Cluster 1',
+      clinical_group: 'Hypertension Stage 2'
+    }
+  ]
+}
 
 function mockNakesList(): NakesItem[] {
   return currentMockNakes
@@ -509,6 +600,121 @@ export const faskesApi = {
       { method: 'POST', body: JSON.stringify(body) },
     )
     return res.data
+  },
+
+  /** GET /api/v1/faskes/patients/{id}/baseline */
+  getPatientBaseline: async (id: string): Promise<PatientBaselineDetail> => {
+    if (MOCK) {
+      const history = mockBaselines[id] || []
+      if (history.length > 0) return history[0]
+      // Default baseline values if none exist (simulate OCR pre-fill/registration baseline)
+      return {
+        id: 'b-default',
+        patient_id: id,
+        recorded_at: new Date().toISOString(),
+        recorded_by_nakes_id: null,
+        recorded_by_nakes_name: '',
+        notes: 'Initial registration baseline',
+        age_years: 45,
+        sex: 'male',
+        bmi: 24.5,
+        bmi_category: 'normal',
+        waist_circumference_cm: 80,
+        central_obesity: false,
+        smoking_status: 'never',
+        alcohol_use: false,
+        physical_activity: 'moderate',
+        family_history_diabetes: false,
+        family_history_cvd: false,
+        systolic_bp_mmhg: 120,
+        diastolic_bp_mmhg: 80,
+        hypertension_status: 'normal',
+        fasting_glucose_mgdl: 90,
+        hba1c_pct: 5.5,
+        diabetes_status: 'none',
+        total_cholesterol_mgdl: 190,
+        hdl_mgdl: 50,
+        ldl_mgdl: 110,
+        triglycerides_mgdl: 150,
+        cvd_risk_10yr_pct: 5.0,
+        cvd_risk_category: 'low',
+        on_antihypertensive: false,
+        on_antidiabetic: false,
+        on_statin: false,
+        target_risk: 'Maintain healthy lifestyle',
+        egfr: 95,
+        uacr: 10,
+        cluster_id: null,
+        diagnosis_cluster: null,
+        clinical_group: null,
+      }
+    }
+    const res = await request<ApiEnvelope<PatientBaselineDetail>>(`/api/v1/faskes/patients/${id}/baseline`)
+    return res.data
+  },
+
+  /** POST /api/v1/faskes/patients/{id}/baseline */
+  createPatientBaseline: async (id: string, body: CreatePatientBaselineBody): Promise<PatientBaselineDetail> => {
+    if (MOCK) {
+      const newBaseline: PatientBaselineDetail = {
+        ...body.baseline,
+        id: `b-${Date.now()}`,
+        patient_id: id,
+        recorded_at: body.recorded_at ? new Date(body.recorded_at).toISOString() : new Date().toISOString(),
+        recorded_by_nakes_id: body.recorded_by_nakes_id,
+        recorded_by_nakes_name: currentMockNakes.find(n => n.nakes_id === body.recorded_by_nakes_id)?.full_name ?? 'Dr. Andi Wijaya, Sp.PD',
+        notes: body.notes ?? null,
+      }
+      if (!mockBaselines[id]) mockBaselines[id] = []
+      mockBaselines[id].unshift(newBaseline)
+      return newBaseline
+    }
+    const res = await request<ApiEnvelope<PatientBaselineDetail>>(
+      `/api/v1/faskes/patients/${id}/baseline`,
+      { method: 'POST', body: JSON.stringify(body) }
+    )
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/patients/{id}/baseline/history */
+  getPatientBaselineHistory: async (id: string, page = 1, size = 20): Promise<PatientBaselineHistoryResponse> => {
+    if (MOCK) {
+      const history = mockBaselines[id] || []
+      const start = (page - 1) * size
+      const data: BaselineHistoryItem[] = history.map(b => ({
+        id: b.id,
+        recorded_at: b.recorded_at,
+        recorded_by_nakes_name: b.recorded_by_nakes_name,
+        notes: b.notes,
+        bmi: b.bmi,
+        bmi_category: b.bmi_category,
+        systolic_bp_mmhg: b.systolic_bp_mmhg,
+        diastolic_bp_mmhg: b.diastolic_bp_mmhg,
+        hypertension_status: b.hypertension_status,
+        fasting_glucose_mgdl: b.fasting_glucose_mgdl,
+        hba1c_pct: b.hba1c_pct,
+        diabetes_status: b.diabetes_status,
+        total_cholesterol_mgdl: b.total_cholesterol_mgdl,
+        hdl_mgdl: b.hdl_mgdl,
+        ldl_mgdl: b.ldl_mgdl,
+        triglycerides_mgdl: b.triglycerides_mgdl,
+        cvd_risk_10yr_pct: b.cvd_risk_10yr_pct,
+        cvd_risk_category: b.cvd_risk_category,
+        egfr: b.egfr,
+        uacr: b.uacr
+      }))
+      return {
+        data: data.slice(start, start + size),
+        paging: { page, size, total_item: history.length, total_page: Math.ceil(history.length / size) }
+      }
+    }
+    const res = await request<ApiEnvelope<BaselineHistoryItem[]>>(
+      `/api/v1/faskes/patients/${id}/baseline/history?page=${page}&size=${size}`
+    )
+    return {
+      data: res.data,
+      paging: { page, size, total_item: res.data.length, total_page: Math.ceil(res.data.length / size) } // simple wrap if not returned
+    }
   },
 }
 

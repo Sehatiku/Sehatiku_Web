@@ -252,6 +252,9 @@ export interface FaskesPatientItem {
   companion_phone: string
   status: 'active' | 'inactive'
   enrolled_at: string
+  health_score?: number | null
+  risk_status?: 'aman' | 'waswas' | 'bahaya' | null
+  top_factors?: Array<{ feature: string; shap_value: number; direction: string }> | null
 }
 
 export interface FaskesPatientResponse {
@@ -480,3 +483,50 @@ export interface PatientNotification {
 export interface NakesReplyBody {
   nakes_note: string
 }
+
+// ─── Patient Baseline (New API Contracts) ──────────────────────────────────────
+
+export interface PatientBaselineDetail extends PatientBaselineBody {
+  id: string
+  patient_id: string
+  recorded_at: string
+  recorded_by_nakes_id: string | null
+  recorded_by_nakes_name: string
+  notes: string | null
+}
+
+export interface CreatePatientBaselineBody {
+  recorded_by_nakes_id: string
+  recorded_at?: string
+  notes?: string
+  baseline: PatientBaselineBody
+}
+
+export interface BaselineHistoryItem {
+  id: string
+  recorded_at: string
+  recorded_by_nakes_name: string
+  notes: string | null
+  bmi: number
+  bmi_category: string
+  systolic_bp_mmhg: number
+  diastolic_bp_mmhg: number
+  hypertension_status: string
+  fasting_glucose_mgdl: number
+  hba1c_pct: number
+  diabetes_status: string
+  total_cholesterol_mgdl: number
+  hdl_mgdl: number
+  ldl_mgdl: number
+  triglycerides_mgdl: number
+  cvd_risk_10yr_pct: number
+  cvd_risk_category: string
+  egfr: number
+  uacr: number
+}
+
+export interface PatientBaselineHistoryResponse {
+  data: BaselineHistoryItem[]
+  paging: Paging
+}
+
