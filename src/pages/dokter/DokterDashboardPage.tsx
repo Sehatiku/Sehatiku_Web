@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
-import type { DashboardSummary, PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
+import type { PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
 import { initials } from '../../lib/utils'
 
 // Subcomponents & Views
