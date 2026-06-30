@@ -110,7 +110,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F7F8FA', borderBottom: '1px solid #DCDFE8' }}>
-                  {['Nama Pasien', 'NIK', 'Usia / JK', 'Penyakit', 'Pendamping', 'Terdaftar', 'Status'].map(h => (
+                  {['Nama Pasien', 'NIK', 'Usia / JK', 'Status Pasien', 'Penyakit', 'Skor Kesehatan', 'Status Risiko', 'Pendamping', 'Terdaftar'].map(h => (
                     <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -129,6 +129,29 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                     both: { bg: 'rgba(245,158,11,0.1)', color: '#D97706' },
                   }
                   const dc = diseaseColor[p.disease_type] ?? diseaseColor.diabetes_t2
+
+                  // Health Score color helper
+                  const getScoreStyle = (score: number) => {
+                    if (score >= 70) return { bg: '#E6F4EA', color: '#137333' }
+                    if (score >= 40) return { bg: '#FEF7E0', color: '#B06000' }
+                    return { bg: '#FCE8E6', color: '#C5221F' }
+                  }
+
+                  // Risk Status color helper
+                  const getRiskStyle = (status: string) => {
+                    const s = status.toLowerCase()
+                    if (s === 'bahaya' || s === 'kritis' || s === 'high') {
+                      return { bg: '#FCE8E6', color: '#C5221F', text: 'Bahaya', dot: '#C5221F' }
+                    }
+                    if (s === 'waswas' || s === 'sedang' || s === 'medium') {
+                      return { bg: '#FEF7E0', color: '#B06000', text: 'Waswas', dot: '#B06000' }
+                    }
+                    return { bg: '#E6F4EA', color: '#137333', text: 'Aman', dot: '#137333' }
+                  }
+
+                  const scoreStyle = p.health_score !== null && p.health_score !== undefined ? getScoreStyle(p.health_score) : null
+                  const riskStyle = p.risk_status ? getRiskStyle(p.risk_status) : null
+
                   return (
                     <tr key={p.patient_id} onClick={() => handleSelectPatient(p.patient_id)} style={{ borderBottom: '1px solid #F4F5F7', background: idx % 2 === 0 ? '#fff' : '#FAFBFC', opacity: isActive ? 1 : 0.55, cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = '#F0F1FE')} onMouseLeave={e => (e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#FAFBFC')}>
                       <td style={{ padding: '13px 14px' }}>
@@ -146,14 +169,6 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                         <div style={{ fontSize: 11, color: '#8A93A1' }}>{p.sex === 'male' ? '♂ Laki-laki' : '♀ Perempuan'}</div>
                       </td>
                       <td style={{ padding: '13px 14px' }}>
-                        <span style={{ ...dc, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{diseaseLabel[p.disease_type]}</span>
-                      </td>
-                      <td style={{ padding: '13px 14px' }}>
-                        <div style={{ fontWeight: 600, color: '#2B2D42', fontSize: 12 }}>{p.companion_name}</div>
-                        <div style={{ fontSize: 11, color: '#8A93A1' }}>{p.companion_phone}</div>
-                      </td>
-                      <td style={{ padding: '13px 14px', color: '#8A93A1', fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(p.enrolled_at)}</td>
-                      <td style={{ padding: '13px 14px' }}>
                         <span style={{
                           background: isActive ? 'rgba(16,185,129,0.1)' : '#F7F8FA',
                           color: isActive ? '#10B981' : '#8A93A1',
@@ -161,6 +176,51 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                           fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
                         }}>{isActive ? 'Aktif' : 'Nonaktif'}</span>
                       </td>
+                      <td style={{ padding: '13px 14px' }}>
+                        <span style={{ ...dc, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{diseaseLabel[p.disease_type]}</span>
+                      </td>
+                      <td style={{ padding: '13px 14px' }}>
+                        {scoreStyle ? (
+                          <span style={{
+                            background: scoreStyle.bg,
+                            color: scoreStyle.color,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            padding: '4px 10px',
+                            borderRadius: 6,
+                            fontFamily: 'monospace'
+                          }}>
+                            {p.health_score}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#8A93A1' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '13px 14px' }}>
+                        {riskStyle ? (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            background: riskStyle.bg,
+                            color: riskStyle.color,
+                            borderRadius: 20,
+                            padding: '3px 10px',
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                          }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: riskStyle.dot }} />
+                            {riskStyle.text}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#8A93A1' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '13px 14px' }}>
+                        <div style={{ fontWeight: 600, color: '#2B2D42', fontSize: 12 }}>{p.companion_name}</div>
+                        <div style={{ fontSize: 11, color: '#8A93A1' }}>{p.companion_phone}</div>
+                      </td>
+                      <td style={{ padding: '13px 14px', color: '#8A93A1', fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(p.enrolled_at)}</td>
                     </tr>
                   )
                 })}

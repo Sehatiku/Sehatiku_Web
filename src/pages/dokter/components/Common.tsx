@@ -9,6 +9,15 @@ export const RISK_COLOR: Record<RiskLabel, { text: string; bg: string; border: s
   rendah: { text: '#059669', bg: '#F0FDF4', border: '#A7F3D0', edge: '#0D9488', sqBg: '#0D9488' },
 }
 
+export function getSafeRiskColor(label?: string | null) {
+  if (!label) return RISK_COLOR.rendah
+  const l = label.toLowerCase()
+  if (l === 'kritis' || l === 'bahaya' || l === 'high') return RISK_COLOR.kritis
+  if (l === 'sedang' || l === 'waswas' || l === 'medium') return RISK_COLOR.sedang
+  return RISK_COLOR.rendah
+}
+
+
 export const DISEASE_LABEL: Record<DiseaseType, string> = {
   diabetes_t2: 'Diabetes',
   hypertension: 'Hipertensi',
@@ -109,8 +118,8 @@ export function HealthScoreBadge({ score }: { score: number }) {
   )
 }
 
-export function StatusPill({ label, risk }: { label: string; risk: RiskLabel }) {
-  const c = RISK_COLOR[risk]
+export function StatusPill({ label, risk }: { label: string; risk?: string }) {
+  const c = getSafeRiskColor(risk)
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -123,15 +132,16 @@ export function StatusPill({ label, risk }: { label: string; risk: RiskLabel }) 
   )
 }
 
-export function DiseasePill({ type }: { type: DiseaseType }) {
-  const c = DISEASE_COLOR[type]
+export function DiseasePill({ type }: { type?: DiseaseType }) {
+  const t = type || 'diabetes_t2'
+  const c = DISEASE_COLOR[t] || DISEASE_COLOR['diabetes_t2']
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
       background: c.bg, borderRadius: 20, padding: '2px 8px',
       fontSize: 11, fontWeight: 600, color: c.text,
     }}>
-      {DISEASE_LABEL[type]}
+      {DISEASE_LABEL[t] || 'Diabetes'}
     </span>
   )
 }

@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
-import type { DashboardSummary, PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
+import type { PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
 import { initials } from '../../lib/utils'
 
 // Subcomponents & Views
 import { ToastNotif } from './components/Common'
-import AntreanView from './components/AntreanView'
-import TrenView from './components/TrenView'
+import PasienView from './components/PasienView'
 import UmpanBalikView from './components/UmpanBalikView'
 import ProfilNakesView from './components/ProfilNakesView'
 import KeluhanView from './components/KeluhanView'
@@ -15,14 +14,13 @@ import KeluhanView from './components/KeluhanView'
 // Mock Data
 import { MOCK_METRICS } from './dokterMockData'
 
-type ActiveView = 'antrean' | 'tren' | 'umpan' | 'profil' | 'keluhan'
+type ActiveView = 'pasien' | 'umpan' | 'profil' | 'keluhan'
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 
 export default function DokterDashboardPage({ onLogout }: { onLogout: () => void }) {
   const { user } = useAuth()
 
-  const [activeView, setActiveView] = useState<ActiveView>('antrean')
-  const [summary, setSummary] = useState<DashboardSummary | null>(null)
+  const [activeView, setActiveView] = useState<ActiveView>('pasien')
   const [queue, setQueue] = useState<PatientQueueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -34,7 +32,6 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [chartRange, setChartRange] = useState<7 | 14>(7)
   const [trenPatientId, setTrenPatientId] = useState<string | null>(null)
   const [trenSearch, setTrenSearch] = useState('')
-  const [trenFilter, setTrenFilter] = useState<QueueFilter>('all')
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
@@ -56,12 +53,11 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
   const fetchData = useCallback(async () => {
     try {
-      const [sum, queueRes, consultationsRes] = await Promise.all([
+      const [, queueRes, consultationsRes] = await Promise.all([
         nakesApi.getDashboardSummary(),
         nakesApi.getPatientQueue(),
         nakesApi.getConsultations(),
       ])
-      setSummary(sum)
       setQueue(queueRes.data)
       setConsultations(consultationsRes)
       setFetchError(null)
@@ -88,7 +84,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const handleDoctorBadgeClick = useCallback(() => {
     setActiveView('profil')
     fetchDoctorProfile()
-  }, [setActiveView, fetchDoctorProfile])
+  }, [fetchDoctorProfile])
 
   const handleReviewConsultation = useCallback(async (id: string, notes: string) => {
     try {
@@ -109,25 +105,11 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
     }
   }, [fetchData])
 
-  const filteredQueue = useMemo(() => {
-    if (queueFilter === 'all') return queue
-    return queue.filter(p => p.status === queueFilter)
-  }, [queue, queueFilter])
-
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
   const selectedIdx = useMemo(() => queue.findIndex(p => p.patient_id === selectedId), [queue, selectedId])
 
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
   const trenIdx = useMemo(() => queue.findIndex(p => p.patient_id === trenPatientId), [queue, trenPatientId])
-
-  const trenList = useMemo(() => {
-    const q = trenSearch.trim().toLowerCase()
-    return queue.filter(p => {
-      if (trenFilter !== 'all' && p.status !== trenFilter) return false
-      if (q && !p.full_name.toLowerCase().includes(q)) return false
-      return true
-    })
-  }, [queue, trenSearch, trenFilter])
 
   const handleContact = useCallback((id: string) => {
     setContacted(prev => new Set([...prev, id]))
@@ -144,10 +126,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   }, [onLogout])
 
   // KPI values
-  const bahayaCount = summary?.risiko_bahaya ?? 0
-  const waswasCount = queue.filter(p => p.status === 'waswas').length
-  const amanCount = summary?.status_aman ?? 0
-  const totalCount = summary?.total_pasien ?? queue.length
+  const totalCount = queue.length
+  const bahayaCount = queue.filter(p => (100 - p.risk_score) < 40).length
+  const waswasCount = queue.filter(p => {
+    const hs = 100 - p.risk_score
+    return hs >= 40 && hs < 70
+  }).length
+  const amanCount = queue.filter(p => (100 - p.risk_score) >= 70).length
   const pendingComplaintsCount = consultations.filter(c => c.status === 'open').length
 
   // Umpan balik stats
@@ -196,18 +181,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {[
               {
-                id: 'antrean' as const, label: 'Antrean Prioritas', icon: (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
+                id: 'pasien' as const, label: 'Pasien Saya', icon: (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                 )
               },
               {
                 id: 'keluhan' as const, label: 'Review Keluhan', icon: (
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                )
-              },
-              {
-                id: 'tren' as const, label: 'Tren & Riwayat', icon: (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>
                 )
               },
               {
@@ -231,7 +211,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                 >
                   <span style={{ opacity: active ? 1 : 0.75, display: 'flex', alignItems: 'center', width: 18, flexShrink: 0, color: active ? '#0D9488' : 'currentColor' }}>{nav.icon}</span>
                   <span style={{ flex: 1 }}>{nav.label}</span>
-                  {nav.id === 'antrean' && totalCount > 0 && (
+                  {nav.id === 'pasien' && totalCount > 0 && (
                     <span style={{ background: '#0D9488', color: '#fff', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>
                       {totalCount}
                     </span>
@@ -332,22 +312,19 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
         }}>
           <div>
             <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: '#2B2D42' }}>
-              {activeView === 'antrean' ? 'Antrean Prioritas'
-                : activeView === 'tren' ? 'Tren & Riwayat Klinis'
-                  : activeView === 'umpan' ? 'Umpan Balik Model'
-                    : activeView === 'keluhan' ? 'Review Keluhan Pasien'
-                      : 'Profil Tenaga Medis'}
+              {activeView === 'pasien' ? 'Pasien Saya'
+                : activeView === 'umpan' ? 'Umpan Balik Model'
+                  : activeView === 'keluhan' ? 'Review Keluhan Pasien'
+                    : 'Profil Tenaga Medis'}
             </p>
             <p style={{ margin: 0, fontSize: 12, color: '#636B78' }}>
-              {activeView === 'antrean'
+              {activeView === 'pasien'
                 ? `${totalCount} pasien terdaftar`
-                : activeView === 'tren'
-                  ? 'Riwayat 6 bulan terakhir'
-                  : activeView === 'umpan'
-                    ? 'Evaluasi eskalasi AI'
-                    : activeView === 'keluhan'
-                      ? `${pendingComplaintsCount} keluhan menunggu respons`
-                      : 'Informasi akun Portal Sehatiku'}
+                : activeView === 'umpan'
+                  ? 'Evaluasi eskalasi AI'
+                  : activeView === 'keluhan'
+                    ? `${pendingComplaintsCount} keluhan menunggu respons`
+                    : 'Informasi akun Portal Sehatiku'}
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -391,15 +368,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             </div>
           )}
 
-          {/* ── VIEW 1: Antrean Prioritas ─────────────────────────────────────── */}
-          {!fetchError && activeView === 'antrean' && (
-            <AntreanView
+          {/* ── VIEW: Pasien Saya (Antrean + Tren digabung) ───────────────────── */}
+          {!fetchError && activeView === 'pasien' && (
+            <PasienView
               loading={loading}
-              filteredQueue={filteredQueue}
+              queue={queue}
               queueFilter={queueFilter}
               setQueueFilter={setQueueFilter}
-              queueLength={queue.length}
-              selectedId={selectedId}
               setSelectedId={setSelectedId}
               selectedPatient={selectedPatient}
               safeSelectedIdx={safeSelectedIdx}
@@ -412,11 +387,16 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               chartRange={chartRange}
               setChartRange={setChartRange}
               consultations={consultations}
-              onReviewConsultation={handleReviewConsultation}
               totalCount={totalCount}
               bahayaCount={bahayaCount}
               waswasCount={waswasCount}
               amanCount={amanCount}
+              setTrenPatientId={setTrenPatientId}
+              trenPatient={trenPatient}
+              trenSearch={trenSearch}
+              setTrenSearch={setTrenSearch}
+              safeTrenIdx={safeTrenIdx}
+              safeTrenMetrics={safeTrenMetrics}
             />
           )}
 
@@ -429,24 +409,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             />
           )}
 
-          {/* ── VIEW 2: Tren & Riwayat ────────────────────────────────────────── */}
-          {!fetchError && activeView === 'tren' && (
-            <TrenView
-              loading={loading}
-              queue={queue}
-              setTrenPatientId={setTrenPatientId}
-              trenPatient={trenPatient}
-              trenSearch={trenSearch}
-              setTrenSearch={setTrenSearch}
-              trenFilter={trenFilter}
-              setTrenFilter={setTrenFilter}
-              trenList={trenList}
-              safeTrenIdx={safeTrenIdx}
-              safeTrenMetrics={safeTrenMetrics}
-            />
-          )}
-
-          {/* ── VIEW 3: Umpan Balik Model ─────────────────────────────────────── */}
+          {/* ── VIEW: Umpan Balik Model ───────────────────────────────────────── */}
           {!fetchError && activeView === 'umpan' && (
             <UmpanBalikView
               loading={loading}
