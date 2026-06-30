@@ -1,5 +1,5 @@
 import type { PatientQueueItem } from '../../../lib/types'
-import { SkeletonCard, AvatarCircle, RISK_COLOR, DISEASE_LABEL } from './Common'
+import { SkeletonCard, AvatarCircle, DISEASE_LABEL, getSafeRiskColor } from './Common'
 
 interface UmpanBalikViewProps {
   loading: boolean
@@ -192,7 +192,7 @@ export default function UmpanBalikView({ loading, queue, feedbacks, handleFeedba
               >
                 {/* Patient */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                  <AvatarCircle name={p.full_name} size={34} bg={RISK_COLOR[p.risk_label].sqBg} />
+                  <AvatarCircle name={p.full_name} size={34} bg={getSafeRiskColor(p.risk_label).sqBg} />
                   <div style={{ minWidth: 0 }}>
                     <p style={{
                       margin: '0 0 2px', fontWeight: 600, fontSize: 13, color: '#111827',

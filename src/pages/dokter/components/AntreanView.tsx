@@ -5,8 +5,8 @@ import {
   AvatarCircle,
   StatusPill,
   DiseasePill,
-  RISK_COLOR,
   DISEASE_LABEL,
+  getSafeRiskColor,
 } from './Common'
 import TrendChart from './TrendChart'
 import ShapCard from './ShapCard'
@@ -236,7 +236,7 @@ export default function AntreanView({
           </div>
         ) : (
           displayQueue.map((p, idx) => {
-            const c = RISK_COLOR[p.risk_label]
+            const c = getSafeRiskColor(p.risk_label)
             const hs = 100 - p.risk_score
             const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
             const hasOpenConsult = consultations.some(cx => cx.patient_id === p.patient_id && cx.status === 'open')
@@ -327,7 +327,7 @@ export default function AntreanView({
 
       {/* ── Detail modal ── */}
       {selectedPatient && (() => {
-        const rc = RISK_COLOR[selectedPatient.risk_label]
+        const rc = getSafeRiskColor(selectedPatient.risk_label)
         const hs = 100 - selectedPatient.risk_score
         const hsBg = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
 
