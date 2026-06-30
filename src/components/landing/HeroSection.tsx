@@ -108,7 +108,7 @@ export default function HeroSection({ onLoginClick }: { onLoginClick: () => void
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgb(238,240,254)'; e.currentTarget.style.borderColor = '#ABAEF9' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.6)'; e.currentTarget.style.borderColor = 'rgb(228,226,242)' }}
               >
-                Lihat Alur Kerja
+                Ajukan Kemitraan
               </button>
             </div>
           </Reveal>
