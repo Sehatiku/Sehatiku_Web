@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, type ReactNode, useMemo } from 'react'
 import type { PatientQueueItem, ConsultationResult } from '../../../lib/types'
 import type { MockMetricSet } from '../dokterMockData'
 import { MOCK_RISK_TREND } from '../dokterMockData'
@@ -21,7 +21,6 @@ type ViewMode = 'antrean' | 'tren'
 export interface PasienViewProps {
   loading: boolean
   queue: PatientQueueItem[]
-  filteredQueue: PatientQueueItem[]
   queueFilter: QueueFilter
   setQueueFilter: (f: QueueFilter) => void
   setSelectedId: (id: string | null) => void
@@ -45,9 +44,6 @@ export interface PasienViewProps {
   trenPatient: PatientQueueItem | null
   trenSearch: string
   setTrenSearch: (s: string) => void
-  trenFilter: QueueFilter
-  setTrenFilter: (f: QueueFilter) => void
-  trenList: PatientQueueItem[]
   safeTrenIdx: number
   safeTrenMetrics: MockMetricSet
 }
@@ -135,22 +131,22 @@ function KpiCards({
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 14 }}>
       {loading
         ? Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <SkeletonCard h={72} />
-            </div>
-          ))
+          <div key={i} style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <SkeletonCard h={72} />
+          </div>
+        ))
         : stats.map(stat => (
-            <div key={stat.label} style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                <p style={{ margin: 0, fontSize: 12.5, color: '#6B7280', fontWeight: 500, lineHeight: 1.4, flex: 1, paddingRight: 8 }}>{stat.label}</p>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: stat.iconBg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {stat.icon}
-                </div>
+          <div key={stat.label} style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <p style={{ margin: 0, fontSize: 12.5, color: '#6B7280', fontWeight: 500, lineHeight: 1.4, flex: 1, paddingRight: 8 }}>{stat.label}</p>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: stat.iconBg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {stat.icon}
               </div>
-              <p style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 800, color: stat.color, fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{stat.value}</p>
-              <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF' }}>{stat.sub}</p>
             </div>
-          ))
+            <p style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 800, color: stat.color, fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{stat.value}</p>
+            <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF' }}>{stat.sub}</p>
+          </div>
+        ))
       }
     </div>
   )
@@ -161,7 +157,6 @@ function KpiCards({
 export default function PasienView({
   loading,
   queue,
-  filteredQueue,
   queueFilter, setQueueFilter,
   setSelectedId,
   selectedPatient, safeSelectedIdx,
@@ -173,15 +168,21 @@ export default function PasienView({
   totalCount, bahayaCount, waswasCount, amanCount,
   setTrenPatientId, trenPatient,
   trenSearch, setTrenSearch,
-  trenFilter, setTrenFilter,
-  trenList, safeTrenIdx, safeTrenMetrics,
+  safeTrenIdx, safeTrenMetrics,
 }: PasienViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('antrean')
-  const [antreanSearch, setAntreanSearch] = useState('')
 
-  const displayQueue = antreanSearch.trim()
-    ? filteredQueue.filter(p => p.full_name.toLowerCase().includes(antreanSearch.trim().toLowerCase()))
-    : filteredQueue
+  // Unified filtered list — same patients in both modes, just different columns
+  const sharedList = useMemo(() => {
+    const q = trenSearch.trim().toLowerCase()
+    return queue.filter(p => {
+      const hs = 100 - p.risk_score
+      const status = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
+      if (queueFilter !== 'all' && status !== queueFilter) return false
+      if (q && !p.full_name.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [queue, queueFilter, trenSearch])
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px', background: '#F4F5F7' }}>
@@ -245,26 +246,18 @@ export default function PasienView({
         amanCount={amanCount}
       />
 
-      {/* ── Toolbar (per mode state, shared UI) ───────────────────────────── */}
+      {/* ── Toolbar — shared for both modes ────────────────────────────────── */}
       <div style={{
         background: '#fff', borderRadius: 14, padding: '12px 18px',
         boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #F0F1F4',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         gap: 12, marginBottom: 14, flexWrap: 'wrap',
       }}>
-        {viewMode === 'antrean' ? (
-          <SearchBar value={antreanSearch} onChange={setAntreanSearch} />
-        ) : (
-          <SearchBar value={trenSearch} onChange={setTrenSearch} />
-        )}
+        <SearchBar value={trenSearch} onChange={setTrenSearch} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {viewMode === 'antrean' ? (
-            <FilterSegment selected={queueFilter} onChange={setQueueFilter} />
-          ) : (
-            <FilterSegment selected={trenFilter} onChange={setTrenFilter} />
-          )}
+          <FilterSegment selected={queueFilter} onChange={setQueueFilter} />
           <span style={{ background: '#F0F0F5', borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 700, color: '#6B7280' }}>
-            {viewMode === 'antrean' ? displayQueue.length : trenList.length} pasien
+            {sharedList.length} pasien
           </span>
         </div>
       </div>
@@ -281,33 +274,35 @@ export default function PasienView({
             <div style={{ padding: '12px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} h={56} />)}
             </div>
-          ) : displayQueue.length === 0 ? (
+          ) : sharedList.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '64px 20px', gap: 8 }}>
               <span style={{ fontSize: 30 }}>🔍</span>
               <p style={{ margin: 0, fontSize: 13.5, color: '#9CA3AF' }}>
-                {antreanSearch ? 'Pasien tidak ditemukan.' : 'Tidak ada pasien di kategori ini.'}
+                {trenSearch || queueFilter !== 'all' ? 'Pasien tidak ditemukan.' : 'Belum ada pasien terdaftar.'}
               </p>
             </div>
           ) : (
-            displayQueue.map((p, idx) => {
-              const c = getSafeRiskColor(p.risk_label)
+            sharedList.map((p, idx) => {
               const hs = 100 - p.risk_score
+              const status = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
+              const risk_label = hs >= 70 ? 'rendah' : hs >= 40 ? 'sedang' : 'kritis'
+              const c = getSafeRiskColor(risk_label)
               const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
               const hasOpenConsult = consultations.some(cx => cx.patient_id === p.patient_id && cx.status === 'open')
-              const needsContact = !contacted.has(p.patient_id) && (p.status === 'bahaya' || p.status === 'waswas')
+              const needsContact = !contacted.has(p.patient_id) && (status === 'bahaya' || status === 'waswas')
               return (
                 <div
                   key={p.patient_id}
                   className="queue-row"
                   onClick={() => setSelectedId(p.patient_id)}
-                  style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 16, borderBottom: idx < displayQueue.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
+                  style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                     <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
                     <div style={{ minWidth: 0 }}>
                       <p style={{ margin: '0 0 3px', fontWeight: 600, fontSize: 13.5, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.full_name}</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 11.5, color: '#9CA3AF' }}>{p.age} thn</span>
+                        <span style={{ fontSize: 11.5, color: '#9CA3AF' }}>{p.age} tahun</span>
                         {hasOpenConsult && (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 4, padding: '1px 6px', fontSize: 9.5, fontWeight: 700, color: '#D97706' }}>
                             <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#F59E0B' }} />Review
@@ -320,7 +315,7 @@ export default function PasienView({
                     </div>
                   </div>
                   <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{DISEASE_LABEL[p.disease_type]}</span>
-                  <div><StatusPill label={p.status === 'bahaya' ? 'Bahaya' : p.status === 'waswas' ? 'Waswas' : 'Aman'} risk={p.risk_label} /></div>
+                  <div><StatusPill label={status === 'bahaya' ? 'Bahaya' : status === 'waswas' ? 'Waswas' : 'Aman'} risk={risk_label} /></div>
                   <span style={{ fontSize: 15, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                 </div>
@@ -342,7 +337,7 @@ export default function PasienView({
             <div style={{ padding: '12px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} h={56} />)}
             </div>
-          ) : trenList.length === 0 ? (
+          ) : sharedList.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 20px', gap: 8 }}>
               <span style={{ fontSize: 28 }}>📊</span>
               <p style={{ margin: 0, fontSize: 13.5, color: '#9CA3AF' }}>
@@ -350,17 +345,19 @@ export default function PasienView({
               </p>
             </div>
           ) : (
-            trenList.map((p, idx) => {
-              const c = getSafeRiskColor(p.risk_label)
+            sharedList.map((p, idx) => {
               const hs = 100 - p.risk_score
+              const status = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
+              const risk_label = hs >= 70 ? 'rendah' : hs >= 40 ? 'sedang' : 'kritis'
+              const c = getSafeRiskColor(risk_label)
               const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
-              const compliance = p.status === 'bahaya' ? { val: '40%', color: '#EF4444' } : p.status === 'waswas' ? { val: '71%', color: '#F59E0B' } : { val: '100%', color: '#10B981' }
+              const compliance = status === 'bahaya' ? { val: '40%', color: '#EF4444' } : status === 'waswas' ? { val: '71%', color: '#F59E0B' } : { val: '100%', color: '#10B981' }
               return (
                 <div
                   key={p.patient_id}
                   className="tren-row"
                   onClick={() => setTrenPatientId(p.patient_id)}
-                  style={{ display: 'grid', gridTemplateColumns: '2.2fr 1.2fr 80px 90px 80px 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 14, borderBottom: idx < trenList.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
+                  style={{ display: 'grid', gridTemplateColumns: '2.2fr 1.2fr 80px 90px 80px 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 14, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
                     <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
@@ -372,7 +369,7 @@ export default function PasienView({
                   <span style={{ fontSize: 12.5, color: '#4B5563', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.main_factor || 'Kondisi Stabil'}</span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: compliance.color, fontFamily: 'IBM Plex Mono, monospace' }}>{compliance.val}</span>
                   <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563' }}>{DISEASE_LABEL[p.disease_type]}</span>
-                  <StatusPill label={p.status === 'bahaya' ? 'Bahaya' : p.status === 'waswas' ? 'Waswas' : 'Aman'} risk={p.risk_label} />
+                  <StatusPill label={status === 'bahaya' ? 'Bahaya' : status === 'waswas' ? 'Waswas' : 'Aman'} risk={risk_label} />
                   <span style={{ fontSize: 15, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                 </div>
@@ -382,10 +379,13 @@ export default function PasienView({
         </div>
       )}
 
+
       {/* ── Antrean Detail: Modal Popup (center) ───────────────────────────── */}
       {viewMode === 'antrean' && selectedPatient && (() => {
-        const rc = getSafeRiskColor(selectedPatient.risk_label)
         const hs = 100 - selectedPatient.risk_score
+        const calculatedStatus = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
+        const calculatedRiskLabel = hs >= 70 ? 'rendah' : hs >= 40 ? 'sedang' : 'kritis'
+        const rc = getSafeRiskColor(calculatedRiskLabel)
         const hsBg = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
         return (
           <div
@@ -420,7 +420,7 @@ export default function PasienView({
                         </p>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                           <DiseasePill type={selectedPatient.disease_type} />
-                          <StatusPill label={selectedPatient.status === 'bahaya' ? 'Bahaya' : selectedPatient.status === 'waswas' ? 'Waswas' : 'Aman'} risk={selectedPatient.risk_label} />
+                          <StatusPill label={calculatedStatus === 'bahaya' ? 'Bahaya' : calculatedStatus === 'waswas' ? 'Waswas' : 'Aman'} risk={calculatedRiskLabel} />
                         </div>
                       </div>
                       {/* Score + action */}
@@ -493,19 +493,47 @@ export default function PasienView({
               {/* Panel body */}
               <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {/* Patient mini-header */}
-                <div style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <AvatarCircle name={trenPatient.full_name} size={44} bg={getSafeRiskColor(trenPatient.risk_label).sqBg} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#111827' }}>{trenPatient.full_name}</p>
-                      <StatusPill label={trenPatient.status === 'bahaya' ? 'Bahaya' : trenPatient.status === 'waswas' ? 'Waswas' : 'Aman'} risk={trenPatient.risk_label} />
+                {(() => {
+                  const currHs = 100 - trenPatient.risk_score
+                  const calculatedStatus = currHs >= 70 ? 'aman' : currHs >= 40 ? 'waswas' : 'bahaya'
+                  const calculatedRiskLabel = currHs >= 70 ? 'rendah' : currHs >= 40 ? 'sedang' : 'kritis'
+                  const hsColor = currHs >= 70 ? '#10B981' : currHs >= 40 ? '#F59E0B' : '#EF4444'
+                  const hsBg = currHs >= 70 ? '#ECFDF5' : currHs >= 40 ? '#FFFBEB' : '#FEF2F2'
+                  const deltaBg = safeTrenMetrics.deltaColor === '#059669' ? '#ECFDF5'
+                    : safeTrenMetrics.deltaColor === '#D97706' ? '#FFFBEB'
+                      : '#FEF2F2'
+                  return (
+                    <div style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <AvatarCircle name={trenPatient.full_name} size={44} bg={getSafeRiskColor(calculatedRiskLabel).sqBg} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 5 }}>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#111827' }}>{trenPatient.full_name}</p>
+                          <StatusPill label={calculatedStatus === 'bahaya' ? 'Bahaya' : calculatedStatus === 'waswas' ? 'Waswas' : 'Aman'} risk={calculatedRiskLabel} />
+                        </div>
+                        <p style={{ margin: '0 0 8px', fontSize: 12, color: '#9CA3AF' }}>
+                          {trenPatient.age} tahun · {DISEASE_LABEL[trenPatient.disease_type]} · Riwayat 6 bulan
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                          {/* Health score saat ini */}
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: hsBg, borderRadius: 8, padding: '3px 9px', border: `1px solid ${hsColor}33` }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{currHs}</span>
+                            <span style={{ fontSize: 10, color: hsColor, fontWeight: 600 }}>Health Score</span>
+                          </div>
+                          {/* Delta badge — ↑ naik = membaik (hijau), ↓ turun = memburuk (merah) */}
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            background: deltaBg, color: safeTrenMetrics.deltaColor,
+                            borderRadius: 8, padding: '3px 9px',
+                            fontSize: 11.5, fontWeight: 700,
+                            border: `1px solid ${safeTrenMetrics.deltaColor}33`,
+                          }}>
+                            {safeTrenMetrics.delta} {safeTrenMetrics.deltaLabel}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <p style={{ margin: 0, fontSize: 12, color: '#9CA3AF' }}>
-                      {trenPatient.age} tahun · {DISEASE_LABEL[trenPatient.disease_type]} · Riwayat 6 bulan
-                      <span style={{ marginLeft: 10, fontWeight: 700, color: safeTrenMetrics.deltaColor }}>{safeTrenMetrics.delta} {safeTrenMetrics.deltaLabel}</span>
-                    </p>
-                  </div>
-                </div>
+                  )
+                })()}
 
                 {/* Health Score Bar Chart */}
                 <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>

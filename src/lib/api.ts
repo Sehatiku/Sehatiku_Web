@@ -31,6 +31,7 @@ import type {
   ConsultationBody,
   ConsultationResult,
   PatientNotification,
+  NakesPatientSummary,
 } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8080'
@@ -789,7 +790,42 @@ export const nakesApi = {
       { method: 'POST', body: JSON.stringify({ nakes_note: note }) }
     )
   },
+
+  /** GET /api/v1/nakes/patients/:id/summary?window=7|14|30 */
+  getPatientSummary: async (patientId: string, window: 7 | 14 | 30 = 7): Promise<NakesPatientSummary> => {
+    if (MOCK) {
+      return {
+        window,
+        available: true,
+        available_windows: [7, 14, 30],
+        history_days: 14,
+        period: {
+          start: new Date(Date.now() - window * 86400_000).toISOString().slice(0, 10),
+          end: new Date().toISOString().slice(0, 10),
+        },
+        coverage: { logged_days: Math.min(window, 10), window_days: window, streak_days: 3 },
+        aggregates: {
+          glucose: { avg_mgdl: 162.5, min_mgdl: 98, max_mgdl: 215, count: window },
+          blood_pressure: { avg_systolic: 148.2, avg_diastolic: 92.1, count: Math.round(window * 0.7) },
+          med_adherence: { adherence_rate_pct: 71, count: window },
+          nutrition: { avg_kcal_per_day: 1920, avg_carbs_g_per_day: 230, avg_sodium_mg_per_day: 1600, meal_count: window * 2 },
+          activity: { avg_minutes_per_day: 18, total_minutes: 18 * window, count: Math.round(window * 0.5) },
+          sleep: { avg_hours: 5.8, count: Math.round(window * 0.8) },
+          stress: { avg_level: 6.2, count: Math.round(window * 0.6) },
+          weight: { start_kg: 72.5, latest_kg: 72.1, delta_kg: -0.4, count: 2 },
+        },
+        risk: { score: 72, status: 'waswas', scored_at: new Date().toISOString() },
+        narrative: `Dalam ${window} hari terakhir, kondisi pasien menunjukkan tren yang perlu perhatian. Rata-rata gula darah puasa 162.5 mg/dL masih di atas target normal. Kepatuhan obat 71% perlu ditingkatkan. Disarankan evaluasi lebih lanjut mengenai pola makan dan aktivitas fisik.`,
+        generated_at: new Date().toISOString(),
+      }
+    }
+    const res = await request<ApiEnvelope<NakesPatientSummary>>(
+      `/api/v1/nakes/patients/${patientId}/summary?window=${window}`,
+    )
+    return res.data
+  },
 }
+
 
 // ─── Patient API ──────────────────────────────────────────────────────────────
 
