@@ -7,8 +7,8 @@ import {
   AvatarCircle,
   StatusPill,
   DiseasePill,
-  RISK_COLOR,
   DISEASE_LABEL,
+  getSafeRiskColor,
 } from './Common'
 import TrendChart from './TrendChart'
 import ShapCard from './ShapCard'
@@ -290,7 +290,7 @@ export default function PasienView({
             </div>
           ) : (
             displayQueue.map((p, idx) => {
-              const c = RISK_COLOR[p.risk_label]
+              const c = getSafeRiskColor(p.risk_label)
               const hs = 100 - p.risk_score
               const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
               const hasOpenConsult = consultations.some(cx => cx.patient_id === p.patient_id && cx.status === 'open')
@@ -351,7 +351,7 @@ export default function PasienView({
             </div>
           ) : (
             trenList.map((p, idx) => {
-              const c = RISK_COLOR[p.risk_label]
+              const c = getSafeRiskColor(p.risk_label)
               const hs = 100 - p.risk_score
               const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
               const compliance = p.status === 'bahaya' ? { val: '40%', color: '#EF4444' } : p.status === 'waswas' ? { val: '71%', color: '#F59E0B' } : { val: '100%', color: '#10B981' }
@@ -384,7 +384,7 @@ export default function PasienView({
 
       {/* ── Antrean Detail: Modal Popup (center) ───────────────────────────── */}
       {viewMode === 'antrean' && selectedPatient && (() => {
-        const rc = RISK_COLOR[selectedPatient.risk_label]
+        const rc = getSafeRiskColor(selectedPatient.risk_label)
         const hs = 100 - selectedPatient.risk_score
         const hsBg = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
         return (
@@ -482,7 +482,7 @@ export default function PasienView({
               {/* Panel header */}
               <div style={{ background: '#fff', borderBottom: '1px solid #F0F0F0', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'sticky', top: 0, zIndex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: RISK_COLOR[trenPatient.risk_label].edge }} />
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: getSafeRiskColor(trenPatient.risk_label).edge }} />
                   <span style={{ fontWeight: 700, fontSize: 13.5, color: '#111827' }}>Tren & Riwayat Klinis</span>
                 </div>
                 <button className="close-btn" onClick={() => setTrenPatientId(null)} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid #E5E7EB', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', transition: 'all 0.15s' }}>
@@ -494,7 +494,7 @@ export default function PasienView({
               <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {/* Patient mini-header */}
                 <div style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <AvatarCircle name={trenPatient.full_name} size={44} bg={RISK_COLOR[trenPatient.risk_label].sqBg} />
+                  <AvatarCircle name={trenPatient.full_name} size={44} bg={getSafeRiskColor(trenPatient.risk_label).sqBg} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#111827' }}>{trenPatient.full_name}</p>

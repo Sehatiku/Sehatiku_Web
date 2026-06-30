@@ -6,8 +6,8 @@ import {
   SkeletonCard,
   AvatarCircle,
   StatusPill,
-  RISK_COLOR,
   DISEASE_LABEL,
+  getSafeRiskColor,
 } from './Common'
 
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
@@ -171,7 +171,7 @@ export default function TrenView({
               </div>
             ) : (
               trenList.map((p, idx) => {
-                const c = RISK_COLOR[p.risk_label]
+                const c = getSafeRiskColor(p.risk_label)
                 const hs = 100 - p.risk_score
                 const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
                 const compliance = p.status === 'bahaya' ? { val: '40%', color: '#EF4444' }
@@ -267,7 +267,7 @@ export default function TrenView({
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             display: 'flex', alignItems: 'center', gap: 14,
           }}>
-            <AvatarCircle name={trenPatient.full_name} size={44} bg={RISK_COLOR[trenPatient.risk_label].sqBg} />
+            <AvatarCircle name={trenPatient.full_name} size={44} bg={getSafeRiskColor(trenPatient.risk_label).sqBg} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                 <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: '#111827' }}>{trenPatient.full_name}</p>

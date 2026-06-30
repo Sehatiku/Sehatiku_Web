@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import type { PatientQueueItem, ConsultationResult } from '../../../lib/types'
-import { AvatarCircle, DISEASE_LABEL, RISK_COLOR } from './Common'
+import { AvatarCircle, DISEASE_LABEL, getSafeRiskColor } from './Common'
 import ReviewKeluhanCard from './ReviewKeluhanCard'
 import LogCard from './LogCard'
 
@@ -127,7 +127,7 @@ export default function KeluhanView({ queue, consultations, onReviewConsultation
                     <AvatarCircle
                       name={name}
                       size={34}
-                      bg={RISK_COLOR[patient?.risk_label || 'rendah'].sqBg}
+                      bg={getSafeRiskColor(patient?.risk_label).sqBg}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {/* Complaint title row */}
@@ -181,7 +181,7 @@ export default function KeluhanView({ queue, consultations, onReviewConsultation
                 <AvatarCircle
                   name={selectedConsultation.patient_name || selectedPatient?.full_name || 'Pasien'}
                   size={46}
-                  bg={RISK_COLOR[selectedPatient?.risk_label || 'rendah'].sqBg}
+                  bg={getSafeRiskColor(selectedPatient?.risk_label).sqBg}
                 />
                 <div style={{ minWidth: 0 }}>
                   <p style={{ margin: '0 0 4px', fontWeight: 800, fontSize: 16, color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>

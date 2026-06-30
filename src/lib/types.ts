@@ -252,6 +252,9 @@ export interface FaskesPatientItem {
   companion_phone: string
   status: 'active' | 'inactive'
   enrolled_at: string
+  health_score?: number | null
+  risk_status?: string | null
+  top_factors?: string[] | null
 }
 
 export interface FaskesPatientResponse {
@@ -307,6 +310,9 @@ export interface FaskesPatientDetail {
   enrolled_at: string
   created_at: string
   updated_at: string
+  health_score?: number | null
+  risk_status?: string | null
+  top_factors?: string[] | null
 }
 
 export interface FaskesProfile {

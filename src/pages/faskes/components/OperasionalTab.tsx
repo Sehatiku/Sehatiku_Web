@@ -40,17 +40,30 @@ export default function OperasionalTab({
         // Map real patient items to operasional table state
         const mapped = res.data.map((p, idx) => {
           const healthScores = [35, 78, 55, 92, 48, 88, 72, 64, 45, 90, 82, 38, 70, 52, 60]
-          const score = healthScores[idx % healthScores.length]
+          const score = p.health_score !== null && p.health_score !== undefined
+            ? p.health_score
+            : healthScores[idx % healthScores.length]
           
           let status = 'Sehat'
-          if (score < 40) status = 'Parah'
-          else if (score < 70) status = 'Waswas'
+          if (p.risk_status) {
+            const lowerRisk = p.risk_status.toLowerCase()
+            if (lowerRisk === 'bahaya' || lowerRisk === 'kritis') status = 'Parah'
+            else if (lowerRisk === 'waswas' || lowerRisk === 'sedang') status = 'Waswas'
+            else status = 'Sehat'
+          } else {
+            if (score < 40) status = 'Parah'
+            else if (score < 70) status = 'Waswas'
+          }
 
           let cause = 'HbA1c Stabil'
-          if (status === 'Parah') {
-            cause = p.disease_type === 'hypertension' ? 'Tekanan Darah Tinggi' : 'HbA1c Tinggi'
-          } else if (status === 'Waswas') {
-            cause = 'Kepatuhan Obat Rendah'
+          if (p.top_factors && p.top_factors.length > 0) {
+            cause = p.top_factors[0]
+          } else {
+            if (status === 'Parah') {
+              cause = p.disease_type === 'hypertension' ? 'Tekanan Darah Tinggi' : 'HbA1c Tinggi'
+            } else if (status === 'Waswas') {
+              cause = 'Kepatuhan Obat Rendah'
+            }
           }
 
           let disease = 'Diabetes'

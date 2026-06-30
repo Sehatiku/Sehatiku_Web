@@ -20,7 +20,7 @@ const DISEASE_COLOR: Record<string, { bg: string; color: string }> = {
   both: { bg: 'rgba(245,158,11,0.1)', color: '#D97706' },
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid #F4F5F7', gap: 12 }}>
       <span style={{ fontSize: 11, fontWeight: 600, color: '#8A93A1', textTransform: 'uppercase', letterSpacing: '0.4px', flexShrink: 0 }}>{label}</span>
@@ -93,7 +93,71 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
                 <Section title="Klinis">
                   <Row label="Jenis Penyakit" value={DISEASE_LABEL[detail.disease_type]} />
                   <Row label="Nakes PJ" value={detail.assigned_nakes_name || '—'} />
+                  {detail.health_score !== null && detail.health_score !== undefined && (
+                    <Row
+                      label="Skor Kesehatan"
+                      value={
+                        <span style={{
+                          background: detail.health_score >= 70 ? '#E6F4EA' : detail.health_score >= 40 ? '#FEF7E0' : '#FCE8E6',
+                          color: detail.health_score >= 70 ? '#137333' : detail.health_score >= 40 ? '#B06000' : '#C5221F',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          fontFamily: 'monospace'
+                        }}>
+                          {detail.health_score} / 100
+                        </span>
+                      }
+                    />
+                  )}
+                  {detail.risk_status && (
+                    <Row
+                      label="Status Risiko"
+                      value={(() => {
+                        const s = detail.risk_status.toLowerCase()
+                        const isBahaya = s === 'bahaya' || s === 'kritis' || s === 'high'
+                        const isWaswas = s === 'waswas' || s === 'sedang' || s === 'medium'
+                        const bg = isBahaya ? '#FCE8E6' : isWaswas ? '#FEF7E0' : '#E6F4EA'
+                        const color = isBahaya ? '#C5221F' : isWaswas ? '#B06000' : '#137333'
+                        const text = isBahaya ? 'Bahaya' : isWaswas ? 'Waswas' : 'Aman'
+                        return (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            background: bg,
+                            color: color,
+                            borderRadius: 20,
+                            padding: '2px 8px',
+                            fontSize: 11,
+                            fontWeight: 700,
+                          }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
+                            {text}
+                          </span>
+                        )
+                      })()}
+                    />
+                  )}
                 </Section>
+
+                {detail.top_factors && detail.top_factors.length > 0 && (
+                  <Section title="Faktor Risiko Utama">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                      {detail.top_factors.map((factor, i) => {
+                        const isGood = factor.includes('baik') || factor.includes('pertahankan')
+                        const badgeColor = isGood ? '#10B981' : '#F59E0B'
+                        return (
+                          <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: isGood ? '#F0FDF4' : '#FFFBEB', padding: '10px 12px', borderRadius: 8, border: `1px solid ${isGood ? '#DCFCE7' : '#FEF3C7'}` }}>
+                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', background: badgeColor, color: '#fff', fontSize: 10, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{isGood ? '✓' : '!'}</span>
+                            <span style={{ fontSize: 12.5, color: isGood ? '#14532D' : '#78350F', lineHeight: 1.4 }}>{factor}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </Section>
+                )}
 
                 <Section title="Akun & Status">
                   <Row label="Username" value={detail.username} />

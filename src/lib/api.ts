@@ -204,21 +204,176 @@ function mockDashboardSummary(): DashboardSummary {
 
 function mockFaskesPatients(page = 1, size = 10): FaskesPatientResponse {
   const allPatients: FaskesPatientItem[] = [
-    { patient_id: 'fp1', full_name: 'Ahmad Suharto', nik: '3201010101670001', sex: 'male', age: 58, disease_type: 'diabetes_t2', phone_number: '628123456789', companion_name: 'Siti Suharto', companion_phone: '628123456780', status: 'active', enrolled_at: '2025-01-15T08:00:00Z' },
-    { patient_id: 'fp2', full_name: 'Siti Rahayu', nik: '3201010101620002', sex: 'female', age: 62, disease_type: 'hypertension', phone_number: '628134567890', companion_name: 'Budi Rahayu', companion_phone: '628134567891', status: 'active', enrolled_at: '2025-02-01T08:00:00Z' },
-    { patient_id: 'fp3', full_name: 'Budi Santoso', nik: '3201010101790003', sex: 'male', age: 45, disease_type: 'both', phone_number: '628145678901', companion_name: 'Maya Santoso', companion_phone: '628145678902', status: 'active', enrolled_at: '2025-02-20T08:00:00Z' },
-    { patient_id: 'fp4', full_name: 'Maya Kusuma', nik: '3201010101720004', sex: 'female', age: 52, disease_type: 'diabetes_t2', phone_number: '628156789012', companion_name: 'Rudi Kusuma', companion_phone: '628156789013', status: 'inactive', enrolled_at: '2025-03-05T08:00:00Z' },
-    { patient_id: 'fp5', full_name: 'Rini Wulandari', nik: '3201010101870005', sex: 'female', age: 39, disease_type: 'hypertension', phone_number: '628167890123', companion_name: 'Dodi Wulandari', companion_phone: '628167890124', status: 'active', enrolled_at: '2025-04-10T08:00:00Z' },
-    { patient_id: 'fp6', full_name: 'Hendra Wijaya', nik: '3201010101880006', sex: 'male', age: 41, disease_type: 'diabetes_t2', phone_number: '628178901234', companion_name: 'Dewi Wijaya', companion_phone: '628178901235', status: 'active', enrolled_at: '2025-04-12T08:00:00Z' },
-    { patient_id: 'fp7', full_name: 'Dewi Lestari', nik: '3201010101890007', sex: 'female', age: 35, disease_type: 'hypertension', phone_number: '628189012345', companion_name: 'Adi Lestari', companion_phone: '628189012346', status: 'active', enrolled_at: '2025-04-15T08:00:00Z' },
-    { patient_id: 'fp8', full_name: 'Joko Widodo', nik: '3201010101900008', sex: 'male', age: 64, disease_type: 'both', phone_number: '628190123456', companion_name: 'Iriana Widodo', companion_phone: '628190123457', status: 'active', enrolled_at: '2025-04-20T08:00:00Z' },
-    { patient_id: 'fp9', full_name: 'Susilo Bambang', nik: '3201010101910009', sex: 'male', age: 72, disease_type: 'diabetes_t2', phone_number: '628191234567', companion_name: 'Ani Bambang', companion_phone: '628191234568', status: 'active', enrolled_at: '2025-04-22T08:00:00Z' },
-    { patient_id: 'fp10', full_name: 'Megawati Soekarno', nik: '3201010101920010', sex: 'female', age: 75, disease_type: 'hypertension', phone_number: '628192345678', companion_name: 'Taufiq Kiemas', companion_phone: '628192345679', status: 'active', enrolled_at: '2025-04-25T08:00:00Z' },
-    { patient_id: 'fp11', full_name: 'Abdurrahman Wahid', nik: '3201010101930011', sex: 'male', age: 60, disease_type: 'both', phone_number: '628193456789', companion_name: 'Sinta Wahid', companion_phone: '628193456790', status: 'active', enrolled_at: '2025-04-28T08:00:00Z' },
-    { patient_id: 'fp12', full_name: 'Habibie Bacharuddin', nik: '3201010101940012', sex: 'male', age: 80, disease_type: 'diabetes_t2', phone_number: '628194567890', companion_name: 'Ainun Habibie', companion_phone: '628194567891', status: 'inactive', enrolled_at: '2025-05-01T08:00:00Z' },
-    { patient_id: 'fp13', full_name: 'Soeharto Tjokro', nik: '3201010101950013', sex: 'male', age: 82, disease_type: 'hypertension', phone_number: '628195678901', companion_name: 'Ibu Tien', companion_phone: '628195678902', status: 'active', enrolled_at: '2025-05-03T08:00:00Z' },
-    { patient_id: 'fp14', full_name: 'Soekarno Hatta', nik: '3201010101960014', sex: 'male', age: 70, disease_type: 'both', phone_number: '628196789012', companion_name: 'Fatmawati Soekarno', companion_phone: '628196789013', status: 'active', enrolled_at: '2025-05-05T08:00:00Z' },
-    { patient_id: 'fp15', full_name: 'Prabowo Subianto', nik: '3201010101970015', sex: 'male', age: 74, disease_type: 'diabetes_t2', phone_number: '628197890123', companion_name: 'Titiek Subianto', companion_phone: '628197890124', status: 'active', enrolled_at: '2025-05-10T08:00:00Z' },
+    {
+      patient_id: '12efe4b4-27b0-4190-acdc-3c2d384a94cb',
+      full_name: 'Pasien Sedang Test',
+      nik: '3201234567890777',
+      sex: 'male',
+      age: 51,
+      disease_type: 'both',
+      phone_number: '628100000555',
+      companion_name: 'Wali Sedang',
+      companion_phone: '628100000444',
+      status: 'active',
+      enrolled_at: '2026-06-30T00:25:17.364378Z',
+      health_score: 74,
+      risk_status: 'aman',
+      top_factors: [
+        'Fungsi ginjal Anda (eGFR 82.0) butuh perhatian.',
+        'Kadar HbA1c lab Anda tinggi (7.2%).',
+        'Konsumsi garam (natrium) Anda cukup tinggi (1500 mg/hari).'
+      ]
+    },
+    {
+      patient_id: 'c42b7b3e-49dd-4df3-96ff-7f2fc9b3b0f9',
+      full_name: 'Pasien Sehat Test',
+      nik: '3201234567890888',
+      sex: 'female',
+      age: 33,
+      disease_type: 'diabetes_t2',
+      phone_number: '628100000777',
+      companion_name: 'Wali Sehat',
+      companion_phone: '628100000666',
+      status: 'active',
+      enrolled_at: '2026-06-29T18:38:40.340005Z',
+      health_score: 100,
+      risk_status: 'aman',
+      top_factors: [
+        'Kondisi Anda sudah baik, pertahankan pola hidup sehat Anda!'
+      ]
+    },
+    {
+      patient_id: 'a4eeab8d-47dd-43ba-94c6-c0276174f83e',
+      full_name: 'Pasien ML Test',
+      nik: '3201234567890999',
+      sex: 'male',
+      age: 58,
+      disease_type: 'both',
+      phone_number: '628100000999',
+      companion_name: 'Wali Test',
+      companion_phone: '628100000888',
+      status: 'active',
+      enrolled_at: '2026-06-29T18:27:33.610488Z',
+      health_score: 37,
+      risk_status: 'bahaya',
+      top_factors: [
+        'Fungsi ginjal Anda (eGFR 56.0) butuh perhatian.',
+        'Kadar HbA1c lab Anda tinggi (9.2%).',
+        'Tensi dasar (bawaan) Anda terdeteksi tinggi (158 mmHg).'
+      ]
+    },
+    {
+      patient_id: '222a0069-5f78-4b53-8827-8ea58c3a780f',
+      full_name: 'beni',
+      nik: '9876543234567890',
+      sex: 'male',
+      age: 49,
+      disease_type: 'diabetes_t2',
+      phone_number: '6287787773918',
+      companion_name: 'lavi',
+      companion_phone: '6287787773918',
+      status: 'active',
+      enrolled_at: '2026-06-29T07:54:35.003779Z',
+      health_score: null,
+      risk_status: null,
+      top_factors: null
+    },
+    {
+      patient_id: '31b7174a-16c9-483f-9df7-22bd3229a55e',
+      full_name: 'hai aku fred',
+      nik: '1234567890987654',
+      sex: 'male',
+      age: 4,
+      disease_type: 'both',
+      phone_number: '62822559456',
+      companion_name: 'hai aku predick',
+      companion_phone: '6281904373725',
+      status: 'active',
+      enrolled_at: '2026-06-29T05:02:05.476167Z',
+      health_score: null,
+      risk_status: null,
+      top_factors: null
+    },
+    {
+      patient_id: '1eeca0e4-0021-4af6-ad5f-0b558853641e',
+      full_name: 'Nai',
+      nik: '1231231231231231',
+      sex: 'male',
+      age: 0,
+      disease_type: 'diabetes_t2',
+      phone_number: '62822559456',
+      companion_name: 'Willi',
+      companion_phone: '6287791131380',
+      status: 'active',
+      enrolled_at: '2026-06-29T04:43:45.753549Z',
+      health_score: null,
+      risk_status: null,
+      top_factors: null
+    },
+    {
+      patient_id: '7ce5736c-9470-488e-8eb4-3c770a8c8a6d',
+      full_name: 'melvyn',
+      nik: '1234567142424422',
+      sex: 'male',
+      age: 50,
+      disease_type: 'both',
+      phone_number: '6281397833239',
+      companion_name: 'lavi',
+      companion_phone: '6287787773918',
+      status: 'active',
+      enrolled_at: '2026-06-28T14:34:11.315865Z',
+      health_score: null,
+      risk_status: null,
+      top_factors: null
+    },
+    {
+      patient_id: '0d4e7aee-4600-4d48-81bb-e04d1d57282e',
+      full_name: 'harry potter',
+      nik: '1234567171661111',
+      sex: 'male',
+      age: 37,
+      disease_type: 'diabetes_t2',
+      phone_number: '628212559456',
+      companion_name: 'voldemort',
+      companion_phone: '6287787773918',
+      status: 'active',
+      enrolled_at: '2026-06-28T13:56:55.450781Z',
+      health_score: null,
+      risk_status: null,
+      top_factors: null
+    },
+    {
+      patient_id: 'c297d171-0386-44bf-bb50-cda56c040fd5',
+      full_name: 'Budi Santoso',
+      nik: '3175091208900057',
+      sex: 'male',
+      age: 35,
+      disease_type: 'both',
+      phone_number: '62822559456',
+      companion_name: 'Siti Santoso',
+      companion_phone: '6287787773918',
+      status: 'active',
+      enrolled_at: '2026-06-28T09:56:16.917587Z',
+      health_score: null,
+      risk_status: null,
+      top_factors: null
+    },
+    {
+      patient_id: '776b3eb9-5b02-4946-b051-fffa101ef73e',
+      full_name: 'Budi Santoso',
+      nik: '3175091208900047',
+      sex: 'male',
+      age: 35,
+      disease_type: 'both',
+      phone_number: '62822559456',
+      companion_name: 'Siti Santoso',
+      companion_phone: '6287787773918',
+      status: 'active',
+      enrolled_at: '2026-06-28T09:24:23.243992Z',
+      health_score: null,
+      risk_status: null,
+      top_factors: null
+    }
   ]
   const totalItem = allPatients.length
   const totalPage = Math.ceil(totalItem / size)
@@ -459,15 +614,20 @@ export const faskesApi = {
   /** GET /api/v1/faskes/patients/{id} */
   getPatientDetail: async (id: string): Promise<FaskesPatientDetail> => {
     if (MOCK) {
+      const listRes = mockFaskesPatients(1, 100)
+      const found = listRes.data.find(p => p.patient_id === id)
       return {
         patient_id: id, faskes_id: 'faskes-mock-001',
         assigned_nakes_id: 'nakes-mock-001', assigned_nakes_name: 'Dr. Mock Nakes',
-        full_name: 'Pasien Mock', nik: '3201234567890002',
-        date_of_birth: '1970-05-15', sex: 'male', age: 55,
-        alamat: 'Jl. Pasien No. 2', phone_number: '6281234567891',
-        companion_name: 'Pendamping Mock', companion_phone: '6281234567892',
-        disease_type: 'diabetes_t2', username: 'pasien.mock', status: 'active',
-        enrolled_at: '2025-02-01T00:00:00Z', created_at: '2025-02-01T00:00:00Z', updated_at: '2025-02-01T00:00:00Z',
+        full_name: found?.full_name ?? 'Pasien Mock', nik: found?.nik ?? '3201234567890002',
+        date_of_birth: '1970-05-15', sex: found?.sex ?? 'male', age: found?.age ?? 55,
+        alamat: 'Jl. Pasien No. 2', phone_number: found?.phone_number ?? '6281234567891',
+        companion_name: found?.companion_name ?? 'Pendamping Mock', companion_phone: found?.companion_phone ?? '6281234567892',
+        disease_type: found?.disease_type ?? 'diabetes_t2', username: 'pasien.mock', status: found?.status ?? 'active',
+        enrolled_at: found?.enrolled_at ?? '2025-02-01T00:00:00Z', created_at: '2025-02-01T00:00:00Z', updated_at: '2025-02-01T00:00:00Z',
+        health_score: found?.health_score ?? null,
+        risk_status: found?.risk_status ?? null,
+        top_factors: found?.top_factors ?? null,
       }
     }
     const res = await request<ApiEnvelope<FaskesPatientDetail>>(`/api/v1/faskes/patients/${id}`)
