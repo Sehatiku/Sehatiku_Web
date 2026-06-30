@@ -21,7 +21,6 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const { user } = useAuth()
 
   const [activeView, setActiveView] = useState<ActiveView>('pasien')
-  const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [queue, setQueue] = useState<PatientQueueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -54,12 +53,11 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
   const fetchData = useCallback(async () => {
     try {
-      const [sum, queueRes, consultationsRes] = await Promise.all([
+      const [, queueRes, consultationsRes] = await Promise.all([
         nakesApi.getDashboardSummary(),
         nakesApi.getPatientQueue(),
         nakesApi.getConsultations(),
       ])
-      setSummary(sum)
       setQueue(queueRes.data)
       setConsultations(consultationsRes)
       setFetchError(null)
