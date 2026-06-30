@@ -238,6 +238,39 @@ export interface PatientQueueResponse {
   paging: Paging
 }
 
+// ─── Nakes Patient Summary (GET /api/v1/nakes/patients/:id/summary) ───────────
+
+export interface NakesPatientSummaryAggregates {
+  glucose: { avg_mgdl: number; min_mgdl: number; max_mgdl: number; count: number } | null
+  blood_pressure: { avg_systolic: number; avg_diastolic: number; count: number } | null
+  med_adherence: { adherence_rate_pct: number; count: number } | null
+  nutrition: { avg_kcal_per_day: number; avg_carbs_g_per_day: number; avg_sodium_mg_per_day: number; meal_count: number } | null
+  activity: { avg_minutes_per_day: number; total_minutes: number; count: number } | null
+  sleep: { avg_hours: number; count: number } | null
+  stress: { avg_level: number; count: number } | null
+  weight: { start_kg: number; latest_kg: number; delta_kg: number; count: number } | null
+}
+
+/** GET /api/v1/nakes/patients/:id/summary — window 7/14/30 hari */
+export interface NakesPatientSummary {
+  window: number
+  available: boolean
+  available_windows: number[]
+  history_days?: number
+  /** only present when available=true */
+  period?: { start: string; end: string }
+  /** only present when available=true */
+  coverage?: { logged_days: number; window_days: number; streak_days: number }
+  /** only present when available=true */
+  aggregates?: NakesPatientSummaryAggregates
+  risk?: { score: number; status: PatientStatus; scored_at: string }
+  narrative: string
+  /** Message shown when available=false */
+  message?: string
+  generated_at: string
+}
+
+
 // ─── Faskes Patients ──────────────────────────────────────────────────────────
 
 export interface FaskesPatientItem {

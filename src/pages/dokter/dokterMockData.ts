@@ -159,7 +159,7 @@ export const MOCK_METRICS: MockMetricSet[] = [
       { color: '#F59E0B', date: '15 Mei 2026', title: 'Evaluasi Bulanan', note: 'Skor meningkat dari 78 → 85. Kepatuhan obat turun ke 40%.' },
       { color: '#8A93A1', date: '01 Apr 2026', title: 'Konsultasi Rutin', note: 'Tensi dalam batas normal, namun gula darah masih perlu dipantau.' },
     ],
-    deltaColor: '#EF4444', delta: '+37', deltaLabel: '↑ memburuk',
+    deltaColor: '#EF4444', delta: '-37', deltaLabel: '↓ memburuk',
   },
   {
     metrics: [
@@ -173,7 +173,7 @@ export const MOCK_METRICS: MockMetricSet[] = [
       { color: '#EF4444', date: '20 Mei 2026', title: 'Eskalasi ke-2', note: 'Tensi 175/108. Obat tidak diminum 3 hari.' },
       { color: '#F59E0B', date: '10 Apr 2026', title: 'Peringatan Kepatuhan', note: 'Kepatuhan obat turun ke 43%. Edukasi ulang diberikan.' },
     ],
-    deltaColor: '#EF4444', delta: '+35', deltaLabel: '↑ memburuk',
+    deltaColor: '#EF4444', delta: '-35', deltaLabel: '↓ memburuk',
   },
   {
     metrics: [
@@ -187,7 +187,7 @@ export const MOCK_METRICS: MockMetricSet[] = [
       { color: '#8A93A1', date: '12 Mei 2026', title: 'Evaluasi Bulanan', note: 'Skor 50 → 55, sedikit memburuk. Disarankan perbaiki pola tidur.' },
       { color: '#0D9488', date: '01 Apr 2026', title: 'Perbaikan Aktivitas', note: 'Pasien mulai rutin olahraga 3x/minggu. Apresiasi diberikan.' },
     ],
-    deltaColor: '#D97706', delta: '+7', deltaLabel: '↑ sedikit memburuk',
+    deltaColor: '#D97706', delta: '-7', deltaLabel: '↓ sedikit memburuk',
   },
   {
     metrics: [
@@ -201,7 +201,7 @@ export const MOCK_METRICS: MockMetricSet[] = [
       { color: '#F59E0B', date: '15 Mei 2026', title: 'Monitoring DM+HT', note: 'Kedua kondisi perlu dikontrol. Kombinasi terapi sedang dievaluasi.' },
       { color: '#8A93A1', date: '01 Apr 2026', title: 'Konsultasi Nutrisi', note: 'Diet rendah garam dan rendah GI dimulai. Dampak positif terlihat.' },
     ],
-    deltaColor: '#059669', delta: '-12', deltaLabel: '↓ membaik',
+    deltaColor: '#059669', delta: '+12', deltaLabel: '↑ membaik',
   },
   {
     metrics: [
@@ -215,7 +215,7 @@ export const MOCK_METRICS: MockMetricSet[] = [
       { color: '#0D9488', date: '01 Mei 2026', title: 'Capaian Terapi', note: 'Skor turun 32 → 25. Salah satu pasien dengan progres terbaik bulan ini.' },
       { color: '#0D9488', date: '01 Mar 2026', title: 'Mulai Program Intensif', note: 'Pasien bergabung program olahraga dan diet khusus. Dampak langsung terlihat.' },
     ],
-    deltaColor: '#059669', delta: '-7', deltaLabel: '↓ membaik',
+    deltaColor: '#059669', delta: '+7', deltaLabel: '↑ membaik',
   },
 ]
 
