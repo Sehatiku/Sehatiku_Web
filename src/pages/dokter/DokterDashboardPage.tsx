@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
-import type { DashboardSummary, PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
+import type { PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
 import { initials } from '../../lib/utils'
 
 // Subcomponents & Views
@@ -21,7 +21,6 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const { user } = useAuth()
 
   const [activeView, setActiveView] = useState<ActiveView>('pasien')
-  const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [queue, setQueue] = useState<PatientQueueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -33,7 +32,6 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [chartRange, setChartRange] = useState<7 | 14>(7)
   const [trenPatientId, setTrenPatientId] = useState<string | null>(null)
   const [trenSearch, setTrenSearch] = useState('')
-  const [trenFilter, setTrenFilter] = useState<QueueFilter>('all')
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
@@ -55,12 +53,11 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
   const fetchData = useCallback(async () => {
     try {
-      const [sum, queueRes, consultationsRes] = await Promise.all([
+      const [, queueRes, consultationsRes] = await Promise.all([
         nakesApi.getDashboardSummary(),
         nakesApi.getPatientQueue(),
         nakesApi.getConsultations(),
       ])
-      setSummary(sum)
       setQueue(queueRes.data)
       setConsultations(consultationsRes)
       setFetchError(null)
@@ -108,25 +105,11 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
     }
   }, [fetchData])
 
-  const filteredQueue = useMemo(() => {
-    if (queueFilter === 'all') return queue
-    return queue.filter(p => p.status === queueFilter)
-  }, [queue, queueFilter])
-
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
   const selectedIdx = useMemo(() => queue.findIndex(p => p.patient_id === selectedId), [queue, selectedId])
 
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
   const trenIdx = useMemo(() => queue.findIndex(p => p.patient_id === trenPatientId), [queue, trenPatientId])
-
-  const trenList = useMemo(() => {
-    const q = trenSearch.trim().toLowerCase()
-    return queue.filter(p => {
-      if (trenFilter !== 'all' && p.status !== trenFilter) return false
-      if (q && !p.full_name.toLowerCase().includes(q)) return false
-      return true
-    })
-  }, [queue, trenSearch, trenFilter])
 
   const handleContact = useCallback((id: string) => {
     setContacted(prev => new Set([...prev, id]))
@@ -143,10 +126,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   }, [onLogout])
 
   // KPI values
-  const bahayaCount = summary?.risiko_bahaya ?? 0
-  const waswasCount = queue.filter(p => p.status === 'waswas').length
-  const amanCount = summary?.status_aman ?? 0
-  const totalCount = summary?.total_pasien ?? queue.length
+  const totalCount = queue.length
+  const bahayaCount = queue.filter(p => (100 - p.risk_score) < 40).length
+  const waswasCount = queue.filter(p => {
+    const hs = 100 - p.risk_score
+    return hs >= 40 && hs < 70
+  }).length
+  const amanCount = queue.filter(p => (100 - p.risk_score) >= 70).length
   const pendingComplaintsCount = consultations.filter(c => c.status === 'open').length
 
   // Umpan balik stats
@@ -196,7 +182,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             {[
               {
                 id: 'pasien' as const, label: 'Pasien Saya', icon: (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                 )
               },
               {
@@ -387,7 +373,6 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             <PasienView
               loading={loading}
               queue={queue}
-              filteredQueue={filteredQueue}
               queueFilter={queueFilter}
               setQueueFilter={setQueueFilter}
               setSelectedId={setSelectedId}
@@ -410,9 +395,6 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               trenPatient={trenPatient}
               trenSearch={trenSearch}
               setTrenSearch={setTrenSearch}
-              trenFilter={trenFilter}
-              setTrenFilter={setTrenFilter}
-              trenList={trenList}
               safeTrenIdx={safeTrenIdx}
               safeTrenMetrics={safeTrenMetrics}
             />
