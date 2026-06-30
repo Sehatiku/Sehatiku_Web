@@ -31,6 +31,22 @@ import type {
   ConsultationBody,
   ConsultationResult,
   PatientNotification,
+  BaselineRecord,
+  CreateBaselineBody,
+  BaselineHistoryResponse,
+  BaselineHistoryItem,
+  HealthScorePoint,
+  PatientBaselineHistoryResponse,
+  NakesPatientDetailData,
+  HealthSummary,
+  SummaryWindow,
+  EscalationItem,
+  EscalationResponse,
+  EscalationQuery,
+  EscalationFeedbackValue,
+  TodayStatus,
+  UnreadCount,
+  ReadAllResult,
 } from './types'
 
 const BASE = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8080'
@@ -620,6 +636,155 @@ function mockPatientDashboard(): PatientDashboard {
   }
 }
 
+function mockBaselineRecord(patientId: string): BaselineRecord {
+  return {
+    id: `baseline-${patientId}-latest`,
+    patient_id: patientId,
+    recorded_at: '2026-06-28T09:00:00Z',
+    recorded_by_nakes_id: 'nakes-mock-001',
+    recorded_by_nakes_name: 'Dr. Andi Wijaya, Sp.PD',
+    notes: 'Kontrol bulanan Prolanis',
+    age_years: 58, sex: 'male',
+    bmi: 29.4, bmi_category: 'overweight',
+    waist_circumference_cm: 102, central_obesity: true,
+    smoking_status: 'former', alcohol_use: false,
+    physical_activity: 'light',
+    family_history_diabetes: true, family_history_cvd: true,
+    systolic_bp_mmhg: 148, diastolic_bp_mmhg: 92, hypertension_status: 'stage1',
+    fasting_glucose_mgdl: 162, hba1c_pct: 9.2, diabetes_status: 'uncontrolled',
+    total_cholesterol_mgdl: 232, hdl_mgdl: 38, ldl_mgdl: 154, triglycerides_mgdl: 210,
+    cvd_risk_10yr_pct: 22.5, cvd_risk_category: 'high',
+    on_antihypertensive: true, on_antidiabetic: true, on_statin: false,
+    target_risk: 'moderate', egfr: 56, uacr: 35,
+    cluster_id: 2, diagnosis_cluster: 'metabolic', clinical_group: 'high_risk',
+  }
+}
+
+function mockBaselineHistory(): BaselineHistoryItem[] {
+  return [
+    {
+      id: 'bh-1', recorded_at: '2026-06-28T09:00:00Z', recorded_by_nakes_name: 'Dr. Andi Wijaya, Sp.PD', notes: 'Kontrol bulanan',
+      bmi: 29.4, bmi_category: 'overweight', systolic_bp_mmhg: 148, diastolic_bp_mmhg: 92, hypertension_status: 'stage1',
+      fasting_glucose_mgdl: 162, hba1c_pct: 9.2, diabetes_status: 'uncontrolled',
+      total_cholesterol_mgdl: 232, hdl_mgdl: 38, ldl_mgdl: 154, triglycerides_mgdl: 210,
+      cvd_risk_10yr_pct: 22.5, cvd_risk_category: 'high', egfr: 56, uacr: 35,
+    },
+    {
+      id: 'bh-2', recorded_at: '2026-05-28T09:00:00Z', recorded_by_nakes_name: 'Dr. Andi Wijaya, Sp.PD', notes: null,
+      bmi: 29.9, bmi_category: 'overweight', systolic_bp_mmhg: 152, diastolic_bp_mmhg: 95, hypertension_status: 'stage1',
+      fasting_glucose_mgdl: 175, hba1c_pct: 9.8, diabetes_status: 'uncontrolled',
+      total_cholesterol_mgdl: 240, hdl_mgdl: 36, ldl_mgdl: 160, triglycerides_mgdl: 225,
+      cvd_risk_10yr_pct: 24.1, cvd_risk_category: 'high', egfr: 54, uacr: 42,
+    },
+  ]
+}
+
+function mockHealthScoreHistory(): HealthScorePoint[] {
+  return Array.from({ length: 14 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const score = Math.round(40 + Math.random() * 40)
+    return {
+      score,
+      status: score > 70 ? 'aman' : score >= 40 ? 'waswas' : 'bahaya',
+      scored_at: d.toISOString(),
+    }
+  })
+}
+
+function mockNakesPatientDetail(patientId: string): NakesPatientDetailData {
+  const listRes = mockFaskesPatients(1, 100)
+  const found = listRes.data.find(p => p.patient_id === patientId)
+  return {
+    patient_detail: {
+      patient_id: patientId, faskes_id: 'faskes-mock-001',
+      assigned_nakes_id: 'nakes-mock-001', assigned_nakes_name: 'Dr. Andi Wijaya, Sp.PD',
+      full_name: found?.full_name ?? 'Pasien Mock', nik: found?.nik ?? '3201234567890002',
+      date_of_birth: '1968-03-12', sex: found?.sex ?? 'male', age: found?.age ?? 58,
+      alamat: 'Jl. Pasien No. 2', phone_number: found?.phone_number ?? '6281234567891',
+      companion_name: found?.companion_name ?? 'Pendamping Mock', companion_phone: found?.companion_phone ?? '6281234567892',
+      disease_type: found?.disease_type ?? 'both', username: 'pasien.mock', status: found?.status ?? 'active',
+      enrolled_at: found?.enrolled_at ?? '2026-06-28T09:00:00Z', created_at: '2026-06-28T09:00:00Z', updated_at: '2026-06-28T09:00:00Z',
+      health_score: found?.health_score ?? 72, risk_status: found?.risk_status ?? 'waswas', top_factors: found?.top_factors ?? null,
+    },
+    baseline: mockBaselineRecord(patientId),
+    daily_logs: Array.from({ length: 7 }, (_, i) => {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      return {
+        date: d.toISOString().slice(0, 10),
+        blood_sugar: Math.round(140 + Math.random() * 80),
+        weight: 70,
+        systolic: Math.round(135 + Math.random() * 20),
+        diastolic: Math.round(85 + Math.random() * 12),
+        health_score: Math.round(50 + Math.random() * 30),
+      }
+    }),
+    risk: {
+      score: found?.health_score ?? 72,
+      status: (found?.risk_status as 'aman' | 'waswas' | 'bahaya') ?? 'waswas',
+      scoring_mode: 'cohort',
+      top_factors: [
+        { feature: 'hba1c', shap_value: 2.4, direction: 'positive' },
+        { feature: 'egfr', shap_value: 1.8, direction: 'negative' },
+        { feature: 'systolic_bp', shap_value: 1.2, direction: 'positive' },
+      ],
+    },
+    health_score_history: mockHealthScoreHistory(),
+  }
+}
+
+function mockHealthSummary(window: SummaryWindow): HealthSummary {
+  return {
+    window,
+    available: true,
+    available_windows: [7, 14, 30].filter(w => w <= 30),
+    history_days: 42,
+    period: { start: '2026-06-24', end: '2026-06-30' },
+    coverage: { logged_days: 5, window_days: window, streak_days: 3 },
+    aggregates: {
+      glucose: { avg_mgdl: 142.5, min_mgdl: 98, max_mgdl: 210, count: 6 },
+      blood_pressure: { avg_systolic: 134.2, avg_diastolic: 85.1, count: 5 },
+      med_adherence: { adherence_rate_pct: 80, count: 5 },
+      nutrition: { avg_kcal_per_day: 1850.4, avg_carbs_g_per_day: 210.3, avg_sodium_mg_per_day: 1200, meal_count: 8 },
+      activity: { avg_minutes_per_day: 25, total_minutes: 75, count: 3 },
+      sleep: { avg_hours: 6.5, count: 4 },
+      stress: { avg_level: 4.2, count: 4 },
+      weight: { start_kg: 70.5, latest_kg: 70.1, delta_kg: -0.4, count: 2 },
+    },
+    risk: { score: 72, status: 'waswas', scored_at: '2026-06-30T01:00:00Z' },
+    narrative: 'Kondisi Anda dalam sepekan terakhir cukup stabil meski gula darah rata-rata masih di atas target. Tekanan darah membaik tipis. Tetap rutin catat dan minum obat sesuai jadwal.',
+    generated_at: new Date().toISOString(),
+  }
+}
+
+let currentMockEscalations: EscalationItem[] = [
+  {
+    id: 'esc-1', patient_id: 'a4eeab8d-47dd-43ba-94c6-c0276174f83e', patient_name: 'Pasien ML Test',
+    tier: 'acute_today', status: 'sent', risk_score: 37, risk_status: 'bahaya',
+    sent_at: '2026-06-30T01:10:00Z', viewed_at: null, acted_at: null, created_at: '2026-06-30T01:10:00Z',
+  },
+  {
+    id: 'esc-2', patient_id: '12efe4b4-27b0-4190-acdc-3c2d384a94cb', patient_name: 'Pasien Sedang Test',
+    tier: 'trend_this_week', status: 'viewed', risk_score: 58, risk_status: 'waswas',
+    sent_at: '2026-06-29T01:10:00Z', viewed_at: '2026-06-29T03:00:00Z', acted_at: null, created_at: '2026-06-29T01:10:00Z',
+  },
+]
+
+function mockEscalations(query: EscalationQuery): EscalationResponse {
+  let items = currentMockEscalations
+  if (query.status) items = items.filter(e => e.status === query.status)
+  if (query.tier) items = items.filter(e => e.tier === query.tier)
+  const page = query.page ?? 1
+  const size = query.size ?? 20
+  const totalItem = items.length
+  const start = (page - 1) * size
+  return {
+    data: items.slice(start, start + size),
+    paging: { page, size, total_item: totalItem, total_page: Math.max(1, Math.ceil(totalItem / size)) },
+  }
+}
+
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 
 export const authFaskesApi = {
@@ -862,6 +1027,52 @@ export const faskesApi = {
     )
     return res.data
   },
+
+  /** GET /api/v1/faskes/patients/{id}/baseline — latest full baseline (pre-fill) */
+  getPatientBaseline: async (id: string): Promise<BaselineRecord> => {
+    if (MOCK) return mockBaselineRecord(id)
+    const res = await request<ApiEnvelope<BaselineRecord>>(`/api/v1/faskes/patients/${id}/baseline`)
+    return res.data
+  },
+
+  /** POST /api/v1/faskes/patients/{id}/baseline — record a new baseline version (insert-only) */
+  createPatientBaseline: async (id: string, body: CreateBaselineBody): Promise<BaselineRecord> => {
+    if (MOCK) {
+      const rec = mockBaselineRecord(id)
+      return {
+        ...rec,
+        ...body.baseline,
+        id: `baseline-${Date.now()}`,
+        recorded_at: body.recorded_at ?? new Date().toISOString(),
+        recorded_by_nakes_id: body.recorded_by_nakes_id,
+        notes: body.notes ?? null,
+      }
+    }
+    const res = await request<ApiEnvelope<BaselineRecord>>(
+      `/api/v1/faskes/patients/${id}/baseline`,
+      { method: 'POST', body: JSON.stringify(body) },
+    )
+    return res.data
+  },
+
+  /** GET /api/v1/faskes/patients/{id}/baseline/history — paginated baseline + health-score trend */
+  getPatientBaselineHistory: async (
+    id: string,
+    page = 1,
+    size = 20,
+    scoreLimit = 90,
+  ): Promise<BaselineHistoryResponse> => {
+    if (MOCK) {
+      return {
+        data: { baseline_history: mockBaselineHistory(), health_score_history: mockHealthScoreHistory() },
+        paging: { page, size, total_item: 2, total_page: 1 },
+      }
+    }
+    const res = await request<BaselineHistoryResponse & { message: string }>(
+      `/api/v1/faskes/patients/${id}/baseline/history?page=${page}&size=${size}&score_limit=${scoreLimit}`,
+    )
+    return { data: res.data, paging: res.paging }
+  },
 }
 
 // ─── Nakes API ────────────────────────────────────────────────────────────────
@@ -979,6 +1190,79 @@ export const nakesApi = {
     await request<ApiEnvelope<null>>(
       `/api/v1/nakes/consultations/${id}/reply`,
       { method: 'POST', body: JSON.stringify({ nakes_note: note }) }
+    )
+  },
+
+  /** GET /api/v1/nakes/patients/:id — full patient detail (profile, baseline, logs, risk) */
+  getPatientDetail: async (id: string): Promise<NakesPatientDetailData> => {
+    if (MOCK) return mockNakesPatientDetail(id)
+    const res = await request<ApiEnvelope<NakesPatientDetailData>>(`/api/v1/nakes/patients/${id}`)
+    return res.data
+  },
+
+  /** GET /api/v1/nakes/patients/:id/summary?window=7|14|30 — aggregates + AI narrative */
+  getPatientSummary: async (id: string, window: SummaryWindow = 7): Promise<HealthSummary> => {
+    if (MOCK) return mockHealthSummary(window)
+    const res = await request<ApiEnvelope<HealthSummary>>(`/api/v1/nakes/patients/${id}/summary?window=${window}`)
+    return res.data
+  },
+
+  /** GET /api/v1/nakes/escalations — escalation queue (acute_today first), with filters */
+  getEscalations: async (query: EscalationQuery = {}): Promise<EscalationResponse> => {
+    if (MOCK) return mockEscalations(query)
+    const params = new URLSearchParams()
+    if (query.status) params.set('status', query.status)
+    if (query.tier) params.set('tier', query.tier)
+    params.set('page', String(query.page ?? 1))
+    params.set('size', String(query.size ?? 20))
+    const envelope = await request<PaginatedEnvelope<EscalationItem>>(
+      `/api/v1/nakes/escalations?${params.toString()}`,
+    )
+    return { data: envelope.data, paging: envelope.paging }
+  },
+
+  /** PATCH /api/v1/nakes/escalations/{id}/view — mark viewed (idempotent) */
+  viewEscalation: async (id: string): Promise<void> => {
+    if (MOCK) {
+      const found = currentMockEscalations.find(e => e.id === id)
+      if (found && found.status === 'sent') {
+        found.status = 'viewed'
+        found.viewed_at = new Date().toISOString()
+      }
+      return
+    }
+    await request<ApiEnvelope<null>>(`/api/v1/nakes/escalations/${id}/view`, { method: 'PATCH' })
+  },
+
+  /** PATCH /api/v1/nakes/escalations/{id}/act — mark acted */
+  actEscalation: async (id: string): Promise<void> => {
+    if (MOCK) {
+      const found = currentMockEscalations.find(e => e.id === id)
+      if (found) {
+        found.status = 'acted'
+        found.acted_at = new Date().toISOString()
+      }
+      return
+    }
+    await request<ApiEnvelope<null>>(`/api/v1/nakes/escalations/${id}/act`, { method: 'PATCH' })
+  },
+
+  /** PATCH /api/v1/nakes/escalations/{id}/dismiss — mark dismissed */
+  dismissEscalation: async (id: string): Promise<void> => {
+    if (MOCK) {
+      const found = currentMockEscalations.find(e => e.id === id)
+      if (found) found.status = 'dismissed'
+      return
+    }
+    await request<ApiEnvelope<null>>(`/api/v1/nakes/escalations/${id}/dismiss`, { method: 'PATCH' })
+  },
+
+  /** PATCH /api/v1/nakes/escalations/{id}/feedback — rate escalation accuracy (gold label) */
+  submitEscalationFeedback: async (id: string, feedback: EscalationFeedbackValue): Promise<void> => {
+    if (MOCK) return
+    await request<ApiEnvelope<null>>(
+      `/api/v1/nakes/escalations/${id}/feedback`,
+      { method: 'PATCH', body: JSON.stringify({ feedback }) },
     )
   },
 }
@@ -1116,6 +1400,67 @@ export const patientApi = {
     }
     const res = await request<ApiEnvelope<PatientNotification[]>>('/api/v1/patients/notifications')
     return res.data
+  },
+
+  /** GET /api/v1/patients/summary?window=7|14|30 — aggregates + AI narrative (patient tone) */
+  getSummary: async (window: SummaryWindow = 7): Promise<HealthSummary> => {
+    if (MOCK) return mockHealthSummary(window)
+    const res = await request<ApiEnvelope<HealthSummary>>(`/api/v1/patients/summary?window=${window}`)
+    return res.data
+  },
+
+  /** GET /api/v1/patients/records/today-status — has today's data been logged (WIB) */
+  getTodayStatus: async (): Promise<TodayStatus> => {
+    if (MOCK) {
+      return { logged_today: true, days_since_last_log: 0, last_logged_at: new Date().toISOString(), date: new Date().toISOString().slice(0, 10) }
+    }
+    const res = await request<ApiEnvelope<TodayStatus>>('/api/v1/patients/records/today-status')
+    return res.data
+  },
+
+  /** GET /api/v1/patients/records/logged-today — raw boolean shortcut */
+  getLoggedToday: async (): Promise<boolean> => {
+    if (MOCK) return true
+    const res = await request<ApiEnvelope<boolean>>('/api/v1/patients/records/logged-today')
+    return res.data
+  },
+
+  /** GET /api/v1/patients/baseline/history — own baseline progress (paginated) */
+  getBaselineHistory: async (page = 1, size = 20): Promise<PatientBaselineHistoryResponse> => {
+    if (MOCK) {
+      return { data: mockBaselineHistory(), paging: { page, size, total_item: 2, total_page: 1 } }
+    }
+    const envelope = await request<PaginatedEnvelope<BaselineHistoryItem>>(
+      `/api/v1/patients/baseline/history?page=${page}&size=${size}`,
+    )
+    return { data: envelope.data, paging: envelope.paging }
+  },
+
+  /** GET /api/v1/patients/notifications/unread-count — badge count */
+  getUnreadNotificationCount: async (): Promise<number> => {
+    if (MOCK) return currentMockNotifications.length
+    const res = await request<ApiEnvelope<UnreadCount>>('/api/v1/patients/notifications/unread-count')
+    return res.data.unread_count
+  },
+
+  /** PATCH /api/v1/patients/notifications/{id}/read — mark one as read (idempotent) */
+  markNotificationRead: async (id: string): Promise<void> => {
+    if (MOCK) return
+    await request<ApiEnvelope<null>>(`/api/v1/patients/notifications/${id}/read`, { method: 'PATCH' })
+  },
+
+  /** POST /api/v1/patients/notifications/read-all — mark all as read */
+  markAllNotificationsRead: async (): Promise<number> => {
+    if (MOCK) {
+      const count = currentMockNotifications.length
+      currentMockNotifications = []
+      return count
+    }
+    const res = await request<ApiEnvelope<ReadAllResult>>(
+      '/api/v1/patients/notifications/read-all',
+      { method: 'POST' },
+    )
+    return res.data.updated_count
   },
 }
 
