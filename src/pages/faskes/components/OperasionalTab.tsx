@@ -7,8 +7,9 @@ interface Patient {
   id: string
   name: string
   disease: string
-  healthScore: number
+  healthScore: number | null
   status: string
+  patientStatus: string
   cause: string
   age: number
 }
@@ -38,32 +39,22 @@ export default function OperasionalTab({
         setPtSummaryLoading(false)
         
         // Map real patient items to operasional table state
-        const mapped = res.data.map((p, idx) => {
-          const healthScores = [35, 78, 55, 92, 48, 88, 72, 64, 45, 90, 82, 38, 70, 52, 60]
+        const mapped = res.data.map((p) => {
           const score = p.health_score !== null && p.health_score !== undefined
             ? p.health_score
-            : healthScores[idx % healthScores.length]
+            : null
           
-          let status = 'Sehat'
+          let status = '—'
           if (p.risk_status) {
             const lowerRisk = p.risk_status.toLowerCase()
             if (lowerRisk === 'bahaya' || lowerRisk === 'kritis') status = 'Parah'
             else if (lowerRisk === 'waswas' || lowerRisk === 'sedang') status = 'Waswas'
-            else status = 'Sehat'
-          } else {
-            if (score < 40) status = 'Parah'
-            else if (score < 70) status = 'Waswas'
+            else if (lowerRisk === 'aman' || lowerRisk === 'sehat') status = 'Sehat'
           }
 
-          let cause = 'HbA1c Stabil'
+          let cause = '—'
           if (p.top_factors && p.top_factors.length > 0) {
             cause = p.top_factors[0]
-          } else {
-            if (status === 'Parah') {
-              cause = p.disease_type === 'hypertension' ? 'Tekanan Darah Tinggi' : 'HbA1c Tinggi'
-            } else if (status === 'Waswas') {
-              cause = 'Kepatuhan Obat Rendah'
-            }
           }
 
           let disease = 'Diabetes'
@@ -79,11 +70,21 @@ export default function OperasionalTab({
             disease,
             healthScore: score,
             status,
+            patientStatus: p.status,
             cause,
             age: p.age
           }
         })
-        setPatients(mapped)
+
+        // Sort patients by health score: lowest to highest, putting nulls at the end
+        const sortedMapped = mapped.sort((a, b) => {
+          if (a.healthScore === null && b.healthScore === null) return 0
+          if (a.healthScore === null) return 1
+          if (b.healthScore === null) return -1
+          return a.healthScore - b.healthScore
+        })
+
+        setPatients(sortedMapped)
       })
       .catch(() => setPtSummaryLoading(false))
   }, [])
@@ -95,28 +96,32 @@ export default function OperasionalTab({
   const [progressPatientId, setProgressPatientId] = useState<string | null>(null)
 
   // Helper functions
-  const getHealthColor = (score: number) => {
-    if (score >= 70) return '#10B981' // Sehat (Green)
-    if (score >= 40) return '#F59E0B' // Waswas (Yellow)
-    return '#EF4444' // Parah (Red)
+  const getHealthColor = (score: number | null) => {
+    if (score === null || score === undefined) return '#94A3B8'
+    if (score >= 70) return '#10B981'
+    if (score >= 40) return '#F59E0B'
+    return '#EF4444'
   }
 
-  const getHealthShadow = (score: number) => {
+  const getHealthShadow = (score: number | null) => {
+    if (score === null || score === undefined) return 'rgba(148,163,184,0.15)'
     if (score >= 70) return 'rgba(16,185,129,0.2)'
     if (score >= 40) return 'rgba(245,158,11,0.2)'
     return 'rgba(239,68,68,0.2)'
   }
 
-  const getHealthTier = (score: number) => {
+  const getHealthTier = (score: number | null) => {
+    if (score === null || score === undefined) return 'Belum Dihitung'
     if (score >= 70) return 'Tinggi (Sehat)'
     if (score >= 40) return 'Sedang (Waswas)'
     return 'Rendah (Parah)'
   }
 
-  const getStatusStyle = (st: string) => {
+  const getStatusStyle = (st: string | null) => {
+    if (!st || st === '—') return { color: '#64748B', bg: '#F1F5F9' }
     if (st === 'Parah') return { color: '#EF4444', bg: 'rgba(239,68,68,0.08)' }
     if (st === 'Waswas') return { color: '#D97706', bg: 'rgba(245,158,11,0.1)' }
-    return { color: '#10B981', bg: 'rgba(16,185,129,0.08)' } // Sehat
+    return { color: '#10B981', bg: 'rgba(16,185,129,0.08)' }
   }
 
   const selectedPatient = patients.find(p => p.id === selectedPatientId)
@@ -337,9 +342,10 @@ export default function OperasionalTab({
               <tr style={{ background: '#F8FAFC' }}>
                 <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 60 }}>Rank</th>
                 <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pasien</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Pasien</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Penyakit</th>
                 <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 160 }}>Health Score</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
+                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Risiko</th>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Faktor Penyebab Utama</th>
                 <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aksi</th>
               </tr>
@@ -347,7 +353,7 @@ export default function OperasionalTab({
             <tbody>
               {patients.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
+                  <td colSpan={8} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
                     Belum ada data pasien. Endpoint daftar pasien faskes belum tersedia di backend.
                   </td>
                 </tr>
@@ -360,7 +366,10 @@ export default function OperasionalTab({
 
                 let avatarBg = '#EEF0FF'
                 let avatarColor = '#5B6BF0'
-                if (p.healthScore < 40) {
+                if (p.healthScore === null || p.healthScore === undefined) {
+                  avatarBg = '#F1F5F9'
+                  avatarColor = '#64748B'
+                } else if (p.healthScore < 40) {
                   avatarBg = '#FEF2F2'
                   avatarColor = '#EF4444'
                 } else if (p.healthScore < 70) {
@@ -371,14 +380,16 @@ export default function OperasionalTab({
                   avatarColor = '#10B981'
                 }
 
+                const isCauseAvailable = p.cause !== '—' && p.cause !== ''
+
                 return (
                   <tr key={p.id} className="qrow" style={{ borderTop: '1px solid #ECEEF3', transition: 'background 0.12s' }}>
                     <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
                       <div style={{
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         width: 26, height: 26, borderRadius: 8,
-                        background: i < 2 ? '#FEF2F2' : '#F8FAFC',
-                        color: i < 2 ? '#EF4444' : '#64748B',
+                        background: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#FEF2F2' : '#F8FAFC',
+                        color: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#EF4444' : '#64748B',
                         fontSize: 12, fontWeight: 800
                       }}>{i + 1}</div>
                     </td>
@@ -398,6 +409,14 @@ export default function OperasionalTab({
                         </div>
                       </div>
                     </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <span style={{
+                        background: p.patientStatus === 'active' ? 'rgba(16,185,129,0.1)' : '#F1F5F9',
+                        color: p.patientStatus === 'active' ? '#10B981' : '#64748B',
+                        border: `1px solid ${p.patientStatus === 'active' ? 'rgba(16,185,129,0.2)' : '#E2E8F0'}`,
+                        fontSize: 10.5, fontWeight: 700, padding: '4px 10px', borderRadius: 20, whiteSpace: 'nowrap'
+                      }}>{p.patientStatus === 'active' ? 'Aktif' : 'Nonaktif'}</span>
+                    </td>
                     <td style={{ padding: '14px 16px' }}>
                       <span style={{
                         background: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#EEF0FF' : 'rgba(79,195,247,0.1)',
@@ -414,11 +433,13 @@ export default function OperasionalTab({
                           width: 38, height: 38, borderRadius: 10, background: color,
                           boxShadow: `0 2px 8px ${shadow}`, flexShrink: 0
                         }}>
-                          <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>{p.healthScore}</span>
+                          <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>
+                            {p.healthScore !== null ? p.healthScore : '—'}
+                          </span>
                         </div>
                         <div style={{ flex: 1, minWidth: 48 }}>
                           <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${p.healthScore}%`, borderRadius: 4, background: color }}></div>
+                            <div style={{ height: '100%', width: `${p.healthScore !== null ? p.healthScore : 0}%`, borderRadius: 4, background: color }}></div>
                           </div>
                           <div style={{ fontSize: 9.5, color: '#64748B', fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{tier}</div>
                         </div>
@@ -433,7 +454,7 @@ export default function OperasionalTab({
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }}></div>
+                        {isCauseAvailable && <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }}></div>}
                         <span style={{ fontSize: 12.5, color: '#334155' }}>{p.cause}</span>
                       </div>
                     </td>
