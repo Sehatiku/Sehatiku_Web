@@ -8,6 +8,8 @@ interface Props {
   detail: FaskesPatientDetail | null
   loading: boolean
   onClose: () => void
+  /** Tab awal saat drawer dibuka (default: 'profile') */
+  initialTab?: 'profile' | 'baseline'
 }
 
 const DISEASE_LABEL: Record<string, string> = {
@@ -40,8 +42,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-export default function PatientDetailDrawer({ detail, loading, onClose }: Props) {
-  const [activeTab, setActiveTab] = useState<'profile' | 'baseline' | 'form'>('profile')
+export default function PatientDetailDrawer({ detail, loading, onClose, initialTab = 'profile' }: Props) {
+  const [activeTab, setActiveTab] = useState<'profile' | 'baseline' | 'form'>(initialTab)
 
   // Baseline states
   const [latestBaseline, setLatestBaseline] = useState<PatientBaselineDetail | null>(null)
@@ -65,12 +67,12 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
       try {
         const [latestRes, historyRes, nakesRes] = await Promise.all([
           faskesApi.getPatientBaseline(detail.patient_id).catch(() => null),
-          faskesApi.getPatientBaselineHistory(detail.patient_id).catch(() => ({ data: [] })),
+          faskesApi.getPatientBaselineHistory(detail.patient_id).catch(() => ({ data: { baseline_history: [], health_score_history: [] } })),
           faskesApi.getNakes().catch(() => [])
         ])
 
         setLatestBaseline(latestRes)
-        setHistory(historyRes.data)
+        setHistory(historyRes.data.baseline_history)
         setNakesList(nakesRes.filter((n: NakesItem) => n.status === 'active' && n.role === 'dokter'))
 
         const defaultBaseline: PatientBaselineBody = {

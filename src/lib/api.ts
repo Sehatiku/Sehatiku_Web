@@ -31,8 +31,10 @@ import type {
   ConsultationBody,
   ConsultationResult,
   PatientNotification,
+  Paging,
   PatientBaselineDetail,
   CreatePatientBaselineBody,
+  BaselineHistoryResponse,
   PatientBaselineHistoryResponse,
   BaselineHistoryItem,
   HealthScorePoint,
@@ -96,10 +98,59 @@ interface PaginatedEnvelope<T> {
   paging: { page: number; size: number; total_item: number; total_page: number }
 }
 
+// Parse a response body as JSON without throwing on empty/non-JSON bodies
+// (some error responses come back as an empty body or an HTML proxy page).
+async function parseBody(res: Response): Promise<unknown> {
+  const text = await res.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { message: text }
+  }
+}
+
+// Refresh the access token using the stored refresh token. Uses a raw fetch
+// (not request()) to avoid recursion. Returns true if a new token was stored.
+let refreshInFlight: Promise<boolean> | null = null
+async function tryRefreshToken(): Promise<boolean> {
+  if (refreshInFlight) return refreshInFlight
+  refreshInFlight = (async () => {
+    const stored = getStoredTokens()
+    if (!stored?.refresh_token) return false
+    try {
+      const res = await fetch(`${BASE}/api/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: stored.refresh_token }),
+      })
+      if (!res.ok) {
+        clearStoredTokens()
+        return false
+      }
+      const json = (await parseBody(res)) as { data?: { access_token: string; refresh_token: string } } | null
+      if (!json?.data?.access_token) {
+        clearStoredTokens()
+        return false
+      }
+      setStoredTokens({ access_token: json.data.access_token, refresh_token: json.data.refresh_token })
+      return true
+    } catch {
+      return false
+    }
+  })()
+  try {
+    return await refreshInFlight
+  } finally {
+    refreshInFlight = null
+  }
+}
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
   extraHeaders: Record<string, string> = {},
+  _retried = false,
 ): Promise<T> {
   const token = accessToken()
 
@@ -111,10 +162,20 @@ async function request<T>(
   }
 
   const res = await fetch(`${BASE}${path}`, { ...init, headers })
-  const json = await res.json()
+
+  // Access token expired (12h) but refresh token may still be valid (7d) —
+  // refresh once transparently and retry the original request.
+  if (res.status === 401 && !_retried && token && path !== '/api/v1/auth/refresh') {
+    const refreshed = await tryRefreshToken()
+    if (refreshed) {
+      return request<T>(path, init, extraHeaders, true)
+    }
+  }
+
+  const json = await parseBody(res)
 
   if (!res.ok) {
-    throw Object.assign(new Error(json?.message ?? 'Request failed'), {
+    throw Object.assign(new Error((json as { message?: string })?.message ?? 'Request failed'), {
       status: res.status,
       body: json,
     })
@@ -683,11 +744,12 @@ function mockFaskesPatients(page = 1, size = 10): FaskesPatientResponse {
 function mockPatientQueue(): PatientQueueResponse {
   return {
     data: [
-      { patient_id: 'p1', full_name: 'Ahmad Suharto', age: 58, disease_type: 'diabetes_t2', risk_score: 92, risk_label: 'kritis', status: 'bahaya', main_factor: 'HbA1c Tinggi' },
-      { patient_id: 'p2', full_name: 'Siti Rahayu', age: 62, disease_type: 'hypertension', risk_score: 87, risk_label: 'kritis', status: 'bahaya', main_factor: 'Asupan Natrium Tinggi' },
+      // risk_score = health_score (TINGGI = sehat): bahaya rendah, aman tinggi
+      { patient_id: 'p1', full_name: 'Ahmad Suharto', age: 58, disease_type: 'diabetes_t2', risk_score: 28, risk_label: 'kritis', status: 'bahaya', main_factor: 'HbA1c Tinggi' },
+      { patient_id: 'p2', full_name: 'Siti Rahayu', age: 62, disease_type: 'hypertension', risk_score: 35, risk_label: 'kritis', status: 'bahaya', main_factor: 'Asupan Natrium Tinggi' },
       { patient_id: 'p3', full_name: 'Budi Santoso', age: 45, disease_type: 'diabetes_t2', risk_score: 55, risk_label: 'sedang', status: 'waswas', main_factor: 'Kurang Tidur' },
-      { patient_id: 'p4', full_name: 'Maya Kusuma', age: 52, disease_type: 'both', risk_score: 48, risk_label: 'sedang', status: 'waswas', main_factor: 'Kepatuhan Obat Rendah' },
-      { patient_id: 'p5', full_name: 'Rini Wulandari', age: 39, disease_type: 'hypertension', risk_score: 25, risk_label: 'rendah', status: 'aman', main_factor: '' },
+      { patient_id: 'p4', full_name: 'Maya Kusuma', age: 52, disease_type: 'both', risk_score: 62, risk_label: 'sedang', status: 'waswas', main_factor: 'Kepatuhan Obat Rendah' },
+      { patient_id: 'p5', full_name: 'Rini Wulandari', age: 39, disease_type: 'hypertension', risk_score: 88, risk_label: 'rendah', status: 'aman', main_factor: '' },
     ],
     paging: { page: 1, size: 20, total_item: 5, total_page: 1 },
   }
@@ -1189,45 +1251,94 @@ export const faskesApi = {
     return res.data
   },
 
-  /** GET /api/v1/faskes/patients/{id}/baseline/history */
-  getPatientBaselineHistory: async (id: string, page = 1, size = 20): Promise<PatientBaselineHistoryResponse> => {
+  /**
+   * GET /api/v1/faskes/patients/{id}/baseline/history
+   * Kontrak: `data` adalah OBJEK { baseline_history, health_score_history } + `paging`
+   * di root. Parser toleran terhadap bentuk array-datar (jaga-jaga bila BE berbeda).
+   */
+  getPatientBaselineHistory: async (
+    id: string,
+    page = 1,
+    size = 20,
+    scoreLimit = 90,
+  ): Promise<BaselineHistoryResponse> => {
     if (MOCK) {
       const history = mockBaselines[id] || []
       const start = (page - 1) * size
-      const data: BaselineHistoryItem[] = history.map(b => ({
-        id: b.id,
-        recorded_at: b.recorded_at,
-        recorded_by_nakes_name: b.recorded_by_nakes_name,
-        notes: b.notes,
-        bmi: b.bmi,
-        bmi_category: b.bmi_category,
-        systolic_bp_mmhg: b.systolic_bp_mmhg,
-        diastolic_bp_mmhg: b.diastolic_bp_mmhg,
-        hypertension_status: b.hypertension_status,
-        fasting_glucose_mgdl: b.fasting_glucose_mgdl,
-        hba1c_pct: b.hba1c_pct,
-        diabetes_status: b.diabetes_status,
-        total_cholesterol_mgdl: b.total_cholesterol_mgdl,
-        hdl_mgdl: b.hdl_mgdl,
-        ldl_mgdl: b.ldl_mgdl,
-        triglycerides_mgdl: b.triglycerides_mgdl,
-        cvd_risk_10yr_pct: b.cvd_risk_10yr_pct,
-        cvd_risk_category: b.cvd_risk_category,
-        egfr: b.egfr,
-        uacr: b.uacr
+      const baseline_history: BaselineHistoryItem[] = history.slice(start, start + size).map(b => ({
+        id: b.id, recorded_at: b.recorded_at, recorded_by_nakes_name: b.recorded_by_nakes_name, notes: b.notes,
+        bmi: b.bmi, bmi_category: b.bmi_category,
+        systolic_bp_mmhg: b.systolic_bp_mmhg, diastolic_bp_mmhg: b.diastolic_bp_mmhg, hypertension_status: b.hypertension_status,
+        fasting_glucose_mgdl: b.fasting_glucose_mgdl, hba1c_pct: b.hba1c_pct, diabetes_status: b.diabetes_status,
+        total_cholesterol_mgdl: b.total_cholesterol_mgdl, hdl_mgdl: b.hdl_mgdl, ldl_mgdl: b.ldl_mgdl, triglycerides_mgdl: b.triglycerides_mgdl,
+        cvd_risk_10yr_pct: b.cvd_risk_10yr_pct, cvd_risk_category: b.cvd_risk_category, egfr: b.egfr, uacr: b.uacr,
       }))
       return {
-        data: data.slice(start, start + size),
-        paging: { page, size, total_item: history.length, total_page: Math.ceil(history.length / size) }
+        data: { baseline_history, health_score_history: mockHealthScoreHistory() },
+        paging: { page, size, total_item: history.length, total_page: Math.max(1, Math.ceil(history.length / size)) },
       }
     }
-    const res = await request<ApiEnvelope<BaselineHistoryItem[]>>(
-      `/api/v1/faskes/patients/${id}/baseline/history?page=${page}&size=${size}`
+    const res = await request<{ message: string; data: unknown; paging?: Paging }>(
+      `/api/v1/faskes/patients/${id}/baseline/history?page=${page}&size=${size}&score_limit=${scoreLimit}`,
     )
+    const d = res.data as
+      | BaselineHistoryItem[]
+      | { baseline_history?: BaselineHistoryItem[]; health_score_history?: HealthScorePoint[] }
+      | null
+    const baseline_history = Array.isArray(d) ? d : (d?.baseline_history ?? [])
+    const health_score_history = Array.isArray(d) ? [] : (d?.health_score_history ?? [])
     return {
-      data: res.data,
-      paging: { page, size, total_item: res.data.length, total_page: Math.ceil(res.data.length / size) } // simple wrap if not returned
+      data: { baseline_history, health_score_history },
+      paging: res.paging ?? {
+        page, size, total_item: baseline_history.length, total_page: Math.max(1, Math.ceil(baseline_history.length / size)),
+      },
     }
+  },
+
+  // ─── Eskalasi (faskes-authed) — shape identik dgn nakes, tanpa feedback ──────
+
+  /** GET /api/v1/faskes/escalations — antrean eskalasi untuk token faskes */
+  getEscalations: async (query: EscalationQuery = {}): Promise<EscalationResponse> => {
+    if (MOCK) return mockEscalations(query)
+    const params = new URLSearchParams()
+    if (query.status) params.set('status', query.status)
+    if (query.tier) params.set('tier', query.tier)
+    params.set('page', String(query.page ?? 1))
+    params.set('size', String(query.size ?? 20))
+    const envelope = await request<PaginatedEnvelope<EscalationItem>>(
+      `/api/v1/faskes/escalations?${params.toString()}`,
+    )
+    return { data: envelope.data, paging: envelope.paging }
+  },
+
+  /** PATCH /api/v1/faskes/escalations/{id}/view */
+  viewEscalation: async (id: string): Promise<void> => {
+    if (MOCK) {
+      const found = currentMockEscalations.find(e => e.id === id)
+      if (found && found.status === 'sent') { found.status = 'viewed'; found.viewed_at = new Date().toISOString() }
+      return
+    }
+    await request<ApiEnvelope<null>>(`/api/v1/faskes/escalations/${id}/view`, { method: 'PATCH' })
+  },
+
+  /** PATCH /api/v1/faskes/escalations/{id}/act */
+  actEscalation: async (id: string): Promise<void> => {
+    if (MOCK) {
+      const found = currentMockEscalations.find(e => e.id === id)
+      if (found) { found.status = 'acted'; found.acted_at = new Date().toISOString() }
+      return
+    }
+    await request<ApiEnvelope<null>>(`/api/v1/faskes/escalations/${id}/act`, { method: 'PATCH' })
+  },
+
+  /** PATCH /api/v1/faskes/escalations/{id}/dismiss */
+  dismissEscalation: async (id: string): Promise<void> => {
+    if (MOCK) {
+      const found = currentMockEscalations.find(e => e.id === id)
+      if (found) found.status = 'dismissed'
+      return
+    }
+    await request<ApiEnvelope<null>>(`/api/v1/faskes/escalations/${id}/dismiss`, { method: 'PATCH' })
   },
 }
 

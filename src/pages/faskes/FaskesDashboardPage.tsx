@@ -90,6 +90,24 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   const faskesName = profile?.name ?? user?.name ?? 'Faskes'
   const faskesCode = profile ? `${faskesTypeLabel(profile.type).toUpperCase().slice(0, 3)}-${profile.faskes_id.slice(-8).toUpperCase()}` : '—'
 
+  // ── Open escalation count (badge) — real API ────────────────────────────────
+  const [escalationCount, setEscalationCount] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = () => {
+      faskesApi.getEscalations({ page: 1, size: 100 })
+        .then(res => {
+          if (cancelled) return
+          setEscalationCount(res.data.filter(e => e.status === 'sent' || e.status === 'viewed').length)
+        })
+        .catch(() => { /* badge tetap 0 jika gagal/tidak ada akses */ })
+    }
+    load()
+    const t = setInterval(load, 60_000)
+    return () => { cancelled = true; clearInterval(t) }
+  }, [])
+
   // Modal States
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
@@ -183,7 +201,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           {[
             { id: 'operasional', label: 'Fase Operasional', icon: TAB_META.operasional.icon },
             { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon },
-            { id: 'eskalasi', label: 'Notifikasi & Eskalasi', badge: '3', icon: TAB_META.eskalasi.icon },
+            { id: 'eskalasi', label: 'Notifikasi & Eskalasi', badge: escalationCount > 0 ? String(escalationCount) : undefined, icon: TAB_META.eskalasi.icon },
             { id: 'dokter', label: 'Manajemen Nakes', icon: TAB_META.dokter.icon },
             { id: 'pasien', label: 'Daftar Pasien', icon: TAB_META.pasien.icon },
           ].map(item => {
@@ -333,12 +351,14 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              <span style={{
-                position: 'absolute', top: -2, right: -2,
-                background: '#EF4444', borderRadius: '50%', fontSize: 9, fontWeight: 700,
-                width: 15, height: 15, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', border: '2px solid #fff'
-              }}>3</span>
+              {escalationCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: -2, right: -2,
+                  background: '#EF4444', borderRadius: '50%', fontSize: 9, fontWeight: 700,
+                  width: 15, height: 15, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', border: '2px solid #fff'
+                }}>{escalationCount}</span>
+              )}
             </button>
           </div>
         </header>

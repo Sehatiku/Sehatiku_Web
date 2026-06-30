@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
-import type { PatientQueueItem, ConsultationResult } from '../../../lib/types'
+import { useState, useMemo, useEffect } from 'react'
+import { nakesApi } from '../../../lib/api'
+import type { PatientQueueItem, ConsultationResult, NakesDailyLog } from '../../../lib/types'
 import { AvatarCircle, DISEASE_LABEL, getSafeRiskColor } from './Common'
 import ReviewKeluhanCard from './ReviewKeluhanCard'
 import LogCard from './LogCard'
@@ -33,9 +34,22 @@ export default function KeluhanView({ queue, consultations, onReviewConsultation
   const selectedPatient = useMemo(() =>
     selectedConsultation ? queue.find(p => p.patient_id === selectedConsultation.patient_id) || null : null,
     [selectedConsultation, queue])
-  const selectedIdx = useMemo(() =>
-    selectedPatient ? queue.findIndex(p => p.patient_id === selectedPatient.patient_id) : -1,
-    [selectedPatient, queue])
+  // Log harian real dari BE untuk pasien keluhan terpilih
+  const [dailyLogs, setDailyLogs] = useState<NakesDailyLog[]>([])
+  const [logsLoading, setLogsLoading] = useState(false)
+  const selectedPatientId = selectedConsultation?.patient_id ?? null
+
+  useEffect(() => {
+    if (!selectedPatientId) { setDailyLogs([]); return }
+    let cancelled = false
+    setLogsLoading(true)
+    setDailyLogs([])
+    nakesApi.getPatientDetail(selectedPatientId)
+      .then(d => { if (!cancelled) setDailyLogs(d.daily_logs ?? []) })
+      .catch(() => { if (!cancelled) setDailyLogs([]) })
+      .finally(() => { if (!cancelled) setLogsLoading(false) })
+    return () => { cancelled = true }
+  }, [selectedPatientId])
 
   const pendingCount = consultations.filter(c => c.status === 'open').length
 
@@ -239,7 +253,7 @@ export default function KeluhanView({ queue, consultations, onReviewConsultation
               onReview={onReviewConsultation}
             />
 
-            {selectedIdx >= 0 && <LogCard patientIdx={selectedIdx} />}
+            <LogCard dailyLogs={dailyLogs} loading={logsLoading} />
           </>
         ) : (
           <div style={{

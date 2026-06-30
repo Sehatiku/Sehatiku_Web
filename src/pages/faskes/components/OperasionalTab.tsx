@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { faskesApi } from '../../../lib/api'
-import type { FaskesPatientItem, BaselineHistoryItem } from '../../../lib/types'
+import type { FaskesPatientItem, FaskesPatientDetail, BaselineHistoryItem } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
+import PatientDetailDrawer from './PatientDetailDrawer'
 
 interface Patient {
   id: string
@@ -90,10 +91,25 @@ export default function OperasionalTab({
   }, [])
 
   // Modals States
-  const [showBaselineModal, setShowBaselineModal] = useState(false)
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const [showProgressModal, setShowProgressModal] = useState(false)
   const [progressPatientId, setProgressPatientId] = useState<string | null>(null)
+
+  // Detail drawer (Baseline & Kontrol) — pakai editor baseline asli yang sama dgn tab Pasien
+  const [detailPatient, setDetailPatient] = useState<FaskesPatientDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  const handleOpenBaseline = async (id: string) => {
+    setDetailPatient(null)
+    setDetailLoading(true)
+    try {
+      const d = await faskesApi.getPatientDetail(id)
+      setDetailPatient(d)
+    } catch {
+      showToastMsg('⚠️ Gagal memuat detail pasien. Coba lagi.')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
 
   const [loadingProgress, setLoadingProgress] = useState(false)
   const [progressHistory, setProgressHistory] = useState<BaselineHistoryItem[]>([])
@@ -105,7 +121,7 @@ export default function OperasionalTab({
       setLoadingProgress(true)
       try {
         const res = await faskesApi.getPatientBaselineHistory(progressPatientId)
-        setProgressHistory(res.data || [])
+        setProgressHistory(res.data.baseline_history || [])
       } catch (err) {
         console.error('Error fetching progress history:', err)
         setProgressHistory([])
@@ -138,8 +154,6 @@ export default function OperasionalTab({
     return { color: '#10B981', bg: 'rgba(16,185,129,0.08)' }
   }
 
-  const selectedPatient = patients.find(p => p.id === selectedPatientId)
-  const selectedPatientName = selectedPatient ? selectedPatient.name : ''
   const progressPatient = patients.find(p => p.id === progressPatientId)
 
   const dateStr = new Intl.DateTimeFormat('id-ID', {
@@ -491,7 +505,7 @@ export default function OperasionalTab({
                           Progress
                         </button>
                         <button
-                          onClick={() => { setSelectedPatientId(p.id); setShowBaselineModal(true) }}
+                          onClick={() => handleOpenBaseline(p.id)}
                           style={{
                             background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
                             padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#64748B',
@@ -606,7 +620,7 @@ export default function OperasionalTab({
             </div>
           </div>
 
-          {/* Baseline Klinis Periodik */}
+          {/* Panduan Ambang Klinis Baseline — referensi medis (bukan data pasien) */}
           <div style={{
             background: '#ffffff',
             borderRadius: 16,
@@ -616,79 +630,32 @@ export default function OperasionalTab({
             display: 'flex',
             flexDirection: 'column'
           }}>
-            {/* Card Header — same style as Ringkasan Pasien */}
+            {/* Card Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Baseline Klinis Periodik</div>
-                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Klik "Update Baseline" pada tabel pasien di atas</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Panduan Ambang Klinis Baseline</div>
+                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Klik "Baseline" pada tabel pasien untuk mencatat / melihat kontrol</div>
               </div>
             </div>
 
-            {/* Metric grid — palette colors: indigo / purple / teal */}
+            {/* Reference-range grid — nilai = ambang acuan klinis, bukan data pasien */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-
-              {/* HbA1c — INDIGO */}
-              <div style={{ background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.15)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>HbA1c</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '2px 6px' }}>Kritis</span>
+              {([
+                { label: 'HbA1c', target: 'Target < 7% · > 9% bahaya', color: '#5B6BF0', bg: '#EEF0FF', border: 'rgba(91,107,240,0.15)' },
+                { label: 'LDL Kolesterol', target: 'Target < 100 mg/dL', color: '#8B5CF6', bg: '#F5F3FF', border: 'rgba(139,92,246,0.15)' },
+                { label: 'eGFR', target: 'Normal ≥ 60 mL/min', color: '#0D9488', bg: 'rgba(13,148,136,0.05)', border: 'rgba(13,148,136,0.15)' },
+                { label: 'UACR', target: '30–300 mg/g perlu pantau', color: '#5B6BF0', bg: '#EEF0FF', border: 'rgba(91,107,240,0.15)' },
+                { label: 'BMI', target: 'Normal 18.5–24.9 kg/m²', color: '#8B5CF6', bg: '#F5F3FF', border: 'rgba(139,92,246,0.15)' },
+                { label: 'Tensi Baseline', target: 'Normal < 120/80 mmHg', color: '#0D9488', bg: 'rgba(13,148,136,0.05)', border: 'rgba(13,148,136,0.15)' },
+              ] as const).map(m => (
+                <div key={m.label} style={{ background: m.bg, borderRadius: 12, padding: '12px 14px', border: `1px solid ${m.border}` }}>
+                  <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 6 }}>{m.label}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: m.color, lineHeight: 1.3 }}>{m.target}</div>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>10.2%</div>
-                <div style={{ fontSize: 9.5, color: '#5B6BF0', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>&gt;9% = bahaya</div>
-              </div>
-
-              {/* LDL Kolesterol — PURPLE */}
-              <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(139,92,246,0.15)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>LDL Kolesterol</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '2px 6px' }}>Tinggi</span>
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>145 mg/dL</div>
-                <div style={{ fontSize: 9.5, color: '#8B5CF6', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>&gt;100 = waspada</div>
-              </div>
-
-              {/* eGFR — TEAL */}
-              <div style={{ background: 'rgba(13,148,136,0.05)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(13,148,136,0.15)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>eGFR</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#0D9488', background: 'rgba(13,148,136,0.12)', borderRadius: 5, padding: '2px 6px' }}>Normal</span>
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#0D9488', lineHeight: 1 }}>72 mL/min</div>
-                <div style={{ fontSize: 9.5, color: '#0D9488', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Target ≥60</div>
-              </div>
-
-              {/* UACR — INDIGO */}
-              <div style={{ background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.15)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>UACR</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#5B6BF0', background: 'rgba(91,107,240,0.12)', borderRadius: 5, padding: '2px 6px' }}>Mikro</span>
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>42 mg/g</div>
-                <div style={{ fontSize: 9.5, color: '#5B6BF0', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>30–300 pantau</div>
-              </div>
-
-              {/* BMI — PURPLE */}
-              <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(139,92,246,0.15)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>BMI</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.12)', borderRadius: 5, padding: '2px 6px' }}>Overweight</span>
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>29.3 kg/m²</div>
-                <div style={{ fontSize: 9.5, color: '#8B5CF6', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Target 18.5–24.9</div>
-              </div>
-
-              {/* Tensi Baseline — TEAL */}
-              <div style={{ background: 'rgba(13,148,136,0.05)', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(13,148,136,0.15)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Tensi Baseline</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: '#0D9488', background: 'rgba(13,148,136,0.12)', borderRadius: 5, padding: '2px 6px' }}>HTN I</span>
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#0D9488', lineHeight: 1 }}>148/92</div>
-                <div style={{ fontSize: 9.5, color: '#0D9488', marginTop: 4, fontWeight: 600, opacity: 0.75 }}>Grade 1 hipertensi</div>
-              </div>
+              ))}
             </div>
 
-            {/* Lingkar Pinggang — full width, PURPLE */}
+            {/* Lingkar Pinggang — full width */}
             <div style={{
               marginTop: 10,
               background: 'linear-gradient(135deg, #F5F3FF 0%, #EEF0FF 100%)',
@@ -699,12 +666,9 @@ export default function OperasionalTab({
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
-              <div>
-                <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 4 }}>Lingkar Pinggang</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#8B5CF6', lineHeight: 1 }}>94 cm</div>
-              </div>
-              <span style={{ fontSize: 9, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.08)', borderRadius: 8, padding: '4px 10px', border: '1px solid rgba(139,92,246,0.15)' }}>
-                Risiko ≥90cm (L) / ≥80cm (P)
+              <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Lingkar Pinggang</div>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.08)', borderRadius: 8, padding: '4px 10px', border: '1px solid rgba(139,92,246,0.15)' }}>
+                Risiko ≥ 90cm (L) / ≥ 80cm (P)
               </span>
             </div>
           </div>
@@ -712,179 +676,6 @@ export default function OperasionalTab({
 
       </div>
 
-      {/* ── BASELINE MODAL ── */}
-      {showBaselineModal && (
-        <div
-          onClick={e => { if (e.target === e.currentTarget) setShowBaselineModal(false) }}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 2000,
-            background: 'rgba(43,45,66,0.55)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(3px)',
-            padding: 20,
-          }}
-        >
-          <div style={{
-            width: 560, maxWidth: '95vw', maxHeight: '92vh',
-            background: '#fff', borderRadius: 18,
-            boxShadow: '0 24px 64px rgba(15,36,68,0.28)',
-            border: '1px solid #E2E5F1',
-            display: 'flex', flexDirection: 'column',
-            overflow: 'hidden',
-            animation: 'scaleIn 0.15s ease-out',
-          }}>
-
-            {/* Modal Header — gradient matching the card */}
-            <div style={{
-              background: 'linear-gradient(135deg, #5B6BF0 0%, #8B5CF6 100%)',
-              padding: '20px 24px',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              flexShrink: 0,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 11,
-                  background: 'rgba(255,255,255,0.18)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.2px' }}>Update Baseline Klinis</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
-                    Pasien: <strong style={{ color: '#fff' }}>{selectedPatientName}</strong> &bull; Masukkan nilai terbaru untuk 7 parameter klinis
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowBaselineModal(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-                  borderRadius: 9, width: 32, height: 32, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#ffffff', fontSize: 16, flexShrink: 0,
-                }}
-              >✕</button>
-            </div>
-
-            {/* Form Body */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '22px 24px 0' }}>
-
-              {/* Field grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                {[
-                  { label: 'HbA1c', unit: '%', placeholder: 'mis. 7.5', dot: '#5B6BF0', hint: 'Normal <7%' },
-                  { label: 'LDL Kolesterol', unit: 'mg/dL', placeholder: 'mis. 130', dot: '#8B5CF6', hint: 'Target <100' },
-                  { label: 'eGFR', unit: 'mL/min', placeholder: 'mis. 75', dot: '#0D9488', hint: 'Normal ≥60' },
-                  { label: 'UACR', unit: 'mg/g', placeholder: 'mis. 30', dot: '#5B6BF0', hint: 'Normal <30' },
-                  { label: 'BMI', unit: 'kg/m²', placeholder: 'mis. 25.0', dot: '#8B5CF6', hint: 'Normal 18.5–24.9' },
-                  { label: 'Lingkar Pinggang', unit: 'cm', placeholder: 'mis. 90', dot: '#8B5CF6', hint: 'Risiko ≥90 (L) / ≥80 (P)' },
-                ].map(f => (
-                  <div key={f.label}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: f.dot, flexShrink: 0 }} />
-                      <label style={{ fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        {f.label} <span style={{ fontWeight: 500, color: '#B0B8C8', textTransform: 'none', letterSpacing: 0 }}>({f.unit})</span>
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder={f.placeholder}
-                      style={{
-                        width: '100%', padding: '10px 13px',
-                        border: '1.5px solid #E2E5F1', borderRadius: 9,
-                        fontSize: 13, color: '#2B2D42', background: '#F7F8FF',
-                        outline: 'none', boxSizing: 'border-box',
-                        transition: 'border-color 0.15s',
-                      }}
-                      onFocus={e => e.currentTarget.style.borderColor = '#5B6BF0'}
-                      onBlur={e => e.currentTarget.style.borderColor = '#E2E5F1'}
-                    />
-                    <div style={{ fontSize: 9.5, color: '#B0B8C8', marginTop: 4, fontWeight: 500 }}>{f.hint}</div>
-                  </div>
-                ))}
-
-                {/* Tensi Baseline — full width */}
-                <div style={{ gridColumn: 'span 2' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
-                    <label style={{ fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Tensi Baseline <span style={{ fontWeight: 500, color: '#B0B8C8', textTransform: 'none', letterSpacing: 0 }}>(mmHg)</span>
-                    </label>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="mis. 130/85"
-                    style={{
-                      width: '100%', padding: '10px 13px',
-                      border: '1.5px solid #E2E5F1', borderRadius: 9,
-                      fontSize: 13, color: '#2B2D42', background: '#F7F8FF',
-                      outline: 'none', boxSizing: 'border-box',
-                      transition: 'border-color 0.15s',
-                    }}
-                    onFocus={e => e.currentTarget.style.borderColor = '#5B6BF0'}
-                    onBlur={e => e.currentTarget.style.borderColor = '#E2E5F1'}
-                  />
-                  <div style={{ fontSize: 9.5, color: '#B0B8C8', marginTop: 4, fontWeight: 500 }}>Normal &lt;120/80 · HTN Grade 1: 130–139/80–89</div>
-                </div>
-              </div>
-
-              {/* Info note */}
-              <div style={{
-                display: 'flex', alignItems: 'flex-start', gap: 9,
-                background: '#EEF0FF', borderRadius: 10, padding: '11px 14px',
-                marginBottom: 20, border: '1px solid rgba(91,107,240,0.18)',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
-                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-                <span style={{ fontSize: 11.5, color: '#5B6BF0', fontWeight: 600, lineHeight: 1.5 }}>
-                  Data baseline digunakan sebagai acuan pemantauan klinis periodik. Nilai kosong tidak akan disimpan.
-                </span>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div style={{
-              padding: '16px 24px',
-              borderTop: '1px solid #F0F1FE',
-              display: 'flex', gap: 10, justifyContent: 'flex-end',
-              background: '#FAFAFF', flexShrink: 0,
-            }}>
-              <button
-                onClick={() => setShowBaselineModal(false)}
-                style={{
-                  padding: '10px 22px', border: '1.5px solid #DCDFE8',
-                  borderRadius: 10, background: '#fff', color: '#636B78',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                }}
-              >Batal</button>
-              <button
-                onClick={() => {
-                  setShowBaselineModal(false)
-                  showToastMsg('✅ Data baseline klinis berhasil diperbarui!')
-                }}
-                style={{
-                  padding: '10px 24px',
-                  background: 'linear-gradient(135deg, #5B6BF0 0%, #8B5CF6 100%)',
-                  color: '#fff', border: 'none', borderRadius: 10,
-                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(91,107,240,0.35)',
-                  display: 'flex', alignItems: 'center', gap: 7,
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Simpan Baseline
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── PROGRESS MODAL ── */}
       {showProgressModal && progressPatient && (
@@ -1204,6 +995,16 @@ export default function OperasionalTab({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── DETAIL PASIEN (Baseline & Kontrol) — editor baseline asli ── */}
+      {(detailLoading || detailPatient !== null) && (
+        <PatientDetailDrawer
+          detail={detailPatient}
+          loading={detailLoading}
+          initialTab="baseline"
+          onClose={() => { setDetailPatient(null); setDetailLoading(false) }}
+        />
       )}
     </div>
   )

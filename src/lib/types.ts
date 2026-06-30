@@ -574,6 +574,18 @@ export interface HealthScorePoint {
   scored_at: string
 }
 
+/**
+ * GET /api/v1/faskes/patients/{id}/baseline/history — two separate series + paging.
+ * `data` is an OBJECT (not a flat array): baseline progress + health-score trend.
+ */
+export interface BaselineHistoryResponse {
+  data: {
+    baseline_history: BaselineHistoryItem[]
+    health_score_history: HealthScorePoint[]
+  }
+  paging: Paging
+}
+
 /** GET /api/v1/patients/baseline/history — paginated baseline rows for the logged-in patient */
 export interface PatientBaselineHistoryResponse {
   data: BaselineHistoryItem[]
