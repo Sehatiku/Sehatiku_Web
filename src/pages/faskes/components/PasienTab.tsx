@@ -110,7 +110,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F7F8FA', borderBottom: '1px solid #DCDFE8' }}>
-                  {['Nama Pasien', 'NIK', 'Usia / JK', 'Penyakit', 'Skor Kesehatan', 'Status Risiko', 'Pendamping', 'Terdaftar', 'Status'].map(h => (
+                  {['Nama Pasien', 'NIK', 'Usia / JK', 'Status Pasien', 'Penyakit', 'Skor Kesehatan', 'Status Risiko', 'Pendamping', 'Terdaftar'].map(h => (
                     <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -169,6 +169,14 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                         <div style={{ fontSize: 11, color: '#8A93A1' }}>{p.sex === 'male' ? '♂ Laki-laki' : '♀ Perempuan'}</div>
                       </td>
                       <td style={{ padding: '13px 14px' }}>
+                        <span style={{
+                          background: isActive ? 'rgba(16,185,129,0.1)' : '#F7F8FA',
+                          color: isActive ? '#10B981' : '#8A93A1',
+                          border: `1px solid ${isActive ? 'rgba(16,185,129,0.2)' : '#DCDFE8'}`,
+                          fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                        }}>{isActive ? 'Aktif' : 'Nonaktif'}</span>
+                      </td>
+                      <td style={{ padding: '13px 14px' }}>
                         <span style={{ ...dc, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>{diseaseLabel[p.disease_type]}</span>
                       </td>
                       <td style={{ padding: '13px 14px' }}>
@@ -213,14 +221,6 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                         <div style={{ fontSize: 11, color: '#8A93A1' }}>{p.companion_phone}</div>
                       </td>
                       <td style={{ padding: '13px 14px', color: '#8A93A1', fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(p.enrolled_at)}</td>
-                      <td style={{ padding: '13px 14px' }}>
-                        <span style={{
-                          background: isActive ? 'rgba(16,185,129,0.1)' : '#F7F8FA',
-                          color: isActive ? '#10B981' : '#8A93A1',
-                          border: `1px solid ${isActive ? 'rgba(16,185,129,0.2)' : '#DCDFE8'}`,
-                          fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
-                        }}>{isActive ? 'Aktif' : 'Nonaktif'}</span>
-                      </td>
                     </tr>
                   )
                 })}
