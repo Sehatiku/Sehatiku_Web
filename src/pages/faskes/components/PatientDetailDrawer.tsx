@@ -48,7 +48,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
   const [history, setHistory] = useState<BaselineHistoryItem[]>([])
   const [loadingBaseline, setLoadingBaseline] = useState(false)
   const [nakesList, setNakesList] = useState<NakesItem[]>([])
-  
+
   // Form states
   const [recordedNakesId, setRecordedNakesId] = useState('')
   const [notes, setNotes] = useState('')
@@ -68,11 +68,11 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
           faskesApi.getPatientBaselineHistory(detail.patient_id).catch(() => ({ data: [] })),
           faskesApi.getNakes().catch(() => [])
         ])
-        
+
         setLatestBaseline(latestRes)
         setHistory(historyRes.data)
         setNakesList(nakesRes.filter(n => n.status === 'active' && n.role === 'dokter'))
-        
+
         const defaultBaseline: PatientBaselineBody = {
           age_years: detail.age,
           sex: detail.sex,
@@ -110,7 +110,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
 
         if (latestRes) {
           // Pre-fill form fields
-          const { id, patient_id, recorded_at, recorded_by_nakes_id, recorded_by_nakes_name: _unused, notes, ...rest } = latestRes
+          const { id, patient_id, recorded_at, recorded_by_nakes_id, recorded_by_nakes_name, notes, ...rest } = latestRes
           setFormData({ ...defaultBaseline, ...rest })
         } else {
           // Set clean default form
@@ -325,7 +325,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
                             <div>Cluster ID: <strong>{latestBaseline.cluster_id}</strong></div>
                           </div>
                         )}
-                        
+
                         {latestBaseline.notes && (
                           <div style={{ gridColumn: 'span 4', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: '#78350F' }}>
                             Catatan: <em>{latestBaseline.notes}</em>
@@ -423,7 +423,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
                     <div style={{ gridColumn: 'span 3', fontWeight: 700, fontSize: 12.5, color: '#5B6BF0', marginTop: 6, borderBottom: '1px dashed #EAECEF', paddingBottom: 4 }}>
                       1. Antropometri &amp; Kebiasaan
                     </div>
-                    
+
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>BMI (kg/m²)</label>
                       <input
@@ -506,7 +506,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
                     <div style={{ gridColumn: 'span 3', fontWeight: 700, fontSize: 12.5, color: '#0277BD', marginTop: 10, borderBottom: '1px dashed #EAECEF', paddingBottom: 4 }}>
                       2. Tekanan Darah &amp; Ginjal
                     </div>
-                    
+
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Sistolik (mmHg)</label>
                       <input
@@ -580,7 +580,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
                     <div style={{ gridColumn: 'span 3', fontWeight: 700, fontSize: 12.5, color: '#D97706', marginTop: 10, borderBottom: '1px dashed #EAECEF', paddingBottom: 4 }}>
                       3. Diabetes &amp; Metabolik
                     </div>
-                    
+
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Gula Puasa (mg/dL)</label>
                       <input
@@ -690,7 +690,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose }: Props)
                     <div style={{ gridColumn: 'span 3', fontWeight: 700, fontSize: 12.5, color: '#10B981', marginTop: 10, borderBottom: '1px dashed #EAECEF', paddingBottom: 4 }}>
                       4. Kategori Risiko &amp; Target Kontrol
                     </div>
-                    
+
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Kategori Risiko CVD</label>
                       <select
