@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { faskesApi } from '../../../lib/api'
+import { nakesApi } from '../../../lib/api'
 import type { EscalationItem } from '../../../lib/types'
-import { formatDate } from '../../../lib/utils'
+import { SkeletonCard } from './Common'
 
-interface EskalasiTabProps {
-  showToastMsg: (msg: string) => void
+interface NotifikasiViewProps {
+  showToast: (msg: string, type: 'ok' | 'err') => void
 }
 
 const TIER_LABEL: Record<string, string> = {
@@ -17,7 +17,16 @@ const TIER_TRIGGER: Record<string, string> = {
   trend_this_week: 'Status waswas bertahan beberapa hari terakhir',
 }
 
-export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
+function formatWaktu(iso: string): string {
+  if (!iso) return '—'
+  try {
+    return new Date(iso).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return iso
+  }
+}
+
+export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
   const [escalations, setEscalations] = useState<EscalationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +35,7 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
 
   const fetchEscalations = useCallback(async () => {
     try {
-      const res = await faskesApi.getEscalations({ page: 1, size: 100 })
+      const res = await nakesApi.getEscalations({ page: 1, size: 100 })
       setEscalations(res.data)
       setError(null)
     } catch (e) {
@@ -35,7 +44,7 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
       setError(
         status === 401 || status === 403
           ? 'Sesi tidak memiliki akses ke antrean eskalasi. Coba login ulang.'
-          : 'Gagal memuat antrean eskalasi. Coba lagi beberapa saat.',
+          : 'Gagal memuat notifikasi eskalasi. Coba lagi beberapa saat.',
       )
     } finally {
       setLoading(false)
@@ -44,70 +53,62 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
 
   useEffect(() => {
     fetchEscalations()
-    // Auto-refresh tiap 60 detik (konsisten dengan antrean eskalasi nakes)
     intervalRef.current = setInterval(fetchEscalations, 60_000)
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [fetchEscalations])
 
   const handleFollowUp = useCallback(async (e: EscalationItem) => {
     setActingId(e.id)
     try {
-      await faskesApi.actEscalation(e.id)
-      setEscalations(prev =>
-        prev.map(x => (x.id === e.id ? { ...x, status: 'acted', acted_at: new Date().toISOString() } : x)),
-      )
-      showToastMsg(`✓ Tindak lanjut ${e.patient_name} dicatat. Pasien akan segera dihubungi oleh nakes.`)
+      await nakesApi.actEscalation(e.id)
+      setEscalations(prev => prev.map(x => (x.id === e.id ? { ...x, status: 'acted', acted_at: new Date().toISOString() } : x)))
+      showToast(`Tindak lanjut ${e.patient_name} dicatat`, 'ok')
     } catch (err) {
       const status = (err as { status?: number })?.status
-      // 409 = eskalasi sudah ditutup; tetap tandai selesai agar UI konsisten.
       if (status === 409) {
         setEscalations(prev => prev.map(x => (x.id === e.id ? { ...x, status: 'acted' } : x)))
-        showToastMsg('Eskalasi ini sudah ditindaklanjuti sebelumnya.')
+        showToast('Eskalasi ini sudah ditindaklanjuti sebelumnya', 'ok')
       } else {
-        showToastMsg('⚠️ Gagal mencatat tindak lanjut. Coba lagi.')
+        showToast('Gagal mencatat tindak lanjut', 'err')
       }
     } finally {
       setActingId(null)
     }
-  }, [showToastMsg])
+  }, [showToast])
 
-  const getHealthColor = (score: number) => {
-    if (score >= 70) return '#10B981'
-    if (score >= 40) return '#F59E0B'
-    return '#EF4444'
-  }
-
+  const getHealthColor = (score: number) => (score >= 70 ? '#10B981' : score >= 40 ? '#F59E0B' : '#EF4444')
   const openCount = escalations.filter(e => e.status === 'sent' || e.status === 'viewed').length
 
   return (
-    <div className="anim-fadein">
-      <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8', overflow: 'hidden' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: '#F4F5F7' }}>
+      <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #F0F1F4', overflow: 'hidden' }}>
+        {/* Header */}
         <div style={{ padding: '16px 22px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2D42' }}>Log Eskalasi Klinis</div>
-            <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 2 }}>Histori sinyal kritis &amp; status tindak lanjut tenaga kesehatan · auto-refresh 60 dtk</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>Notifikasi & Eskalasi Klinis</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Alert risiko pasien &amp; status tindak lanjut · auto-refresh 60 dtk</div>
           </div>
-          <div style={{ background: '#F7F8FA', border: '1px solid #DCDFE8', borderRadius: 8, padding: '6px 13px' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#8A93A1' }}>{loading ? '…' : `${openCount} Perlu Tindak Lanjut`}</span>
+          <div style={{ background: '#F7F8FA', border: '1px solid #E5E7EB', borderRadius: 8, padding: '6px 13px' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280' }}>{loading ? '…' : `${openCount} Perlu Tindak Lanjut`}</span>
           </div>
         </div>
 
         {loading && (
-          <div style={{ padding: '40px 22px', textAlign: 'center', color: '#8A93A1', fontSize: 13 }}>Memuat antrean eskalasi…</div>
+          <div style={{ padding: '16px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} h={60} />)}
+          </div>
         )}
 
         {!loading && error && (
           <div style={{ padding: '32px 22px', textAlign: 'center' }}>
             <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 12 }}>{error}</div>
-            <button onClick={() => { setLoading(true); fetchEscalations() }} style={{ background: '#EEEFFE', color: '#5B6BF0', border: '1px solid rgba(91,107,240,0.18)', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Coba Lagi</button>
+            <button onClick={() => { setLoading(true); fetchEscalations() }} style={{ background: '#EEF2FF', color: '#5B6BF0', border: '1px solid rgba(91,107,240,0.18)', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Coba Lagi</button>
           </div>
         )}
 
         {!loading && !error && escalations.length === 0 && (
-          <div style={{ padding: '40px 22px', textAlign: 'center', color: '#8A93A1', fontSize: 13 }}>
-            Belum ada eskalasi klinis. Antrean akan terisi otomatis saat ada pasien dengan pembacaan ekstrem atau tren memburuk.
+          <div style={{ padding: '48px 22px', textAlign: 'center', color: '#9CA3AF', fontSize: 13 }}>
+            Tidak ada notifikasi eskalasi. Antrean terisi otomatis saat ada pasien dengan pembacaan ekstrem atau tren memburuk.
           </div>
         )}
 
@@ -117,7 +118,6 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
           const alertColor = getHealthColor(score)
           const alertBg = score < 40 ? '#FFF5F5' : (score < 70 ? '#FFFDF0' : '#F0FDF8')
           const alertBorder = score < 40 ? 'rgba(239,68,68,0.15)' : (score < 70 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)')
-
           return (
             <div key={alert.id} style={{ padding: '18px 22px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ width: 46, height: 46, borderRadius: 12, background: alertBg, border: `1px solid ${alertBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -127,15 +127,15 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>{alert.patient_name}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{alert.patient_name}</span>
                   <span style={{ background: alertBg, color: alertColor, fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20, border: `1px solid ${alertBorder}` }}>Health: {score}</span>
-                  <span style={{ background: '#EEEFFE', color: '#5B6BF0', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(91,107,240,0.12)' }}>{TIER_LABEL[alert.tier] ?? alert.tier}</span>
+                  <span style={{ background: '#EEF2FF', color: '#5B6BF0', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(91,107,240,0.12)' }}>{TIER_LABEL[alert.tier] ?? alert.tier}</span>
                   {alert.risk_status && (
-                    <span style={{ background: '#F7F8FA', color: '#636B78', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid #DCDFE8', textTransform: 'capitalize' }}>{alert.risk_status}</span>
+                    <span style={{ background: '#F7F8FA', color: '#6B7280', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid #E5E7EB', textTransform: 'capitalize' }}>{alert.risk_status}</span>
                   )}
                 </div>
                 <div style={{ fontSize: 13, color: '#334155', marginBottom: 4, fontWeight: 500 }}>🔴 {TIER_TRIGGER[alert.tier] ?? 'Eskalasi klinis'}</div>
-                <div style={{ fontSize: 11, color: '#8A93A1' }}>{formatDate(alert.sent_at || alert.created_at)} · Status: {alert.status}</div>
+                <div style={{ fontSize: 11, color: '#9CA3AF' }}>{formatWaktu(alert.sent_at || alert.created_at)} · Status: {alert.status}</div>
               </div>
               <div style={{ flexShrink: 0 }}>
                 {isDone ? (

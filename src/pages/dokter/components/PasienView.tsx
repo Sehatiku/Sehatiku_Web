@@ -1,7 +1,5 @@
 import { useState, type ReactNode, useMemo } from 'react'
-import type { PatientQueueItem, ConsultationResult } from '../../../lib/types'
-import type { MockMetricSet } from '../dokterMockData'
-import { MOCK_RISK_TREND } from '../dokterMockData'
+import type { PatientQueueItem, ConsultationResult, NakesPatientDetailData } from '../../../lib/types'
 import {
   SkeletonCard,
   AvatarCircle,
@@ -13,7 +11,6 @@ import {
 import TrendChart from './TrendChart'
 import ShapCard from './ShapCard'
 import LogCard from './LogCard'
-import FeedbackCard from './FeedbackCard'
 
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 type ViewMode = 'antrean' | 'tren'
@@ -25,11 +22,8 @@ export interface PasienViewProps {
   setQueueFilter: (f: QueueFilter) => void
   setSelectedId: (id: string | null) => void
   selectedPatient: PatientQueueItem | null
-  safeSelectedIdx: number
   contacted: Set<string>
   handleContact: (id: string) => void
-  feedbacks: Record<string, 'tepat' | 'tidak'>
-  handleFeedback: (id: string, val: 'tepat' | 'tidak') => void
   chartParam: 'glucose' | 'bp'
   setChartParam: (p: 'glucose' | 'bp') => void
   chartRange: 7 | 14
@@ -44,8 +38,9 @@ export interface PasienViewProps {
   trenPatient: PatientQueueItem | null
   trenSearch: string
   setTrenSearch: (s: string) => void
-  safeTrenIdx: number
-  safeTrenMetrics: MockMetricSet
+  // Detail klinis pasien (real BE) — dipakai modal antrean & panel tren
+  patientDetail: NakesPatientDetailData | null
+  detailLoading: boolean
 }
 
 const FILTERS: { id: QueueFilter; label: string }[] = [
@@ -159,26 +154,30 @@ export default function PasienView({
   queue,
   queueFilter, setQueueFilter,
   setSelectedId,
-  selectedPatient, safeSelectedIdx,
+  selectedPatient,
   contacted, handleContact,
-  feedbacks, handleFeedback,
   chartParam, setChartParam,
   chartRange, setChartRange,
   consultations,
   totalCount, bahayaCount, waswasCount, amanCount,
   setTrenPatientId, trenPatient,
   trenSearch, setTrenSearch,
-  safeTrenIdx, safeTrenMetrics,
+  patientDetail, detailLoading,
 }: PasienViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('antrean')
+
+  // Ekstraksi defensif: BE bisa kirim null / bentuk tak terduga → selalu jadikan array aman.
+  const dailyLogs = Array.isArray(patientDetail?.daily_logs) ? patientDetail!.daily_logs : []
+  const topFactors = Array.isArray(patientDetail?.risk?.top_factors) ? patientDetail!.risk!.top_factors : []
+  const scoreHistory = Array.isArray(patientDetail?.health_score_history) ? patientDetail!.health_score_history : []
+  const baseline = patientDetail?.baseline ?? null
 
   // Unified filtered list — same patients in both modes, just different columns
   const sharedList = useMemo(() => {
     const q = trenSearch.trim().toLowerCase()
     return queue.filter(p => {
-      const hs = 100 - p.risk_score
-      const status = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
-      if (queueFilter !== 'all' && status !== queueFilter) return false
+      // risk_score = health_score (TINGGI = sehat); status enum sudah dari BE.
+      if (queueFilter !== 'all' && p.status !== queueFilter) return false
       if (q && !p.full_name.toLowerCase().includes(q)) return false
       return true
     })
@@ -283,9 +282,9 @@ export default function PasienView({
             </div>
           ) : (
             sharedList.map((p, idx) => {
-              const hs = 100 - p.risk_score
-              const status = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
-              const risk_label = hs >= 70 ? 'rendah' : hs >= 40 ? 'sedang' : 'kritis'
+              const hs = p.risk_score // health score (TINGGI = sehat)
+              const status = p.status
+              const risk_label = p.risk_label
               const c = getSafeRiskColor(risk_label)
               const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
               const hasOpenConsult = consultations.some(cx => cx.patient_id === p.patient_id && cx.status === 'open')
@@ -328,9 +327,9 @@ export default function PasienView({
       {/* ── Table: Tren Mode ───────────────────────────────────────────────── */}
       {viewMode === 'tren' && (
         <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #F0F1F4', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2.2fr 1.2fr 80px 90px 80px 72px 28px', padding: '10px 22px', gap: 14, background: '#FAFAFA', borderBottom: '1px solid #F0F0F0' }}>
-            {['NAMA PASIEN', 'PENYEBAB UTAMA', 'KEPATUHAN', 'PENYAKIT', 'STATUS', 'SKOR', ''].map(h => (
-              <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.6px', textTransform: 'uppercase' }}>{h}</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', padding: '10px 22px', gap: 16, background: '#FAFAFA', borderBottom: '1px solid #F0F0F0' }}>
+            {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', ''].map(h => (
+              <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
             ))}
           </div>
           {loading ? (
@@ -346,30 +345,27 @@ export default function PasienView({
             </div>
           ) : (
             sharedList.map((p, idx) => {
-              const hs = 100 - p.risk_score
-              const status = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
-              const risk_label = hs >= 70 ? 'rendah' : hs >= 40 ? 'sedang' : 'kritis'
+              const hs = p.risk_score // health score (TINGGI = sehat)
+              const status = p.status
+              const risk_label = p.risk_label
               const c = getSafeRiskColor(risk_label)
               const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
-              const compliance = status === 'bahaya' ? { val: '40%', color: '#EF4444' } : status === 'waswas' ? { val: '71%', color: '#F59E0B' } : { val: '100%', color: '#10B981' }
               return (
                 <div
                   key={p.patient_id}
                   className="tren-row"
                   onClick={() => setTrenPatientId(p.patient_id)}
-                  style={{ display: 'grid', gridTemplateColumns: '2.2fr 1.2fr 80px 90px 80px 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 14, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
+                  style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                     <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: '0 0 2px', fontWeight: 600, fontSize: 13.5, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.full_name}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: '#9CA3AF' }}>{p.age} tahun</p>
+                      <p style={{ margin: '0 0 3px', fontWeight: 600, fontSize: 13.5, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.full_name}</p>
+                      <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF' }}>{p.age} tahun</p>
                     </div>
                   </div>
-                  <span style={{ fontSize: 12.5, color: '#4B5563', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.main_factor || 'Kondisi Stabil'}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: compliance.color, fontFamily: 'IBM Plex Mono, monospace' }}>{compliance.val}</span>
-                  <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563' }}>{DISEASE_LABEL[p.disease_type]}</span>
-                  <StatusPill label={status === 'bahaya' ? 'Bahaya' : status === 'waswas' ? 'Waswas' : 'Aman'} risk={risk_label} />
+                  <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{DISEASE_LABEL[p.disease_type]}</span>
+                  <div><StatusPill label={status === 'bahaya' ? 'Bahaya' : status === 'waswas' ? 'Waswas' : 'Aman'} risk={risk_label} /></div>
                   <span style={{ fontSize: 15, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                 </div>
@@ -382,9 +378,10 @@ export default function PasienView({
 
       {/* ── Antrean Detail: Modal Popup (center) ───────────────────────────── */}
       {viewMode === 'antrean' && selectedPatient && (() => {
-        const hs = 100 - selectedPatient.risk_score
-        const calculatedStatus = hs >= 70 ? 'aman' : hs >= 40 ? 'waswas' : 'bahaya'
-        const calculatedRiskLabel = hs >= 70 ? 'rendah' : hs >= 40 ? 'sedang' : 'kritis'
+        // risk_score = health_score (TINGGI = sehat); status/risk_label langsung dari BE.
+        const hs = selectedPatient.risk_score
+        const calculatedStatus = selectedPatient.status
+        const calculatedRiskLabel = selectedPatient.risk_label
         const rc = getSafeRiskColor(calculatedRiskLabel)
         const hsBg = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
         return (
@@ -447,23 +444,50 @@ export default function PasienView({
                 </div>
                 {/* Chart + SHAP */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: 12 }}>
-                  <TrendChart patientIdx={safeSelectedIdx} chartParam={chartParam} chartRange={chartRange} onParamChange={setChartParam} onRangeChange={setChartRange} />
-                  <ShapCard patientIdx={safeSelectedIdx} />
+                  <TrendChart dailyLogs={dailyLogs} loading={detailLoading} chartParam={chartParam} chartRange={chartRange} onParamChange={setChartParam} onRangeChange={setChartRange} />
+                  <ShapCard factors={topFactors} loading={detailLoading} />
                 </div>
-                {/* Log + Feedback */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: 12 }}>
-                  <LogCard patientIdx={safeSelectedIdx} />
-                  <FeedbackCard patient={selectedPatient} feedbacks={feedbacks} onFeedback={handleFeedback} />
-                </div>
+                {/* Log Harian */}
+                <LogCard dailyLogs={dailyLogs} loading={detailLoading} />
               </div>
             </div>
           </div>
         )
       })()}
 
-      {/* ── Tren Detail: Slide Panel (from right) ─────────────────────────── */}
+      {/* ── Tren Detail: Slide Panel (from right) — real BE data ───────────── */}
       {viewMode === 'tren' && trenPatient && (() => {
-        const trendData = MOCK_RISK_TREND[Math.min(safeTrenIdx, MOCK_RISK_TREND.length - 1)]
+        // Tren health score kronologis dari BE (health_score_history)
+        const chrono = [...scoreHistory].sort((a, b) => (a.scored_at ?? '').localeCompare(b.scored_at ?? ''))
+        const recent = chrono.slice(-8)
+        const fmtShort = (iso: string) => {
+          try { return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) } catch { return iso }
+        }
+        const currHs = recent.length ? recent[recent.length - 1].score : trenPatient.risk_score
+        const firstHs = recent.length ? recent[0].score : currHs
+        const delta = currHs - firstHs
+        const calculatedStatus = currHs >= 70 ? 'aman' : currHs >= 40 ? 'waswas' : 'bahaya'
+        const calculatedRiskLabel = currHs >= 70 ? 'rendah' : currHs >= 40 ? 'sedang' : 'kritis'
+        const hsColor = currHs >= 70 ? '#10B981' : currHs >= 40 ? '#F59E0B' : '#EF4444'
+        const hsBg = currHs >= 70 ? '#ECFDF5' : currHs >= 40 ? '#FFFBEB' : '#FEF2F2'
+        const deltaColor = delta > 0 ? '#059669' : delta < 0 ? '#EF4444' : '#D97706'
+        const deltaBg = delta > 0 ? '#ECFDF5' : delta < 0 ? '#FEF2F2' : '#FFFBEB'
+        const deltaLabel = delta > 0 ? '↑ membaik' : delta < 0 ? '↓ memburuk' : '→ stabil'
+        const deltaTxt = delta > 0 ? `+${delta}` : `${delta}`
+
+        // Parameter klinis dari baseline terbaru
+        const metrics = baseline ? [
+          { label: 'HbA1c', value: `${baseline.hba1c_pct}`, unit: '%' },
+          { label: 'Gula Puasa', value: `${baseline.fasting_glucose_mgdl}`, unit: 'mg/dL' },
+          { label: 'Tekanan Darah', value: `${baseline.systolic_bp_mmhg}/${baseline.diastolic_bp_mmhg}`, unit: 'mmHg' },
+          { label: 'BMI', value: `${baseline.bmi}`, unit: 'kg/m²' },
+          { label: 'eGFR', value: `${baseline.egfr}`, unit: 'mL/min' },
+          { label: 'LDL', value: `${baseline.ldl_mgdl}`, unit: 'mg/dL' },
+        ] : []
+
+        // Riwayat klinis = titik health score (terbaru dulu)
+        const timeline = [...chrono].reverse().slice(0, 6)
+
         return (
           <>
             {/* Backdrop */}
@@ -482,7 +506,7 @@ export default function PasienView({
               {/* Panel header */}
               <div style={{ background: '#fff', borderBottom: '1px solid #F0F0F0', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'sticky', top: 0, zIndex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: getSafeRiskColor(trenPatient.risk_label).edge }} />
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: getSafeRiskColor(calculatedRiskLabel).edge }} />
                   <span style={{ fontWeight: 700, fontSize: 13.5, color: '#111827' }}>Tren & Riwayat Klinis</span>
                 </div>
                 <button className="close-btn" onClick={() => setTrenPatientId(null)} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid #E5E7EB', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', transition: 'all 0.15s' }}>
@@ -493,109 +517,107 @@ export default function PasienView({
               {/* Panel body */}
               <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {/* Patient mini-header */}
-                {(() => {
-                  const currHs = 100 - trenPatient.risk_score
-                  const calculatedStatus = currHs >= 70 ? 'aman' : currHs >= 40 ? 'waswas' : 'bahaya'
-                  const calculatedRiskLabel = currHs >= 70 ? 'rendah' : currHs >= 40 ? 'sedang' : 'kritis'
-                  const hsColor = currHs >= 70 ? '#10B981' : currHs >= 40 ? '#F59E0B' : '#EF4444'
-                  const hsBg = currHs >= 70 ? '#ECFDF5' : currHs >= 40 ? '#FFFBEB' : '#FEF2F2'
-                  const deltaBg = safeTrenMetrics.deltaColor === '#059669' ? '#ECFDF5'
-                    : safeTrenMetrics.deltaColor === '#D97706' ? '#FFFBEB'
-                      : '#FEF2F2'
-                  return (
-                    <div style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <AvatarCircle name={trenPatient.full_name} size={44} bg={getSafeRiskColor(calculatedRiskLabel).sqBg} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 5 }}>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#111827' }}>{trenPatient.full_name}</p>
-                          <StatusPill label={calculatedStatus === 'bahaya' ? 'Bahaya' : calculatedStatus === 'waswas' ? 'Waswas' : 'Aman'} risk={calculatedRiskLabel} />
-                        </div>
-                        <p style={{ margin: '0 0 8px', fontSize: 12, color: '#9CA3AF' }}>
-                          {trenPatient.age} tahun · {DISEASE_LABEL[trenPatient.disease_type]} · Riwayat 6 bulan
-                        </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                          {/* Health score saat ini */}
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: hsBg, borderRadius: 8, padding: '3px 9px', border: `1px solid ${hsColor}33` }}>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{currHs}</span>
-                            <span style={{ fontSize: 10, color: hsColor, fontWeight: 600 }}>Health Score</span>
-                          </div>
-                          {/* Delta badge — ↑ naik = membaik (hijau), ↓ turun = memburuk (merah) */}
-                          <span style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 3,
-                            background: deltaBg, color: safeTrenMetrics.deltaColor,
-                            borderRadius: 8, padding: '3px 9px',
-                            fontSize: 11.5, fontWeight: 700,
-                            border: `1px solid ${safeTrenMetrics.deltaColor}33`,
-                          }}>
-                            {safeTrenMetrics.delta} {safeTrenMetrics.deltaLabel}
-                          </span>
-                        </div>
-                      </div>
+                <div style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <AvatarCircle name={trenPatient.full_name} size={44} bg={getSafeRiskColor(calculatedRiskLabel).sqBg} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 5 }}>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#111827' }}>{trenPatient.full_name}</p>
+                      <StatusPill label={calculatedStatus === 'bahaya' ? 'Bahaya' : calculatedStatus === 'waswas' ? 'Waswas' : 'Aman'} risk={calculatedRiskLabel} />
                     </div>
-                  )
-                })()}
-
-                {/* Health Score Bar Chart */}
-                <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                  <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Tren Health Score</p>
-                  <p style={{ margin: '0 0 14px', fontSize: 11, color: '#9CA3AF' }}>Skor kesehatan bulanan (0–100)</p>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 130, padding: '0 4px' }}>
-                    {trendData.map((entry, i) => {
-                      const hs = 100 - entry.score
-                      const barColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
-                      const barH = Math.max(10, Math.round((hs / 100) * 96))
-                      return (
-                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: 10.5, fontWeight: 700, color: barColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
-                          <div style={{ width: '100%', height: barH, background: `linear-gradient(180deg, ${barColor}BB 0%, ${barColor} 100%)`, borderRadius: '5px 5px 0 0', boxShadow: `0 2px 5px ${barColor}33` }} />
-                          <span style={{ fontSize: 9.5, color: '#9CA3AF' }}>{entry.month}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Clinical metrics */}
-                <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                  <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Parameter Klinis Terkini</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {safeTrenMetrics.metrics.map((m, i) => (
-                      <div key={i} style={{ background: '#F9FAFB', borderRadius: 10, padding: '11px 13px', border: '1px solid #F0F1F4' }}>
-                        <p style={{ margin: '0 0 5px', fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{m.label}</p>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                          <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', fontFamily: 'IBM Plex Mono, monospace' }}>{m.value}</span>
-                          {m.unit && <span style={{ fontSize: 10, color: '#9CA3AF' }}>{m.unit}</span>}
-                        </div>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: m.trendBg, borderRadius: 5, padding: '2px 7px', fontSize: 11, fontWeight: 700, color: m.trendColor, marginTop: 6 }}>
-                          {m.arrow} {m.deltaTxt}
-                        </span>
+                    <p style={{ margin: '0 0 8px', fontSize: 12, color: '#9CA3AF' }}>
+                      {trenPatient.age} tahun · {DISEASE_LABEL[trenPatient.disease_type]}
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: hsBg, borderRadius: 8, padding: '3px 9px', border: `1px solid ${hsColor}33` }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{currHs}</span>
+                        <span style={{ fontSize: 10, color: hsColor, fontWeight: 600 }}>Health Score</span>
                       </div>
-                    ))}
+                      {recent.length > 1 && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: deltaBg, color: deltaColor, borderRadius: 8, padding: '3px 9px', fontSize: 11.5, fontWeight: 700, border: `1px solid ${deltaColor}33` }}>
+                          {deltaTxt} {deltaLabel}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Timeline */}
-                <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                  <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Riwayat Klinis</p>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {safeTrenMetrics.timeline.map((tl, i) => {
-                      const last = i === safeTrenMetrics.timeline.length - 1
-                      return (
-                        <div key={i} style={{ display: 'flex', gap: 12, paddingBottom: last ? 0 : 14 }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <span style={{ width: 9, height: 9, borderRadius: '50%', background: tl.color, flexShrink: 0 }} />
-                            {!last && <div style={{ width: 1.5, flex: 1, background: '#F0F0F0', marginTop: 4, minHeight: 18 }} />}
-                          </div>
-                          <div style={{ paddingBottom: last ? 0 : 4 }}>
-                            <p style={{ margin: '0 0 2px', fontSize: 10.5, color: '#9CA3AF' }}>{tl.date}</p>
-                            <p style={{ margin: '0 0 1px', fontWeight: 600, fontSize: 12.5, color: '#111827' }}>{tl.title}</p>
-                            <p style={{ margin: 0, fontSize: 11.5, color: '#6B7280' }}>{tl.note}</p>
-                          </div>
+                {detailLoading ? (
+                  <div style={{ background: '#fff', borderRadius: 14, padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>Memuat tren &amp; riwayat klinis…</div>
+                ) : (
+                  <>
+                    {/* Health Score Bar Chart */}
+                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                      <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Tren Health Score</p>
+                      <p style={{ margin: '0 0 14px', fontSize: 11, color: '#9CA3AF' }}>Skor kesehatan dari waktu ke waktu (0–100)</p>
+                      {recent.length === 0 ? (
+                        <div style={{ padding: '24px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 12.5 }}>Belum ada riwayat health score.</div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 130, padding: '0 4px' }}>
+                          {recent.map((entry, i) => {
+                            const hs = entry.score
+                            const barColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
+                            const barH = Math.max(10, Math.round((hs / 100) * 96))
+                            return (
+                              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: 10.5, fontWeight: 700, color: barColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
+                                <div style={{ width: '100%', height: barH, background: `linear-gradient(180deg, ${barColor}BB 0%, ${barColor} 100%)`, borderRadius: '5px 5px 0 0', boxShadow: `0 2px 5px ${barColor}33` }} />
+                                <span style={{ fontSize: 9, color: '#9CA3AF' }}>{fmtShort(entry.scored_at)}</span>
+                              </div>
+                            )
+                          })}
                         </div>
-                      )
-                    })}
-                  </div>
-                </div>
+                      )}
+                    </div>
+
+                    {/* Clinical metrics dari baseline */}
+                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                      <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Parameter Klinis (Baseline Terbaru)</p>
+                      {metrics.length === 0 ? (
+                        <div style={{ padding: '20px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 12.5 }}>Belum ada baseline klinis tercatat.</div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                          {metrics.map((m, i) => (
+                            <div key={i} style={{ background: '#F9FAFB', borderRadius: 10, padding: '11px 13px', border: '1px solid #F0F1F4' }}>
+                              <p style={{ margin: '0 0 5px', fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{m.label}</p>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                                <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', fontFamily: 'IBM Plex Mono, monospace' }}>{m.value}</span>
+                                {m.unit && <span style={{ fontSize: 10, color: '#9CA3AF' }}>{m.unit}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Timeline health score */}
+                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                      <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Riwayat Health Score</p>
+                      {timeline.length === 0 ? (
+                        <div style={{ padding: '12px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 12.5 }}>Belum ada riwayat.</div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {timeline.map((tl, i) => {
+                            const last = i === timeline.length - 1
+                            const c = tl.score >= 70 ? '#10B981' : tl.score >= 40 ? '#F59E0B' : '#EF4444'
+                            return (
+                              <div key={i} style={{ display: 'flex', gap: 12, paddingBottom: last ? 0 : 14 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: c, flexShrink: 0 }} />
+                                  {!last && <div style={{ width: 1.5, flex: 1, background: '#F0F0F0', marginTop: 4, minHeight: 18 }} />}
+                                </div>
+                                <div style={{ paddingBottom: last ? 0 : 4 }}>
+                                  <p style={{ margin: '0 0 2px', fontSize: 10.5, color: '#9CA3AF' }}>{fmtShort(tl.scored_at)}</p>
+                                  <p style={{ margin: '0 0 1px', fontWeight: 600, fontSize: 12.5, color: '#111827' }}>Health Score: {tl.score}</p>
+                                  <p style={{ margin: 0, fontSize: 11.5, color: '#6B7280', textTransform: 'capitalize' }}>Status: {tl.status}</p>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </>

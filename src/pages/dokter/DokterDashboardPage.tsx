@@ -1,20 +1,17 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
-import type { PatientQueueItem, NakesDetail, ConsultationResult } from '../../lib/types'
+import type { PatientQueueItem, NakesDetail, ConsultationResult, NakesPatientDetailData } from '../../lib/types'
 import { initials } from '../../lib/utils'
 
 // Subcomponents & Views
 import { ToastNotif } from './components/Common'
 import PasienView from './components/PasienView'
-import UmpanBalikView from './components/UmpanBalikView'
+import NotifikasiView from './components/NotifikasiView'
 import ProfilNakesView from './components/ProfilNakesView'
 import KeluhanView from './components/KeluhanView'
 
-// Mock Data
-import { MOCK_METRICS } from './dokterMockData'
-
-type ActiveView = 'pasien' | 'umpan' | 'profil' | 'keluhan'
+type ActiveView = 'pasien' | 'notif' | 'profil' | 'keluhan'
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 
 export default function DokterDashboardPage({ onLogout }: { onLogout: () => void }) {
@@ -27,11 +24,14 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [queueFilter, setQueueFilter] = useState<QueueFilter>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [contacted, setContacted] = useState<Set<string>>(new Set())
-  const [feedbacks, setFeedbacks] = useState<Record<string, 'tepat' | 'tidak'>>({})
   const [chartParam, setChartParam] = useState<'glucose' | 'bp'>('glucose')
   const [chartRange, setChartRange] = useState<7 | 14>(7)
   const [trenPatientId, setTrenPatientId] = useState<string | null>(null)
   const [trenSearch, setTrenSearch] = useState('')
+
+  // Detail pasien (real BE) — dipakai modal antrean & panel tren
+  const [patientDetail, setPatientDetail] = useState<NakesPatientDetailData | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
@@ -52,20 +52,56 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   }, [])
 
   const fetchData = useCallback(async () => {
-    try {
-      const [, queueRes, consultationsRes] = await Promise.all([
-        nakesApi.getDashboardSummary(),
-        nakesApi.getPatientQueue(),
-        nakesApi.getConsultations(),
-      ])
-      setQueue(queueRes.data)
-      setConsultations(consultationsRes)
-      setFetchError(null)
-    } catch {
-      setFetchError('Gagal memuat data. Periksa koneksi Anda.')
-    } finally {
-      setLoading(false)
+    // Antrean pasien adalah konten inti dashboard. Konsultasi bersifat pelengkap —
+    // kegagalannya tidak boleh mengosongkan seluruh dashboard. Pakai allSettled
+    // agar satu endpoint yang error tidak menjatuhkan yang lain.
+    //
+    // Backend (Railway) bisa cold-start dan membalas 5xx transien pada request
+    // pertama setelah idle — retry dengan backoff agar UX tidak langsung gagal.
+    const getQueueWithRetry = async (attempts = 3) => {
+      for (let i = 0; i < attempts; i++) {
+        try {
+          return await nakesApi.getPatientQueue()
+        } catch (e) {
+          const status = (e as { status?: number })?.status
+          const transient = status === undefined || status >= 500
+          if (i < attempts - 1 && transient) {
+            await new Promise(r => setTimeout(r, 1200 * (i + 1)))
+            continue
+          }
+          throw e
+        }
+      }
+      throw new Error('unreachable')
     }
+
+    const [queueRes, consultationsRes] = await Promise.allSettled([
+      getQueueWithRetry(),
+      nakesApi.getConsultations(),
+    ])
+
+    if (queueRes.status === 'fulfilled') {
+      setQueue(queueRes.value.data)
+      setFetchError(null)
+    } else {
+      const err = queueRes.reason as { status?: number; message?: string } | undefined
+      console.error('Gagal memuat antrean pasien:', err)
+      const detail =
+        err?.status === 401
+          ? 'Sesi Anda telah berakhir. Silakan login kembali.'
+          : err?.status && err.status >= 500
+            ? `Server sedang bermasalah (error ${err.status}). Kami akan mencoba lagi otomatis.`
+            : err?.status
+              ? `Gagal memuat data (error ${err.status}).`
+              : 'Gagal memuat data. Periksa koneksi Anda.'
+      setFetchError(detail)
+    }
+
+    if (consultationsRes.status === 'fulfilled') {
+      setConsultations(consultationsRes.value)
+    }
+
+    setLoading(false)
   }, [])
 
   const fetchDoctorProfile = useCallback(async () => {
@@ -106,44 +142,38 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   }, [fetchData])
 
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
-  const selectedIdx = useMemo(() => queue.findIndex(p => p.patient_id === selectedId), [queue, selectedId])
-
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
-  const trenIdx = useMemo(() => queue.findIndex(p => p.patient_id === trenPatientId), [queue, trenPatientId])
+
+  // Ambil detail klinis pasien (baseline, log harian, tren skor, faktor risiko) dari BE
+  // setiap kali pasien dibuka di modal antrean atau panel tren.
+  const openPatientId = selectedId ?? trenPatientId
+  useEffect(() => {
+    if (!openPatientId) { setPatientDetail(null); return }
+    let cancelled = false
+    setDetailLoading(true)
+    setPatientDetail(null)
+    nakesApi.getPatientDetail(openPatientId)
+      .then(d => { if (!cancelled) setPatientDetail(d) })
+      .catch(() => { if (!cancelled) setPatientDetail(null) })
+      .finally(() => { if (!cancelled) setDetailLoading(false) })
+    return () => { cancelled = true }
+  }, [openPatientId])
 
   const handleContact = useCallback((id: string) => {
     setContacted(prev => new Set([...prev, id]))
     showToast('Pasien berhasil dihubungi', 'ok')
   }, [showToast])
 
-  const handleFeedback = useCallback((id: string, val: 'tepat' | 'tidak') => {
-    setFeedbacks(prev => ({ ...prev, [id]: val }))
-    showToast(`Umpan balik "${val === 'tepat' ? 'Tepat' : 'Tidak Tepat'}" tersimpan`, 'ok')
-  }, [showToast])
-
   const handleLogout = useCallback(() => {
     onLogout()
   }, [onLogout])
 
-  // KPI values
+  // KPI values — status enum sudah dari BE (bahaya | waswas | aman)
   const totalCount = queue.length
-  const bahayaCount = queue.filter(p => (100 - p.risk_score) < 40).length
-  const waswasCount = queue.filter(p => {
-    const hs = 100 - p.risk_score
-    return hs >= 40 && hs < 70
-  }).length
-  const amanCount = queue.filter(p => (100 - p.risk_score) >= 70).length
+  const bahayaCount = queue.filter(p => p.status === 'bahaya').length
+  const waswasCount = queue.filter(p => p.status === 'waswas').length
+  const amanCount = queue.filter(p => p.status === 'aman').length
   const pendingComplaintsCount = consultations.filter(c => c.status === 'open').length
-
-  // Umpan balik stats
-  const tepat = Object.values(feedbacks).filter(v => v === 'tepat').length
-  const tidak = Object.values(feedbacks).filter(v => v === 'tidak').length
-  const totalFb = tepat + tidak
-  const akurasi = totalFb > 0 ? Math.round((tepat / totalFb) * 100) : 0
-
-  const safeSelectedIdx = selectedIdx >= 0 ? selectedIdx : 0
-  const safeTrenIdx = trenIdx >= 0 ? trenIdx : 0
-  const safeTrenMetrics = MOCK_METRICS[Math.min(safeTrenIdx, MOCK_METRICS.length - 1)]
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif', background: '#F4F5F7' }}>
@@ -191,8 +221,8 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                 )
               },
               {
-                id: 'umpan' as const, label: 'Umpan Balik Model', icon: (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
+                id: 'notif' as const, label: 'Notifikasi', icon: (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                 )
               },
             ].map(nav => {
@@ -313,15 +343,15 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
           <div>
             <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: '#2B2D42' }}>
               {activeView === 'pasien' ? 'Pasien Saya'
-                : activeView === 'umpan' ? 'Umpan Balik Model'
+                : activeView === 'notif' ? 'Notifikasi & Eskalasi'
                   : activeView === 'keluhan' ? 'Review Keluhan Pasien'
                     : 'Profil Tenaga Medis'}
             </p>
             <p style={{ margin: 0, fontSize: 12, color: '#636B78' }}>
               {activeView === 'pasien'
                 ? `${totalCount} pasien terdaftar`
-                : activeView === 'umpan'
-                  ? 'Evaluasi eskalasi AI'
+                : activeView === 'notif'
+                  ? 'Alert risiko & tindak lanjut klinis'
                   : activeView === 'keluhan'
                     ? `${pendingComplaintsCount} keluhan menunggu respons`
                     : 'Informasi akun Portal Sehatiku'}
@@ -332,7 +362,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#0D9488', display: 'inline-block' }} />
               Mode: Dokter
             </span>
-            <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+            <button onClick={() => setActiveView('notif')} title="Notifikasi & Eskalasi" style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636B78" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -377,11 +407,8 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               setQueueFilter={setQueueFilter}
               setSelectedId={setSelectedId}
               selectedPatient={selectedPatient}
-              safeSelectedIdx={safeSelectedIdx}
               contacted={contacted}
               handleContact={handleContact}
-              feedbacks={feedbacks}
-              handleFeedback={handleFeedback}
               chartParam={chartParam}
               setChartParam={setChartParam}
               chartRange={chartRange}
@@ -395,8 +422,8 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               trenPatient={trenPatient}
               trenSearch={trenSearch}
               setTrenSearch={setTrenSearch}
-              safeTrenIdx={safeTrenIdx}
-              safeTrenMetrics={safeTrenMetrics}
+              patientDetail={patientDetail}
+              detailLoading={detailLoading}
             />
           )}
 
@@ -409,17 +436,9 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             />
           )}
 
-          {/* ── VIEW: Umpan Balik Model ───────────────────────────────────────── */}
-          {!fetchError && activeView === 'umpan' && (
-            <UmpanBalikView
-              loading={loading}
-              queue={queue}
-              feedbacks={feedbacks}
-              handleFeedback={handleFeedback}
-              tepat={tepat}
-              tidak={tidak}
-              akurasi={akurasi}
-            />
+          {/* ── VIEW: Notifikasi & Eskalasi ───────────────────────────────────── */}
+          {!fetchError && activeView === 'notif' && (
+            <NotifikasiView showToast={showToast} />
           )}
 
           {/* ── VIEW 4: Profil Saya ───────────────────────────────────────────── */}

@@ -520,8 +520,12 @@ export interface NakesReplyBody {
   nakes_note: string
 }
 
-// ─── Patient Baseline (New API Contracts) ──────────────────────────────────────
+// ─── Baseline Klinis (Faskes) ─────────────────────────────────────────────────
 
+/**
+ * GET/POST /api/v1/faskes/patients/{id}/baseline — full 33-feature baseline row
+ * with recording metadata. Field names match the contract exactly.
+ */
 export interface PatientBaselineDetail extends PatientBaselineBody {
   id: string
   patient_id: string
@@ -531,13 +535,15 @@ export interface PatientBaselineDetail extends PatientBaselineBody {
   notes: string | null
 }
 
+/** Body for POST /api/v1/faskes/patients/{id}/baseline (insert-only new version) */
 export interface CreatePatientBaselineBody {
   recorded_by_nakes_id: string
-  recorded_at?: string
+  recorded_at?: string   // YYYY-MM-DD, default now
   notes?: string
   baseline: PatientBaselineBody
 }
 
+/** One row in the paginated baseline progress (key metrics subset) */
 export interface BaselineHistoryItem {
   id: string
   recorded_at: string
@@ -561,8 +567,145 @@ export interface BaselineHistoryItem {
   uacr: number
 }
 
+/** A single health-score datapoint (trend series) */
+export interface HealthScorePoint {
+  score: number
+  status: PatientStatus
+  scored_at: string
+}
+
+/**
+ * GET /api/v1/faskes/patients/{id}/baseline/history — two separate series + paging.
+ * `data` is an OBJECT (not a flat array): baseline progress + health-score trend.
+ */
+export interface BaselineHistoryResponse {
+  data: {
+    baseline_history: BaselineHistoryItem[]
+    health_score_history: HealthScorePoint[]
+  }
+  paging: Paging
+}
+
+/** GET /api/v1/patients/baseline/history — paginated baseline rows for the logged-in patient */
 export interface PatientBaselineHistoryResponse {
   data: BaselineHistoryItem[]
   paging: Paging
 }
 
+// ─── Detail Pasien (Nakes) ────────────────────────────────────────────────────
+
+/** SHAP-style risk factor object (nakes patient detail / risk block) */
+export interface RiskFactor {
+  feature: string
+  shap_value: number
+  direction: string
+}
+
+export interface RiskInfo {
+  score: number
+  status: PatientStatus
+  scoring_mode?: string
+  top_factors: RiskFactor[]
+}
+
+/** One day of clinical log rows in the nakes patient-detail view */
+export interface NakesDailyLog {
+  date: string
+  blood_sugar: number | null
+  weight: number | null
+  systolic: number | null
+  diastolic: number | null
+  health_score: number | null
+}
+
+/** GET /api/v1/nakes/patients/:id */
+export interface NakesPatientDetailData {
+  patient_detail: FaskesPatientDetail
+  baseline: PatientBaselineDetail | null
+  daily_logs: NakesDailyLog[]
+  risk: RiskInfo | null
+  health_score_history: HealthScorePoint[]
+}
+
+// ─── Ringkasan Kesehatan (window 7/14/30) ─────────────────────────────────────
+
+export interface HealthSummaryAggregates {
+  glucose: { avg_mgdl: number; min_mgdl: number; max_mgdl: number; count: number } | null
+  blood_pressure: { avg_systolic: number; avg_diastolic: number; count: number } | null
+  med_adherence: { adherence_rate_pct: number; count: number } | null
+  nutrition: { avg_kcal_per_day: number; avg_carbs_g_per_day: number; avg_sodium_mg_per_day: number; meal_count: number } | null
+  activity: { avg_minutes_per_day: number; total_minutes: number; count: number } | null
+  sleep: { avg_hours: number; count: number } | null
+  stress: { avg_level: number; count: number } | null
+  weight: { start_kg: number; latest_kg: number; delta_kg: number; count: number } | null
+}
+
+/**
+ * GET /api/v1/nakes/patients/:id/summary and GET /api/v1/patients/summary.
+ * `available:false` omits period/coverage/aggregates and adds history_days + message.
+ */
+export interface HealthSummary {
+  window: number
+  available: boolean
+  available_windows: number[]
+  period?: { start: string; end: string }
+  coverage?: { logged_days: number; window_days: number; streak_days: number }
+  aggregates?: HealthSummaryAggregates
+  risk?: { score: number; status: PatientStatus; scored_at: string }
+  narrative: string
+  generated_at: string
+  history_days?: number
+  message?: string
+}
+
+export type SummaryWindow = 7 | 14 | 30
+
+// ─── Eskalasi (Nakes) ─────────────────────────────────────────────────────────
+
+export type EscalationTier = 'acute_today' | 'trend_this_week'
+export type EscalationStatus = 'sent' | 'viewed' | 'acted' | 'dismissed'
+export type EscalationFeedbackValue = 'accurate' | 'inaccurate'
+
+export interface EscalationItem {
+  id: string
+  patient_id: string
+  patient_name: string
+  tier: EscalationTier
+  status: EscalationStatus
+  risk_score: number
+  risk_status: string
+  sent_at: string
+  viewed_at: string | null
+  acted_at: string | null
+  created_at: string
+}
+
+export interface EscalationResponse {
+  data: EscalationItem[]
+  paging: Paging
+}
+
+export interface EscalationQuery {
+  status?: EscalationStatus
+  tier?: EscalationTier
+  page?: number
+  size?: number
+}
+
+// ─── Patient Records status & notifications ───────────────────────────────────
+
+/** GET /api/v1/patients/records/today-status */
+export interface TodayStatus {
+  logged_today: boolean
+  days_since_last_log: number | null
+  last_logged_at: string | null
+  date: string
+}
+
+export interface UnreadCount {
+  unread_count: number
+}
+
+export interface ReadAllResult {
+  updated_count: number
+}
