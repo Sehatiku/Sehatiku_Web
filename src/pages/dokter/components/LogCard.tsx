@@ -13,51 +13,60 @@ function formatTanggal(date: string): string {
   }
 }
 
-function dotColor(score: number | null): string {
-  if (score == null) return '#8A93A1'
-  if (score >= 70) return '#0D9488'
-  if (score >= 40) return '#F59E0B'
-  return '#EF4444'
+function CardShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      background: '#fff',
+      borderRadius: 16,
+      padding: '20px 22px',
+      border: '1px solid #E5E7EB',
+      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+      fontFamily: '"Plus Jakarta Sans", "Inter", sans-serif',
+      flexShrink: 0,
+    }}>
+      {children}
+    </div>
+  )
 }
 
-const CardShell = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #F0F1F4', fontFamily: '"Plus Jakarta Sans", "Inter", sans-serif' }}>{children}</div>
-)
-
-const Header = (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid #F1F5F9' }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(16,185,129,0.1)' }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
-      </div>
-      <span style={{ fontWeight: 800, fontSize: 14.5, color: '#1E293B', letterSpacing: '-0.2px' }}>Log Harian Pasien</span>
-    </div>
-  </div>
-)
-
 export default function LogCard({ dailyLogs, loading = false }: LogCardProps) {
+  const headerEl = (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #E5E7EB' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+        </div>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 15.5, color: '#0F172A' }}>Log Harian Pasien</div>
+          <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>Catatan harian terbaru dari pasien</div>
+        </div>
+      </div>
+    </div>
+  )
+
   if (loading) {
-    return <CardShell>{Header}<div style={{ minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', fontSize: 12.5 }}>Memuat log harian…</div></CardShell>
+    return <CardShell>{headerEl}<div style={{ minHeight: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: 13 }}>Memuat log harian...</div></CardShell>
   }
 
   if (!dailyLogs || dailyLogs.length === 0) {
     return (
       <CardShell>
-        {Header}
-        <div style={{ minHeight: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#9CA3AF' }}>
-          <span style={{ fontSize: 22 }}>📝</span>
-          <p style={{ margin: 0, fontSize: 12.5, textAlign: 'center' }}>Belum ada catatan harian dari pasien.</p>
+        {headerEl}
+        <div style={{ minHeight: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#64748B' }}>
+          <span style={{ fontSize: 24 }}>📝</span>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, textAlign: 'center' }}>Belum ada catatan harian dari pasien.</p>
         </div>
       </CardShell>
     )
   }
 
-  // Terbaru dulu
   const logs = [...dailyLogs].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
 
   return (
     <CardShell>
-      {Header}
+      {headerEl}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {logs.map((log, i) => {
           const parts: string[] = []
@@ -65,19 +74,21 @@ export default function LogCard({ dailyLogs, loading = false }: LogCardProps) {
           if (log.systolic != null && log.diastolic != null) parts.push(`Tensi ${log.systolic}/${log.diastolic}`)
           if (log.weight != null) parts.push(`BB ${log.weight} kg`)
           const detail = parts.length > 0 ? parts.join(' · ') : 'Tidak ada metrik tercatat'
+
           return (
-            <div key={i} style={{ display: 'flex', gap: 12, paddingBottom: i < logs.length - 1 ? 18 : 0 }}>
-              <span style={{ fontSize: 10.5, color: '#B0B7C3', fontFamily: 'IBM Plex Mono, monospace', minWidth: 48, textAlign: 'right', paddingTop: 1, fontWeight: 500, flexShrink: 0 }}>
+            <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '12px 0', borderBottom: i < logs.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+              <span style={{ fontSize: 11.5, color: '#64748B', minWidth: 52, fontWeight: 700, flexShrink: 0, paddingTop: 1 }}>
                 {formatTanggal(log.date)}
               </span>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', flexShrink: 0, background: dotColor(log.health_score), marginTop: 2 }} />
-                {i < logs.length - 1 && <div style={{ width: 1, flex: 1, background: '#E8ECF2', marginTop: 5, minHeight: 18 }} />}
-              </div>
-              <div style={{ flex: 1, paddingBottom: 2, paddingTop: 1 }}>
-                <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#1F2937' }}>{detail}</p>
-                <p style={{ margin: 0, fontSize: 11, color: '#9CA3AF', lineHeight: 1.4 }}>
-                  {log.health_score != null ? `Health Score hari itu: ${log.health_score}` : 'Health Score belum dihitung'}
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4F46E5', marginTop: 5, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: '0 0 3px', fontSize: 13.5, fontWeight: 700, color: '#0F172A' }}>{detail}</p>
+                <p style={{ margin: 0, fontSize: 11.5, color: '#64748B' }}>
+                  {log.health_score != null ? (
+                    <>
+                      Health Score: <span style={{ fontWeight: 800, color: '#4F46E5' }}>{log.health_score}</span>
+                    </>
+                  ) : 'Health Score belum dihitung'}
                 </p>
               </div>
             </div>

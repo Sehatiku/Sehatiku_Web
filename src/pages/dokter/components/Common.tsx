@@ -61,16 +61,36 @@ export function buildChart(data: number[], dangerThreshold: number, range: numbe
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 export function ToastNotif({ msg, type, onClose }: { msg: string; type: 'ok' | 'err'; onClose: () => void }) {
+  const ok = type === 'ok'
+  const bg = ok ? '#ECFDF5' : '#FEF2F2'
+  const color = ok ? '#065F46' : '#991B1B'
+  const accent = ok ? '#10B981' : '#EF4444'
+  const border = ok ? '#D1FAE5' : '#FEE2E2'
   return (
     <div style={{
       position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-      background: type === 'ok' ? '#0D9488' : '#EF4444',
-      color: '#fff', padding: '10px 18px', borderRadius: 10,
-      fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 14, fontWeight: 600,
-      boxShadow: '0 4px 16px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', gap: 10,
+      background: bg, color,
+      borderRadius: 12, padding: '14px 18px', fontSize: 13, fontWeight: 600,
+      boxShadow: '0 8px 30px rgba(15,36,68,0.12)', maxWidth: 420,
+      fontFamily: 'Plus Jakarta Sans, sans-serif',
+      display: 'flex', alignItems: 'flex-start', gap: 11,
+      borderLeft: `4px solid ${accent}`,
+      borderTop: `1px solid ${border}`,
+      borderRight: `1px solid ${border}`,
+      borderBottom: `1px solid ${border}`,
+      lineHeight: '1.45',
     }}>
+      {ok ? (
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+          <polyline points="20,6 9,17 4,12" />
+        </svg>
+      ) : (
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      )}
       <span>{msg}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', color, cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0, opacity: 0.6 }}>
         &times;
       </button>
     </div>
@@ -108,7 +128,7 @@ export function HealthScoreBadge({ score }: { score: number }) {
 
   return (
     <div style={{
-      width: 40, height: 40, borderRadius: 8, background: bg,
+      width: 40, height: 40, borderRadius: 10, background: bg,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: '#fff', fontWeight: 700, fontSize: 13,
       fontFamily: 'IBM Plex Mono, monospace', flexShrink: 0,
@@ -124,7 +144,7 @@ export function StatusPill({ label, risk }: { label: string; risk?: string }) {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
       background: c.bg, border: `1px solid ${c.border}`,
-      borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600, color: c.text,
+      borderRadius: 20, padding: '3px 9px', fontSize: 10.5, fontWeight: 700, color: c.text,
     }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.edge, flexShrink: 0 }} />
       {label}
@@ -138,8 +158,8 @@ export function DiseasePill({ type }: { type?: DiseaseType }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
-      background: c.bg, borderRadius: 20, padding: '2px 8px',
-      fontSize: 11, fontWeight: 600, color: c.text,
+      background: c.bg, borderRadius: 20, padding: '3px 9px',
+      fontSize: 10.5, fontWeight: 700, color: c.text,
     }}>
       {DISEASE_LABEL[t] || 'Diabetes'}
     </span>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { faskesApi } from '../../../lib/api'
-import type { FaskesPatientItem, FaskesPatientDetail, BaselineHistoryItem } from '../../../lib/types'
+import type { FaskesPatientItem, FaskesPatientDetail, BaselineHistoryItem, NakesItem } from '../../../lib/types'
 import { initials } from '../../../lib/utils'
 import PatientDetailDrawer from './PatientDetailDrawer'
 
@@ -17,14 +17,18 @@ interface Patient {
 
 interface OperasionalTabProps {
   setActiveTab: (tab: 'pendaftaran' | 'operasional' | 'eskalasi' | 'dokter' | 'pasien') => void
-  showToastMsg: (msg: string) => void
+  showToastMsg: (msg: string, type?: 'success' | 'error' | 'info') => void
   faskesName: string
+  nakesItems?: NakesItem[]
+  nakesLoading?: boolean
 }
 
 export default function OperasionalTab({
   setActiveTab,
   showToastMsg,
   faskesName,
+  nakesItems = [],
+  nakesLoading = false,
 }: OperasionalTabProps) {
   // Phase Operasional States
   const [patients, setPatients] = useState<Patient[]>([])
@@ -44,7 +48,7 @@ export default function OperasionalTab({
           const score = p.health_score !== null && p.health_score !== undefined
             ? p.health_score
             : null
-          
+
           let status = '—'
           if (p.risk_status) {
             const lowerRisk = p.risk_status.toLowerCase()
@@ -161,517 +165,569 @@ export default function OperasionalTab({
   }).format(new Date())
 
   return (
-    <div>
-      <div className="anim-fadein">
+    <div className="anim-fadein">
 
-        {/* Welcome Greeting Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.5px' }}>
-              Selamat datang, {faskesName} 👋
-            </h1>
-            <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#64748B' }}>
-              Ringkasan operasional {faskesName} • {dateStr}
-            </p>
-          </div>
-          <div>
-            <button
-              onClick={() => setActiveTab('pendaftaran')}
-              style={{
-                background: '#5B6BF0',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: 10,
-                padding: '12px 20px',
-                fontSize: 13.5,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                boxShadow: '0 4px 12px rgba(91, 107, 240, 0.2)',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#4558E8'}
-              onMouseLeave={e => e.currentTarget.style.background = '#5B6BF0'}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Pendaftaran Baru
-            </button>
-          </div>
+      {/* Welcome Greeting Row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.4px' }}>
+            Selamat datang, {faskesName}
+          </h1>
+          <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#64748B', fontWeight: 500 }}>
+            Ringkasan operasional faskes • {dateStr}
+          </p>
         </div>
-
-        {/* 4 Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18, marginBottom: 24 }}>
-
-          {/* Card 1: Total Pasien */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-            border: '1px solid #ECEEF3',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-          }}>
-            <div style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#5B6BF0',
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            onClick={() => setActiveTab('pendaftaran')}
+            style={{
+              background: 'linear-gradient(135deg, #6366F1 0%, #5B6BF0 55%, #4558E8 100%)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 14,
+              padding: '12px 22px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </div>
-            <div style={{ fontSize: 13, color: '#64748B', fontWeight: 500, marginTop: 16, marginBottom: 4 }}>Total Pasien</div>
-            <div style={{ fontSize: 32, fontWeight: 800, color: '#0F172A', lineHeight: 1, marginBottom: 6 }}>
-              {ptSummaryLoading ? '…' : patients.length}
-            </div>
-            <div style={{ fontSize: 12, color: '#94A3B8' }}>Terdaftar Prolanis</div>
-          </div>
-
-          {/* Card 2: Risiko Bahaya */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-            border: '1px solid #ECEEF3',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-          }}>
-            <div style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#EF4444',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-            </div>
-            <div style={{ fontSize: 13, color: '#64748B', fontWeight: 500, marginTop: 16, marginBottom: 4 }}>Risiko Bahaya</div>
-            <div style={{ fontSize: 32, fontWeight: 800, color: '#0F172A', lineHeight: 1, marginBottom: 6 }}>
-              {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Parah').length}
-            </div>
-            <div style={{ fontSize: 12, color: '#94A3B8' }}>Pasien perlu atensi</div>
-          </div>
-
-          {/* Card 3: Status Waswas */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-            border: '1px solid #ECEEF3',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-          }}>
-            <div style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#F59E0B',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-            </div>
-            <div style={{ fontSize: 13, color: '#64748B', fontWeight: 500, marginTop: 16, marginBottom: 4 }}>Status Waswas</div>
-            <div style={{ fontSize: 32, fontWeight: 800, color: '#0F172A', lineHeight: 1, marginBottom: 6 }}>
-              {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Waswas').length}
-            </div>
-            <div style={{ fontSize: 12, color: '#94A3B8' }}>Perlu pemantauan</div>
-          </div>
-
-          {/* Card 4: Status Aman */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-            border: '1px solid #ECEEF3',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-          }}>
-            <div style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: '#10B981',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-            </div>
-            <div style={{ fontSize: 13, color: '#64748B', fontWeight: 500, marginTop: 16, marginBottom: 4 }}>Status Aman</div>
-            <div style={{ fontSize: 32, fontWeight: 800, color: '#0F172A', lineHeight: 1, marginBottom: 6 }}>
-              {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Sehat').length}
-            </div>
-            <div style={{ fontSize: 12, color: '#94A3B8' }}>Kondisi stabil</div>
-          </div>
-
+              gap: 8,
+              boxShadow: '0 8px 22px rgba(91, 107, 240, 0.35)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(91, 107, 240, 0.45)' }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 22px rgba(91, 107, 240, 0.35)' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Pendaftaran Baru
+          </button>
         </div>
+      </div>
 
-        {/* Priority Queue Table */}
+      {/* 4 Cards Grid (Premium Donezo Style) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 20 }}>
+
+        {/* Card 1: Total Pasien (Teal Highlighted Card) */}
         <div style={{
-          background: '#ffffff',
+          background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
           borderRadius: 16,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-          border: '1px solid #ECEEF3',
-          marginBottom: 24,
-          overflow: 'hidden'
+          padding: 18,
+          boxShadow: '0 10px 25px rgba(13, 148, 136, 0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          overflow: 'hidden',
+          color: '#ffffff'
         }}>
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid #ECEEF3', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Antrian Prioritas Pasien</div>
-              <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Diurutkan otomatis berdasarkan Health Score terendah — tertinggi</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '6px 12px' }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#5B6BF0' }}></div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>AI Auto-Sorted</span>
-            </div>
+          {/* Top-Right Arrow Accent */}
+          <div style={{
+            position: 'absolute', top: 20, right: 20,
+            width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
           </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 820 }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC' }}>
-                <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 60 }}>Rank</th>
-                <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pasien</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Pasien</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Penyakit</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', width: 160 }}>Health Score</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Risiko</th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Faktor Penyebab Utama</th>
-                <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patients.length === 0 && (
-                <tr>
-                  <td colSpan={8} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
-                    Belum ada data pasien. Endpoint daftar pasien faskes belum tersedia di backend.
-                  </td>
-                </tr>
-              )}
-              {patients.map((p, i) => {
-                const style = getStatusStyle(p.status)
-                const color = getHealthColor(p.healthScore)
-                const shadow = getHealthShadow(p.healthScore)
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255, 255, 255, 0.8)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Pasien</div>
+          <div style={{ fontSize: 30, fontWeight: 800, margin: '12px 0 5px 0', lineHeight: 1 }}>
+            {ptSummaryLoading ? '…' : patients.length}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>
+            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: 4 }}>+4 bulan ini</span>
+            <span>Terdaftar Prolanis</span>
+          </div>
+        </div>
 
-                let avatarBg = '#EEF0FF'
-                let avatarColor = '#5B6BF0'
-                if (p.healthScore === null || p.healthScore === undefined) {
-                  avatarBg = '#F1F5F9'
-                  avatarColor = '#64748B'
-                } else if (p.healthScore < 40) {
-                  avatarBg = '#FEF2F2'
-                  avatarColor = '#EF4444'
-                } else if (p.healthScore < 70) {
-                  avatarBg = '#FFFBEB'
-                  avatarColor = '#D97706'
-                } else {
-                  avatarBg = '#ECFDF5'
-                  avatarColor = '#10B981'
-                }
+        {/* Card 2: Risiko Bahaya */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(18px) saturate(1.6)',
+          WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
+          borderRadius: 18,
+          padding: 18,
+          boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+          border: '1px solid rgba(255, 255, 255, 0.7)',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+        }}>
+          <div style={{
+            position: 'absolute', top: 20, right: 20,
+            width: 32, height: 32, borderRadius: '50%', background: '#FFF1F2',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </div>
 
-                const isCauseAvailable = p.cause !== '—' && p.cause !== ''
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Risiko Bahaya</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: '#0F172A', margin: '12px 0 5px 0', lineHeight: 1 }}>
+            {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Parah').length}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#EF4444' }}>
+            <span style={{ background: '#FFF1F2', padding: '2px 6px', borderRadius: 4 }}>Kritis</span>
+            <span>Butuh Tindak Lanjut</span>
+          </div>
+        </div>
 
-                return (
-                  <tr key={p.id} className="qrow" style={{ borderTop: '1px solid #ECEEF3', transition: 'background 0.12s' }}>
-                    <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
-                      <div style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        width: 26, height: 26, borderRadius: 8,
-                        background: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#FEF2F2' : '#F8FAFC',
-                        color: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#EF4444' : '#64748B',
-                        fontSize: 12, fontWeight: 800
-                      }}>{i + 1}</div>
-                    </td>
-                    <td style={{ padding: '14px 12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{
-                          width: 38, height: 38, borderRadius: '50%',
-                          background: avatarBg, display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', fontSize: 13, fontWeight: 700,
-                          color: avatarColor, flexShrink: 0
-                        }}>
-                          {initials(p.name)}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap' }}>{p.name}</div>
-                          <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{p.age} tahun</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      <span style={{
-                        background: p.patientStatus === 'active' ? 'rgba(16,185,129,0.1)' : '#F1F5F9',
-                        color: p.patientStatus === 'active' ? '#10B981' : '#64748B',
-                        border: `1px solid ${p.patientStatus === 'active' ? 'rgba(16,185,129,0.2)' : '#E2E8F0'}`,
-                        fontSize: 10.5, fontWeight: 700, padding: '4px 10px', borderRadius: 20, whiteSpace: 'nowrap'
-                      }}>{p.patientStatus === 'active' ? 'Aktif' : 'Nonaktif'}</span>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{
-                        background: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#EEF0FF' : 'rgba(79,195,247,0.1)',
-                        color: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#5B6BF0' : '#0277BD',
-                        fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 20, whiteSpace: 'nowrap'
-                      }}>
-                        {p.disease}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
-                        <div style={{
-                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          width: 38, height: 38, borderRadius: 10, background: color,
-                          boxShadow: `0 2px 8px ${shadow}`, flexShrink: 0
-                        }}>
-                          <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>
-                            {p.healthScore !== null ? p.healthScore : '—'}
-                          </span>
-                        </div>
-                        <div style={{ flex: 1, minWidth: 48 }}>
-                          <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${p.healthScore !== null ? p.healthScore : 0}%`, borderRadius: 4, background: color }}></div>
+        {/* Card 3: Status Waswas */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(18px) saturate(1.6)',
+          WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
+          borderRadius: 18,
+          padding: 18,
+          boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+          border: '1px solid rgba(255, 255, 255, 0.7)',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+        }}>
+          <div style={{
+            position: 'absolute', top: 20, right: 20,
+            width: 32, height: 32, borderRadius: '50%', background: '#FEF3C7',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </div>
+
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Waswas</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: '#0F172A', margin: '12px 0 5px 0', lineHeight: 1 }}>
+            {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Waswas').length}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#D97706' }}>
+            <span style={{ background: '#FEF3C7', padding: '2px 6px', borderRadius: 4 }}>Pantau</span>
+            <span>Rencana Rujukan Dekat</span>
+          </div>
+        </div>
+
+        {/* Card 4: Kondisi Stabil */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(18px) saturate(1.6)',
+          WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
+          borderRadius: 18,
+          padding: 18,
+          boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+          border: '1px solid rgba(255, 255, 255, 0.7)',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+        }}>
+          <div style={{
+            position: 'absolute', top: 20, right: 20,
+            width: 32, height: 32, borderRadius: '50%', background: '#ECFDF5',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </div>
+
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kondisi Stabil</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: '#0F172A', margin: '12px 0 5px 0', lineHeight: 1 }}>
+            {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Sehat').length}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#10B981' }}>
+            <span style={{ background: '#ECFDF5', padding: '2px 6px', borderRadius: 4 }}>Aman</span>
+            <span>Sesuai Batas Medis</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Clinical Dashboard — full width */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, alignItems: 'start' }}>
+
+        {/* ── LEFT COLUMN (66%) ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Antrian Prioritas Pasien Table */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(18px) saturate(1.6)',
+            WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
+            borderRadius: 18,
+            boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.7)',
+            overflow: 'hidden'
+          }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #ECEEF3', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Antrian Prioritas Pasien</div>
+                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Diurutkan otomatis berdasarkan Health Score terendah — tertinggi</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EEF0FF', border: '1px solid rgba(91,107,240,0.15)', borderRadius: 10, padding: '6px 12px' }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#5B6BF0' }}></div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#5B6BF0' }}>AI Auto-Sorted</span>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
+                <thead>
+                  <tr style={{ background: 'linear-gradient(180deg, rgba(91,107,240,0.06), rgba(91,107,240,0.02))', borderBottom: '1px solid #E6E9F5' }}>
+                    <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px', width: 60 }}>Rank</th>
+                    <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Pasien</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Penyakit</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px', width: 140 }}>Health Score</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Status Risiko</th>
+                    <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ptSummaryLoading && Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={`sk-${i}`} style={{ borderTop: '1px solid #ECEEF3' }}>
+                      <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
+                        <div className="sk-shimmer" style={{ width: 26, height: 26, borderRadius: 8, margin: '0 auto' }} />
+                      </td>
+                      <td style={{ padding: '14px 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div className="sk-shimmer" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0 }} />
+                          <div style={{ flex: 1 }}>
+                            <div className="sk-shimmer" style={{ width: '55%', height: 11, borderRadius: 5, marginBottom: 6 }} />
+                            <div className="sk-shimmer" style={{ width: '35%', height: 9, borderRadius: 5 }} />
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      <span style={{
-                        background: style.bg, color: style.color,
-                        fontSize: 11.5, fontWeight: 700, padding: '4px 12px',
-                        borderRadius: 20, whiteSpace: 'nowrap'
-                      }}>{p.status}</span>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {isCauseAvailable && <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }}></div>}
-                        <span style={{ fontSize: 12.5, color: '#334155' }}>{p.cause}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-                        <button
-                          onClick={() => { setProgressPatientId(p.id); setShowProgressModal(true) }}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 6, background: '#EEF0FF',
-                            border: 'none', borderRadius: 8, padding: '7px 12px',
-                            fontSize: 12, fontWeight: 600, color: '#5B6BF0',
-                            cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
-                          onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                          </svg>
-                          Progress
-                        </button>
-                        <button
-                          onClick={() => handleOpenBaseline(p.id)}
-                          style={{
-                            background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
-                            padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#64748B',
-                            cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
-                          onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
-                        >
-                          Baseline
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                      <td style={{ padding: '14px 16px' }}><div className="sk-shimmer" style={{ width: 56, height: 18, borderRadius: 6 }} /></td>
+                      <td style={{ padding: '14px 16px' }}><div className="sk-shimmer" style={{ width: '100%', height: 18, borderRadius: 6 }} /></td>
+                      <td style={{ padding: '14px 16px' }}><div className="sk-shimmer" style={{ width: 64, height: 20, borderRadius: 20, margin: '0 auto' }} /></td>
+                      <td style={{ padding: '14px 24px' }}><div className="sk-shimmer" style={{ width: '100%', height: 26, borderRadius: 8 }} /></td>
+                    </tr>
+                  ))}
+                  {!ptSummaryLoading && patients.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
+                        Belum ada data pasien Prolanis terdaftar.
+                      </td>
+                    </tr>
+                  )}
+                  {patients.map((p, i) => {
+                    const style = getStatusStyle(p.status)
+                    const color = getHealthColor(p.healthScore)
+                    const shadow = getHealthShadow(p.healthScore)
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderTop: '1px solid #ECEEF3', background: '#FAFBFC' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            <span style={{ fontSize: 11.5, color: '#64748B', lineHeight: 1.4 }}>
-              Health Score bersifat <strong style={{ color: '#475569', fontWeight: 700 }}>indikatif — bukan diagnosis medis</strong>. Keputusan klinis tetap pada penilaian tenaga kesehatan.
-            </span>
+                    let avatarBg = '#EEF0FF'
+                    let avatarColor = '#5B6BF0'
+                    if (p.healthScore === null || p.healthScore === undefined) {
+                      avatarBg = '#F1F5F9'
+                      avatarColor = '#64748B'
+                    } else if (p.healthScore < 40) {
+                      avatarBg = '#FFF1F2'
+                      avatarColor = '#EF4444'
+                    } else if (p.healthScore < 70) {
+                      avatarBg = '#FEF3C7'
+                      avatarColor = '#D97706'
+                    } else {
+                      avatarBg = '#ECFDF5'
+                      avatarColor = '#10B981'
+                    }
+
+                    return (
+                      <tr
+                        key={p.id}
+                        style={{ borderTop: '1px solid #ECEEF3', transition: 'background 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(91,107,240,0.05)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
+                          <div style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            width: 26, height: 26, borderRadius: 8,
+                            background: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#FFF1F2' : '#F8FAFC',
+                            color: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#EF4444' : '#64748B',
+                            fontSize: 12, fontWeight: 800
+                          }}>{i + 1}</div>
+                        </td>
+                        <td style={{ padding: '14px 12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{
+                              width: 36, height: 36, borderRadius: '50%',
+                              background: avatarBg, display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', fontSize: 12.5, fontWeight: 700,
+                              color: avatarColor, flexShrink: 0
+                            }}>
+                              {initials(p.name)}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap' }}>{p.name}</div>
+                              <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 1 }}>{p.age} th • {p.patientStatus === 'active' ? 'Aktif' : 'Nonaktif'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{
+                            background: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#EEF0FF' : 'rgba(79,195,247,0.1)',
+                            color: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#5B6BF0' : '#0277BD',
+                            fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap'
+                          }}>
+                            {p.disease}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+                            <div style={{
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                              width: 32, height: 32, borderRadius: 8, background: color,
+                              boxShadow: `0 2px 6px ${shadow}`, flexShrink: 0
+                            }}>
+                              <span style={{ color: '#fff', fontSize: 12.5, fontWeight: 800 }}>
+                                {p.healthScore !== null ? p.healthScore : '—'}
+                              </span>
+                            </div>
+                            <div style={{ flex: 1, minWidth: 40 }}>
+                              <div style={{ height: 5, borderRadius: 3, background: '#F1F5F9', overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${p.healthScore !== null ? p.healthScore : 0}%`, borderRadius: 3, background: color }}></div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          <span style={{
+                            background: style.bg, color: style.color,
+                            fontSize: 11, fontWeight: 700, padding: '4px 10px',
+                            borderRadius: 20, whiteSpace: 'nowrap'
+                          }}>{p.status}</span>
+                        </td>
+                        <td style={{ padding: '14px 24px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                            <button
+                              onClick={() => { setProgressPatientId(p.id); setShowProgressModal(true) }}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 4, background: '#EEF0FF',
+                                border: 'none', borderRadius: 8, padding: '6px 10px',
+                                fontSize: 11.5, fontWeight: 700, color: '#5B6BF0',
+                                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
+                              onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
+                            >
+                              Progress
+                            </button>
+                            <button
+                              onClick={() => handleOpenBaseline(p.id)}
+                              style={{
+                                background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
+                                padding: '5px 10px', fontSize: 11.5, fontWeight: 600, color: '#64748B',
+                                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s'
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                              onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
+                            >
+                              Baseline
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Indicator Notice Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderTop: '1px solid #ECEEF3', background: '#FAFBFC' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <span style={{ fontSize: 11.5, color: '#64748B', lineHeight: 1.4, fontWeight: 500 }}>
+                Health Score merupakan indikator otomatis. Pengambilan keputusan rujukan tetap didasarkan pada penegakan diagnosis klinis dokter.
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* BPJS Integration & Baseline Periodik */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          {/* Clinical Reference & Disease Distribution (Side by Side) */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-          {/* Ringkasan Pasien */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-            border: '1px solid #ECEEF3',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            {/* Disease distribution bar chart */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(18px) saturate(1.6)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
+              borderRadius: 18,
+              padding: 18,
+              boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.7)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A' }}>Distribusi Penyakit Pasien</div>
+                  <div style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 2 }}>Breakdown kategori pasien Prolanis</div>
+                </div>
+                <button
+                  onClick={() => setActiveTab('pasien')}
+                  style={{
+                    background: '#EEF0FF', border: 'none', borderRadius: 8, color: '#5B6BF0',
+                    fontSize: 11.5, padding: '6px 12px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
+                >
+                  Lihat Semua
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {([
+                  { key: 'diabetes_t2', label: 'Diabetes Melitus', color: '#5B6BF0', bg: '#EEF0FF' },
+                  { key: 'hypertension', label: 'Hipertensi', color: '#0D9488', bg: 'rgba(13,148,136,0.08)' },
+                  { key: 'both', label: 'DM & Hipertensi', color: '#8B5CF6', bg: '#F5F3FF' },
+                ] as const).map(d => {
+                  const count = ptSummary.filter(p => p.disease_type === d.key).length
+                  const total = ptSummary.length || 1
+                  const pct = ptSummaryLoading ? 0 : Math.round((count / total) * 100)
+                  return (
+                    <div key={d.key}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ background: d.bg, color: d.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6 }}>{d.label}</span>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0F172A' }}>
+                          {ptSummaryLoading ? '—' : count}
+                          <span style={{ fontSize: 10.5, fontWeight: 500, color: '#94A3B8', marginLeft: 4 }}>({pct}%)</span>
+                        </span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 4, background: d.color, transition: 'width 0.6s ease' }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Reference Ranges baseline card */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(18px) saturate(1.6)',
+              WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
+              borderRadius: 18,
+              padding: 18,
+              boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.7)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Ringkasan Pasien</div>
-                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Distribusi kondisi pasien Prolanis</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A' }}>Ambang Batas Klinis Acuan</div>
+                <div style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 2, marginBottom: 14 }}>Parameter monitoring rujukan Kemenkes</div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flex: 1 }}>
+                {[
+                  { label: 'HbA1c', target: 'Target < 7.0%', color: '#5B6BF0', bg: '#EEF0FF' },
+                  { label: 'LDL Kol.', target: '< 100 mg/dL', color: '#8B5CF6', bg: '#F5F3FF' },
+                  { label: 'eGFR', target: '≥ 60 mL/min', color: '#0D9488', bg: 'rgba(13,148,136,0.05)' },
+                  { label: 'Tensi', target: '< 130/80 mmHg', color: '#5B6BF0', bg: '#EEF0FF' },
+                ].map(m => (
+                  <div key={m.label} style={{ background: m.bg, borderRadius: 10, padding: '8px 10px', border: '1px solid rgba(0,0,0,0.02)' }}>
+                    <div style={{ fontSize: 9, color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>{m.label}</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: m.color, marginTop: 2 }}>{m.target}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Team Collaboration: Active Doctors & Kader (Donezo style) */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(18px) saturate(1.6)',
+            WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
+            borderRadius: 18,
+            padding: 18,
+            boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.7)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Tim Medis & Nakes Aktif</div>
+                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Nakes penanggung jawab prolanis & kader pemantauan lapangan</div>
               </div>
               <button
-                onClick={() => setActiveTab('pasien')}
+                onClick={() => setActiveTab('dokter')}
                 style={{
-                  background: '#EEF0FF',
-                  border: 'none',
-                  borderRadius: 8,
-                  color: '#5B6BF0',
-                  fontSize: 12,
-                  padding: '6px 12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  background: '#EEF0FF', border: 'none', borderRadius: 8, color: '#5B6BF0',
+                  fontSize: 12, padding: '6px 12px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
                 onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
               >
-                Lihat semua
+                + Tambah Nakes
               </button>
             </div>
 
-            {/* Stat badges */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-              <div style={{ flex: 1, background: '#EEF0FF', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(91,107,240,0.08)', textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#5B6BF0', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.length}</div>
-                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Total Pasien</div>
-              </div>
-              <div style={{ flex: 1, background: '#ECFDF5', borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(16,185,129,0.08)', textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#10B981', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status === 'active').length}</div>
-                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Aktif</div>
-              </div>
-              <div style={{ flex: 1, background: '#F8FAFC', borderRadius: 12, padding: '12px 14px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#64748B', lineHeight: 1 }}>{ptSummaryLoading ? '…' : ptSummary.filter(p => p.status !== 'active').length}</div>
-                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginTop: 4 }}>Nonaktif</div>
-              </div>
-            </div>
-
-            {/* Disease distribution */}
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Distribusi Penyakit</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {([
-                { key: 'diabetes_t2', label: 'Diabetes', color: '#5B6BF0', bg: '#EEF0FF' },
-                { key: 'hypertension', label: 'Hipertensi', color: '#0277BD', bg: 'rgba(79,195,247,0.1)' },
-                { key: 'both', label: 'DM + Hipertensi', color: '#7C3AED', bg: '#F5F3FF' },
-              ] as const).map(d => {
-                const count = ptSummary.filter(p => p.disease_type === d.key).length
-                const total = ptSummary.length || 1
-                const pct = ptSummaryLoading ? 0 : Math.round((count / total) * 100)
-                return (
-                  <div key={d.key}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ background: d.bg, color: d.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6 }}>{d.label}</span>
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0F172A' }}>
-                        {ptSummaryLoading ? '—' : count}
-                        <span style={{ fontSize: 11, fontWeight: 500, color: '#94A3B8', marginLeft: 4 }}>({pct}%)</span>
-                      </span>
-                    </div>
-                    <div style={{ height: 6, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 4, background: d.color, transition: 'width 0.6s ease' }} />
+            {/* List of active nakes — driven by real data (no dummy) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {nakesLoading ? (
+                // Loading skeletons
+                [0, 1, 2].map(i => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #ECEEF3' }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#E9EDF3' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ width: '40%', height: 11, borderRadius: 5, background: '#E9EDF3' }} />
+                      <div style={{ width: '65%', height: 9, borderRadius: 5, background: '#EEF1F6', marginTop: 7 }} />
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Panduan Ambang Klinis Baseline — referensi medis (bukan data pasien) */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-            border: '1px solid #ECEEF3',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* Card Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Panduan Ambang Klinis Baseline</div>
-                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Klik "Baseline" pada tabel pasien untuk mencatat / melihat kontrol</div>
-              </div>
-            </div>
-
-            {/* Reference-range grid — nilai = ambang acuan klinis, bukan data pasien */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {([
-                { label: 'HbA1c', target: 'Target < 7% · > 9% bahaya', color: '#5B6BF0', bg: '#EEF0FF', border: 'rgba(91,107,240,0.15)' },
-                { label: 'LDL Kolesterol', target: 'Target < 100 mg/dL', color: '#8B5CF6', bg: '#F5F3FF', border: 'rgba(139,92,246,0.15)' },
-                { label: 'eGFR', target: 'Normal ≥ 60 mL/min', color: '#0D9488', bg: 'rgba(13,148,136,0.05)', border: 'rgba(13,148,136,0.15)' },
-                { label: 'UACR', target: '30–300 mg/g perlu pantau', color: '#5B6BF0', bg: '#EEF0FF', border: 'rgba(91,107,240,0.15)' },
-                { label: 'BMI', target: 'Normal 18.5–24.9 kg/m²', color: '#8B5CF6', bg: '#F5F3FF', border: 'rgba(139,92,246,0.15)' },
-                { label: 'Tensi Baseline', target: 'Normal < 120/80 mmHg', color: '#0D9488', bg: 'rgba(13,148,136,0.05)', border: 'rgba(13,148,136,0.15)' },
-              ] as const).map(m => (
-                <div key={m.label} style={{ background: m.bg, borderRadius: 12, padding: '12px 14px', border: `1px solid ${m.border}` }}>
-                  <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 6 }}>{m.label}</div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: m.color, lineHeight: 1.3 }}>{m.target}</div>
+                ))
+              ) : nakesItems.length === 0 ? (
+                // Empty state — no fabricated names
+                <div style={{ textAlign: 'center', padding: '28px 16px', color: '#94A3B8' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>Belum ada nakes terdaftar</div>
+                  <div style={{ fontSize: 11.5, marginTop: 4 }}>Tambahkan dokter atau kader untuk mulai memantau pasien prolanis.</div>
                 </div>
-              ))}
-            </div>
-
-            {/* Lingkar Pinggang — full width */}
-            <div style={{
-              marginTop: 10,
-              background: 'linear-gradient(135deg, #F5F3FF 0%, #EEF0FF 100%)',
-              borderRadius: 12,
-              padding: '12px 14px',
-              border: '1px solid rgba(139,92,246,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Lingkar Pinggang</div>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#8B5CF6', background: 'rgba(139,92,246,0.08)', borderRadius: 8, padding: '4px 10px', border: '1px solid rgba(139,92,246,0.15)' }}>
-                Risiko ≥ 90cm (L) / ≥ 80cm (P)
-              </span>
+              ) : (
+                nakesItems.slice(0, 5).map(n => {
+                  const isDokter = n.role === 'dokter'
+                  const roleLabel = isDokter ? 'Dokter JP' : n.role === 'kader' ? 'Kader' : 'Admin'
+                  // Real secondary detail: specialization/hospital for dokter, else contact
+                  const detail = isDokter
+                    ? (n.specialization || n.hospital || 'Dokter Penanggung Jawab')
+                    : (n.hospital || 'Kader Pemantauan Lapangan')
+                  const isActive = n.status === 'active'
+                  return (
+                    <div key={n.nakes_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #ECEEF3' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                        <div style={{
+                          width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                          background: isDokter ? '#EEF0FF' : 'rgba(13, 148, 136, 0.08)',
+                          color: isDokter ? '#5B6BF0' : '#0D9488',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12
+                        }}>
+                          {initials(n.full_name)}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.full_name}</div>
+                          <div style={{ fontSize: 11, color: '#64748B', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ fontWeight: 600, color: isDokter ? '#5B6BF0' : '#0D9488' }}>{roleLabel}</span>
+                            {' • '}{detail}
+                          </div>
+                        </div>
+                      </div>
+                      <span style={{
+                        background: isActive ? '#ECFDF5' : '#F1F5F9',
+                        color: isActive ? '#10B981' : '#64748B',
+                        fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, flexShrink: 0, marginLeft: 10
+                      }}>{isActive ? 'Aktif' : 'Nonaktif'}</span>
+                    </div>
+                  )
+                })
+              )}
             </div>
           </div>
+
         </div>
 
       </div>
@@ -681,12 +737,12 @@ export default function OperasionalTab({
       {showProgressModal && progressPatient && (
         <div
           onClick={e => { if (e.target === e.currentTarget) setShowProgressModal(false) }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease-out', backdropFilter: 'blur(2px)', padding: 24 }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeInOpacity 0.2s ease-out', backdropFilter: 'blur(2px)', padding: 20 }}
         >
-          <div style={{ background: '#fff', borderRadius: 18, width: 620, maxWidth: '95vw', boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8', maxHeight: '92vh', overflowY: 'auto' }}>
+          <div style={{ background: '#fff', borderRadius: 20, width: 640, maxWidth: '95vw', boxShadow: '0 24px 70px rgba(15,36,68,0.28)', border: '1px solid #ECEEF3', maxHeight: 'calc(100vh - 40px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
             {/* Modal Header */}
-            <div style={{ padding: '22px 26px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ flexShrink: 0, background: '#fff', borderRadius: '20px 20px 0 0', padding: '20px 24px', borderBottom: '1px solid #EEF1F6', display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{
                 width: 48, height: 48, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, flexShrink: 0,
                 background: progressPatient.disease === 'Diabetes' ? 'rgba(91,107,240,0.08)' : 'rgba(79,195,247,0.12)',
@@ -746,11 +802,18 @@ export default function OperasionalTab({
                 </span>
               </div>
 
-              <button onClick={() => setShowProgressModal(false)} style={{ background: '#F4F5F7', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16, flexShrink: 0, marginLeft: 8 }}>✕</button>
+              <button
+                onClick={() => setShowProgressModal(false)}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: 10, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', flexShrink: 0, marginLeft: 8, transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#334155' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#64748B' }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
             </div>
 
             {/* Modal Body */}
-            <div style={{ padding: '22px 26px' }}>
+            <div style={{ padding: '22px 24px 26px', overflowY: 'auto', flex: 1 }}>
               {loadingProgress ? (
                 <div style={{ textAlign: 'center', padding: '60px 0', color: '#8a93a1', fontSize: 14 }}>
                   <div style={{ display: 'inline-block', width: 24, height: 24, border: '3px solid #E2E8F0', borderTopColor: '#5B6BF0', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: 12 }}></div>
@@ -764,8 +827,9 @@ export default function OperasionalTab({
               ) : (
                 <>
                   {progressHistory.length === 1 && (
-                    <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 12px', fontSize: 11.5, color: '#1E40AF', marginBottom: 16 }}>
-                      ℹ️ Diperlukan minimal 2 rekaman kontrol baseline untuk menampilkan perbandingan tren perkembangan secara lengkap.
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12, padding: '11px 13px', fontSize: 11.5, lineHeight: 1.5, color: '#1E40AF', marginBottom: 18 }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                      <span>Diperlukan minimal 2 rekaman kontrol baseline untuk menampilkan perbandingan tren perkembangan secara lengkap.</span>
                     </div>
                   )}
 
@@ -848,15 +912,17 @@ export default function OperasionalTab({
                         </div>
 
                         {/* Monthly progress bars */}
-                        <div style={{ background: '#FAFBFE', border: '1px solid #EEF2F7', borderRadius: 13, padding: '18px 16px 12px', marginBottom: 22 }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10, height: 130 }}>
+                        <div style={{ background: '#FAFBFE', border: '1px solid #EEF2F7', borderRadius: 13, padding: '18px 20px 14px', marginBottom: 22 }}>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', justifyContent: chartData.length <= 3 ? 'center' : 'space-between', gap: chartData.length <= 3 ? 32 : 12, height: 130 }}>
+                            {/* baseline */}
+                            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 26, height: 1, background: '#E8EDF4' }} />
                             {chartData.map((bar, idx) => {
                               const barColor = getHealthColor(bar.score)
                               return (
-                                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                                <div key={idx} style={{ position: 'relative', width: 52, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
                                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', flex: 1, width: '100%' }}>
                                     <div style={{ fontSize: 11, fontWeight: 800, color: '#636B78', marginBottom: 6 }}>{bar.score}</div>
-                                    <div style={{ width: '100%', maxWidth: 34, height: `${bar.score}%`, background: barColor, borderRadius: '7px 7px 3px 3px' }}></div>
+                                    <div style={{ width: '100%', maxWidth: 36, height: `${Math.max(bar.score, 4)}%`, background: barColor, borderRadius: '8px 8px 3px 3px', boxShadow: `0 4px 12px ${barColor}33` }}></div>
                                   </div>
                                   <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 600, marginTop: 8 }}>{bar.month}</div>
                                 </div>
@@ -866,7 +932,7 @@ export default function OperasionalTab({
                         </div>
 
                         {/* Metrics changes list */}
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 12 }}>Perubahan Indikator Klinis (Dari Pertama s.d. Terbaru)</div>
+                        <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: 18, fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 12 }}>Perubahan Indikator Klinis <span style={{ fontWeight: 500, color: '#94A3B8', fontSize: 11.5 }}>(pertama → terbaru)</span></div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
                           {indicators.map((m, idx) => {
                             const goodColor = '#10B981'
@@ -928,7 +994,7 @@ export default function OperasionalTab({
                         </div>
 
                         {/* Riwayat Kontrol Baseline */}
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 14 }}>Riwayat Kontrol Baseline</div>
+                        <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: 18, fontSize: 13, fontWeight: 700, color: '#2B2D42', marginBottom: 14 }}>Riwayat Kontrol Baseline</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                           {progressHistory.map((h, idx) => {
                             const date = new Date(h.recorded_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })

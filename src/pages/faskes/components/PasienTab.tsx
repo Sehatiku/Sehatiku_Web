@@ -54,7 +54,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
     <div>
       <div className="anim-fadein">
         {/* Header banner */}
-        <div style={{ background: 'linear-gradient(130deg,#1A2066 0%,#262F8A 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(26,32,102,0.18)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: 'linear-gradient(135deg, #1E2775 0%, #161C5C 100%)', borderRadius: 16, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 8px 24px rgba(22, 28, 92, 0.15)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -20, top: -30, width: 150, height: 150, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
         <div style={{ width: 46, height: 46, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -72,7 +72,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
       </div>
 
       {/* Patient Table */}
-      <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8', overflow: 'hidden' }}>
+      <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>Semua Pasien</div>
@@ -83,7 +83,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
           <button
             onClick={() => setPatientRefreshKey(k => k + 1)}
             disabled={patientLoading}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#F4F5F7', border: '1px solid #DCDFE8', borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 600, color: '#636B78', cursor: patientLoading ? 'not-allowed' : 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(241,245,249,0.75)', border: '1px solid #DCDFE8', borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 600, color: '#636B78', cursor: patientLoading ? 'not-allowed' : 'pointer' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
             Refresh
@@ -109,9 +109,9 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#F7F8FA', borderBottom: '1px solid #DCDFE8' }}>
+                <tr style={{ background: 'linear-gradient(180deg, rgba(91,107,240,0.06), rgba(91,107,240,0.02))', borderBottom: '1px solid #E6E9F5' }}>
                   {['Nama Pasien', 'NIK', 'Usia / JK', 'Status Pasien', 'Penyakit', 'Skor Kesehatan', 'Status Risiko', 'Pendamping', 'Terdaftar'].map(h => (
-                    <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -170,7 +170,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                       </td>
                       <td style={{ padding: '13px 14px' }}>
                         <span style={{
-                          background: isActive ? 'rgba(16,185,129,0.1)' : '#F7F8FA',
+                          background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.6)',
                           color: isActive ? '#10B981' : '#8A93A1',
                           border: `1px solid ${isActive ? 'rgba(16,185,129,0.2)' : '#DCDFE8'}`,
                           fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
@@ -237,12 +237,12 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
               <button
                 onClick={() => setPatientPage(p => Math.max(1, p - 1))}
                 disabled={patientPage <= 1}
-                style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #DCDFE8', background: patientPage <= 1 ? '#F4F5F7' : '#fff', color: patientPage <= 1 ? '#CBD5E1' : '#2B2D42', fontSize: 12, fontWeight: 600, cursor: patientPage <= 1 ? 'not-allowed' : 'pointer' }}
+                style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #DCDFE8', background: patientPage <= 1 ? 'rgba(241,245,249,0.75)' : '#fff', color: patientPage <= 1 ? '#CBD5E1' : '#2B2D42', fontSize: 12, fontWeight: 600, cursor: patientPage <= 1 ? 'not-allowed' : 'pointer' }}
               >← Prev</button>
               <button
                 onClick={() => setPatientPage(p => Math.min(patientPaging.total_page, p + 1))}
                 disabled={patientPage >= patientPaging.total_page}
-                style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #DCDFE8', background: patientPage >= patientPaging.total_page ? '#F4F5F7' : '#fff', color: patientPage >= patientPaging.total_page ? '#CBD5E1' : '#2B2D42', fontSize: 12, fontWeight: 600, cursor: patientPage >= patientPaging.total_page ? 'not-allowed' : 'pointer' }}
+                style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #DCDFE8', background: patientPage >= patientPaging.total_page ? 'rgba(241,245,249,0.75)' : '#fff', color: patientPage >= patientPaging.total_page ? '#CBD5E1' : '#2B2D42', fontSize: 12, fontWeight: 600, cursor: patientPage >= patientPaging.total_page ? 'not-allowed' : 'pointer' }}
               >Next →</button>
             </div>
           </div>

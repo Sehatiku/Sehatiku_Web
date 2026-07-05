@@ -36,14 +36,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function NakesDetailDrawer({ detail, loading, onClose, onToggleStatus }: Props) {
   return createPortal(
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(23,28,58,0.62)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', animation: 'fadeIn 0.2s ease-out' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ width: 520, maxWidth: '92vw', maxHeight: '88vh', background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(15,36,68,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ width: 520, maxWidth: '92vw', maxHeight: '88vh', background: '#ffffff', borderRadius: 20, boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid rgba(255,255,255,0.8)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        <div style={{ padding: '18px 22px', borderBottom: '1px solid #DCDFE8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ padding: '18px 22px', borderBottom: '1px solid #ECEEF3', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>Detail Nakes</div>
-          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 8, background: '#F4F5F7', border: '1px solid #DCDFE8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16 }}>×</button>
+          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16 }}>×</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
@@ -56,7 +56,7 @@ export default function NakesDetailDrawer({ detail, loading, onClose, onToggleSt
             const isActive = detail.status === 'active'
             return (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, padding: '16px', background: '#F7F8FA', borderRadius: 12, border: '1px solid #DCDFE8' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #ECEEF3' }}>
                   <div style={{ width: 52, height: 52, borderRadius: '50%', background: rc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: rc.color, flexShrink: 0 }}>
                     {initials(detail.full_name)}
                   </div>

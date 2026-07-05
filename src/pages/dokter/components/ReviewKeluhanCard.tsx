@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { ConsultationResult } from '../../../lib/types'
 
 interface ReviewKeluhanCardProps {
@@ -6,10 +6,7 @@ interface ReviewKeluhanCardProps {
   onReview: (id: string, notes: string) => void
 }
 
-export default function ReviewKeluhanCard({
-  consultation,
-  onReview,
-}: ReviewKeluhanCardProps) {
+export default function ReviewKeluhanCard({ consultation, onReview }: ReviewKeluhanCardProps) {
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
 
@@ -22,25 +19,21 @@ export default function ReviewKeluhanCard({
     return (
       <div style={{
         background: '#fff',
-        borderRadius: 14,
+        borderRadius: 16,
         padding: '18px 20px',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        border: '1px solid #E5E7EB',
         display: 'flex',
         alignItems: 'center',
         gap: 12,
-        border: '1px dashed #E5E7EB',
       }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: '50%', background: '#F0FDF4',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
         <div>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, color: '#111827' }}>Tidak Ada Keluhan Aktif</p>
-          <p style={{ margin: 0, fontSize: 11, color: '#9CA3AF' }}>Pasien belum mengajukan konsultasi atau keluhan baru saat ini.</p>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, color: '#0F172A' }}>Tidak ada keluhan aktif</p>
+          <p style={{ margin: '2px 0 0', fontSize: 11.5, color: '#64748B' }}>Pasien belum mengajukan konsultasi baru.</p>
         </div>
       </div>
     )
@@ -50,121 +43,77 @@ export default function ReviewKeluhanCard({
 
   const handleSubmit = () => {
     if (!notes.trim()) {
-      setError('Harap masukkan jawaban atau saran rekomendasi Anda.')
+      setError('Harap isi rekomendasi terlebih dahulu.')
       return
     }
     setError('')
     onReview(consultation.id, notes)
   }
 
-  const categoryStyles: Record<string, { bg: string; text: string; border: string }> = {
-    'Konsultasi Dokter': { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
-    'Laporkan Keluhan':  { bg: '#FFF1F2', text: '#BE123C', border: '#FECDD3' },
-    'Minta Review Hasil': { bg: '#F5F3FF', text: '#6D28D9', border: '#DDD6FE' },
-  }
-  const catStyle = categoryStyles[consultation.complaint_type] || { bg: '#F3F4F6', text: '#4B5563', border: '#E5E7EB' }
-
-  const formatRepliedAt = (val?: string | null) => {
-    if (!val) return ''
-    try {
-      return new Date(val).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ', hari ini'
-    } catch {
-      return val
-    }
-  }
-
   return (
     <div style={{
       background: '#fff',
       borderRadius: 16,
-      padding: '20px 24px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      padding: '20px 22px',
+      border: '1px solid #E5E7EB',
+      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
       fontFamily: '"Plus Jakarta Sans", "Inter", sans-serif',
+      flexShrink: 0,
     }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: 12, marginBottom: 20,
-        paddingBottom: 16, borderBottom: '1px solid #F1F5F9',
-      }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingBottom: 14, marginBottom: 18, borderBottom: '1px solid #E5E7EB' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: '#EEF2FF',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
             </svg>
           </div>
-          <span style={{ fontWeight: 700, fontSize: 14.5, color: '#1E293B' }}>Review Keluhan Pasien</span>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 15.5, color: '#0F172A' }}>Review Keluhan Pasien</div>
+            <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>Ringkasan keluhan dan tindak lanjut</div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div style={{ textAlign: 'right' }}>
           <span style={{
-            background: catStyle.bg, color: catStyle.text, border: `1px solid ${catStyle.border}`,
-            borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700,
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 700,
+            background: isPending ? '#FFF7ED' : '#ECFDF5',
+            color: isPending ? '#C2410C' : '#047857',
+            border: `1px solid ${isPending ? '#FED7AA' : '#A7F3D0'}`,
           }}>
-            {consultation.complaint_type}
+            {isPending ? 'Pending' : 'Selesai'}
           </span>
-          {isPending ? (
-            <span style={{
-              background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A',
-              borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700,
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-            }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
-              Pending
-            </span>
-          ) : (
-            <span style={{
-              background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0',
-              borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700,
-              display: 'inline-flex', alignItems: 'center', gap: 5,
-            }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Selesai
-            </span>
+          {!isPending && consultation.replied_at && (
+            <div style={{ fontSize: 11, color: '#64748B', fontWeight: 500, marginTop: 4 }}>
+              Ditinjau {new Date(consultation.replied_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(consultation.replied_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.')}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Patient info — flat rows, no container box */}
-      <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 0 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', paddingBottom: 16, borderBottom: '1px solid #F1F5F9' }}>
-          <div>
-            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: 4 }}>
-              Keluhan Sejak Kapan
-            </span>
-            <span style={{ fontSize: 13.5, color: '#1E293B', fontWeight: 600 }}>{consultation.complaint_since}</span>
-          </div>
-          <div style={{ paddingLeft: 24, borderLeft: '1px solid #F1F5F9' }}>
-            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: 4 }}>
-              Kategori
-            </span>
-            <span style={{ fontSize: 13.5, color: '#1E293B', fontWeight: 600 }}>{consultation.complaint_type}</span>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Keluhan sejak kapan</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>{consultation.complaint_since}</div>
         </div>
-        <div style={{ paddingTop: 16 }}>
-          <span style={{ fontSize: 9.5, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: 6 }}>
-            Detail Keluhan
-          </span>
-          <span style={{ fontSize: 13.5, color: '#334155', lineHeight: 1.7, display: 'block', fontWeight: 500 }}>
-            {consultation.complaint_detail}
-          </span>
+        <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Kategori keluhan</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>{consultation.complaint_type}</div>
         </div>
       </div>
 
-      {/* Doctor action */}
+      <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 14, padding: '14px 16px', marginBottom: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Detail deskripsi keluhan</div>
+        <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.6, fontWeight: 600 }}>{consultation.complaint_detail}</div>
+      </div>
+
       {isPending ? (
         <div>
-          <label htmlFor="notes-area" style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>
-            Feedback Dokter untuk Pasien
+          <label htmlFor="notes-area" style={{ display: 'block', fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>
+            Rekomendasi / Tindak Lanjut
           </label>
           <textarea
             id="notes-area"
@@ -173,45 +122,25 @@ export default function ReviewKeluhanCard({
               setNotes(e.target.value)
               if (e.target.value.trim()) setError('')
             }}
-            placeholder="Berikan saran medis, tanggapan keluhan, resep obat, atau arahan diet/gaya hidup..."
+            placeholder="Tulis saran medis atau tindak lanjut untuk pasien"
             rows={4}
             style={{
               width: '100%',
               padding: '14px 16px',
               borderRadius: 12,
-              border: error ? '2px solid #EF4444' : '2px solid #E2E8F0',
-              fontSize: 14,
+              border: error ? '2px solid #EF4444' : '1px solid #CBD5E1',
+              fontSize: 13.5,
               fontFamily: 'inherit',
               lineHeight: 1.6,
               resize: 'vertical',
               outline: 'none',
-              transition: 'all 0.2s ease',
               background: '#fff',
               boxSizing: 'border-box',
               color: '#1E293B',
             }}
-            onFocus={e => {
-              if (!error) {
-                e.target.style.borderColor = '#5B6BF0'
-                e.target.style.boxShadow = '0 0 0 4px rgba(91,107,240,0.15)'
-              }
-            }}
-            onBlur={e => {
-              if (!error) {
-                e.target.style.borderColor = '#E2E8F0'
-                e.target.style.boxShadow = 'none'
-              }
-            }}
           />
           {error && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <p style={{ margin: 0, fontSize: 12, color: '#EF4444', fontWeight: 600 }}>{error}</p>
-            </div>
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: '#EF4444', fontWeight: 600 }}>{error}</p>
           )}
 
           <button
@@ -219,39 +148,24 @@ export default function ReviewKeluhanCard({
             style={{
               marginTop: 14,
               width: '100%',
-              background: '#5B6BF0',
+              background: '#4F46E5',
               color: '#fff',
               border: 'none',
-              borderRadius: 10,
-              padding: '11px 20px',
+              borderRadius: 12,
+              padding: '11px 16px',
               fontWeight: 700,
               fontSize: 13.5,
               cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              transition: 'background 0.15s',
               fontFamily: 'inherit',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#4F46E5' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#5B6BF0' }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-            Kirim Feedback ke Pasien
+            Kirim feedback
           </button>
         </div>
       ) : (
-        <div style={{ paddingTop: 16, borderTop: '1px solid #F1F5F9' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-              Feedback Anda
-            </span>
-            <span style={{ fontSize: 11, color: '#10B981', fontWeight: 600 }}>
-              {formatRepliedAt(consultation.replied_at)}
-            </span>
-          </div>
-          <p style={{ margin: 0, fontSize: 13.5, color: '#334155', lineHeight: 1.7, fontWeight: 500, whiteSpace: 'pre-wrap' }}>
+        <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Feedback rekomendasi Anda</div>
+          <p style={{ margin: 0, fontSize: 14, color: '#0F766E', lineHeight: 1.6, fontWeight: 600, whiteSpace: 'pre-wrap' }}>
             {consultation.nakes_note || 'Tidak ada catatan tertulis.'}
           </p>
         </div>

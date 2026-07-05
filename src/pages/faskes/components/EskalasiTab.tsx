@@ -83,13 +83,13 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
 
   return (
     <div className="anim-fadein">
-      <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8', overflow: 'hidden' }}>
+      <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 1px 3px rgba(15,36,68,0.04)', border: '1px solid #ECEEF3', overflow: 'hidden' }}>
         <div style={{ padding: '16px 22px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2D42' }}>Log Eskalasi Klinis</div>
             <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 2 }}>Histori sinyal kritis &amp; status tindak lanjut tenaga kesehatan · auto-refresh 60 dtk</div>
           </div>
-          <div style={{ background: '#F7F8FA', border: '1px solid #DCDFE8', borderRadius: 8, padding: '6px 13px' }}>
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: '6px 13px' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: '#8A93A1' }}>{loading ? '…' : `${openCount} Perlu Tindak Lanjut`}</span>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
         {!loading && error && (
           <div style={{ padding: '32px 22px', textAlign: 'center' }}>
             <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 12 }}>{error}</div>
-            <button onClick={() => { setLoading(true); fetchEscalations() }} style={{ background: '#EEEFFE', color: '#5B6BF0', border: '1px solid rgba(91,107,240,0.18)', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Coba Lagi</button>
+            <button onClick={() => { setLoading(true); fetchEscalations() }} style={{ background: '#5B6BF0', color: '#fff', border: 'none', borderRadius: 12, padding: '9px 18px', fontSize: 12.5, fontWeight: 700, boxShadow: '0 3px 10px rgba(91,107,240,0.25)', cursor: 'pointer' }}>Coba Lagi</button>
           </div>
         )}
 
@@ -139,7 +139,7 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
               </div>
               <div style={{ flexShrink: 0 }}>
                 {isDone ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F0FDF8', color: '#10B981', borderRadius: 8, padding: '9px 14px', fontSize: 12, fontWeight: 700, border: '1px solid rgba(16,185,129,0.2)', whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F0FDFA', color: '#0F766E', borderRadius: 12, padding: '9px 14px', fontSize: 12, fontWeight: 700, border: '1px solid rgba(16,185,129,0.2)', whiteSpace: 'nowrap' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
                     Sudah Ditindak
                   </div>
@@ -147,7 +147,7 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
                   <button
                     onClick={() => handleFollowUp(alert)}
                     disabled={actingId === alert.id}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: actingId === alert.id ? '#FCA5A5' : '#EF4444', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 15px', fontSize: 12, fontWeight: 700, cursor: actingId === alert.id ? 'wait' : 'pointer', whiteSpace: 'nowrap', boxShadow: '0 3px 10px rgba(239,68,68,0.25)' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: actingId === alert.id ? '#FCA5A5' : '#EF4444', color: '#fff', border: 'none', borderRadius: 12, padding: '9px 15px', fontSize: 12, fontWeight: 700, cursor: actingId === alert.id ? 'wait' : 'pointer', whiteSpace: 'nowrap', boxShadow: '0 3px 10px rgba(239,68,68,0.25)' }}
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
                     {actingId === alert.id ? 'Memproses…' : 'One-Tap Follow Up'}

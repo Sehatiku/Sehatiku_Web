@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
 import type { PatientQueueItem, NakesDetail, ConsultationResult, NakesPatientDetailData } from '../../lib/types'
-import { initials } from '../../lib/utils'
+
 
 // Subcomponents & Views
 import { ToastNotif } from './components/Common'
@@ -15,9 +15,12 @@ type ActiveView = 'pasien' | 'notif' | 'profil' | 'keluhan'
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 
 export default function DokterDashboardPage({ onLogout }: { onLogout: () => void }) {
+
   const { user } = useAuth()
 
   const [activeView, setActiveView] = useState<ActiveView>('pasien')
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const searchQuery = ''
   const [queue, setQueue] = useState<PatientQueueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -34,6 +37,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [detailLoading, setDetailLoading] = useState(false)
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+
 
   // Doctor profile states
   const [doctorProfile, setDoctorProfile] = useState<NakesDetail | null>(null)
@@ -117,11 +121,6 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
     }
   }, [])
 
-  const handleDoctorBadgeClick = useCallback(() => {
-    setActiveView('profil')
-    fetchDoctorProfile()
-  }, [fetchDoctorProfile])
-
   const handleReviewConsultation = useCallback(async (id: string, notes: string) => {
     try {
       await nakesApi.replyConsultation(id, notes)
@@ -144,18 +143,40 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
 
+  const detailsCacheRef = useRef<Record<string, NakesPatientDetailData>>({})
+
   // Ambil detail klinis pasien (baseline, log harian, tren skor, faktor risiko) dari BE
   // setiap kali pasien dibuka di modal antrean atau panel tren.
   const openPatientId = selectedId ?? trenPatientId
   useEffect(() => {
     if (!openPatientId) { setPatientDetail(null); return }
     let cancelled = false
-    setDetailLoading(true)
-    setPatientDetail(null)
+
+    const cached = detailsCacheRef.current[openPatientId]
+    if (cached) {
+      setPatientDetail(cached)
+      setDetailLoading(false)
+    } else {
+      setDetailLoading(true)
+      setPatientDetail(null)
+    }
+
     nakesApi.getPatientDetail(openPatientId)
-      .then(d => { if (!cancelled) setPatientDetail(d) })
-      .catch(() => { if (!cancelled) setPatientDetail(null) })
-      .finally(() => { if (!cancelled) setDetailLoading(false) })
+      .then(d => {
+        if (!cancelled) {
+          detailsCacheRef.current[openPatientId] = d
+          setPatientDetail(d)
+        }
+      })
+      .catch(() => {
+        if (!cancelled && !detailsCacheRef.current[openPatientId]) {
+          setPatientDetail(null)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoading(false)
+      })
+
     return () => { cancelled = true }
   }, [openPatientId])
 
@@ -176,7 +197,8 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const pendingComplaintsCount = consultations.filter(c => c.status === 'open').length
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif', background: '#F4F5F7' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif', background: '#F4F6FA' }}>
+      <div style={{ flex: 1, display: 'flex', background: '#F4F6FA', padding: 16, gap: 16, overflow: 'hidden', height: '100%', width: '100%' }}>
       <style>{`
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -189,151 +211,337 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
       `}</style>
 
       {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
-      <aside style={{
-        width: 252, minWidth: 252,
+      {/* ── COLLAPSIBLE SIDEBAR ── */}
+      <div style={{
+        width: isSidebarCollapsed ? 88 : 300,
+        minWidth: isSidebarCollapsed ? 88 : 300,
         background: 'linear-gradient(180deg, #1E2775 0%, #161C5C 100%)',
-        display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
-        color: '#fff', position: 'relative', zIndex: 10,
+        borderRadius: 24,
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        boxShadow: '4px 0 24px rgba(26, 32, 102, 0.18)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflow: 'hidden',
+        color: '#ffffff',
+        padding: '20px 0 16px',
       }}>
-        {/* Logo */}
-        <div style={{ padding: '24px 24px 16px', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-          <img
-            src="/logo_sehatiku_horizontal.png"
-            alt="Sehatiku"
-            style={{ height: 34, objectFit: 'contain', display: 'block' }}
-          />
+        {/* Header (Branding Box) */}
+        <div style={{ padding: '0 16px 16px' }}>
+          <div style={{
+            background: isSidebarCollapsed ? 'transparent' : 'rgba(255, 255, 255, 0.06)',
+            border: isSidebarCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 16,
+            padding: isSidebarCollapsed ? 0 : '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+            transition: 'all 0.3s',
+          }}>
+            {isSidebarCollapsed ? (
+              <img
+                src="/logo sehatiku.png"
+                alt="Sehatiku"
+                onClick={() => setIsSidebarCollapsed(false)}
+                style={{
+                  height: 36,
+                  width: 36,
+                  objectFit: 'contain',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                title="Expand Sidebar"
+              />
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <img src="/logo sehatiku.png" alt="Sehatiku" style={{ height: 26, width: 26, objectFit: 'contain' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 16.5, fontWeight: 700, color: '#ffffff', lineHeight: '1.2' }}>Sehatiku</span>
+                    <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.55)', marginTop: 3, fontWeight: 600 }}>Portal Dokter</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    borderRadius: 8,
+                    width: 30,
+                    height: 30,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  title="Collapse Sidebar"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Nav */}
-        <div style={{ padding: '14px 10px 8px', flex: 1, overflowY: 'auto' }}>
-          <p style={{ margin: '16px 0 10px 10px', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,0.42)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>Menu Klinis</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {[
-              {
-                id: 'pasien' as const, label: 'Pasien Saya', icon: (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                )
-              },
-              {
-                id: 'keluhan' as const, label: 'Review Keluhan', icon: (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                )
-              },
-              {
-                id: 'notif' as const, label: 'Notifikasi', icon: (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                )
-              },
-            ].map(nav => {
-              const active = activeView === nav.id
-              return (
-                <button key={nav.id} onClick={() => setActiveView(nav.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8,
-                  border: 'none',
-                  background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  color: active ? '#fff' : 'rgba(255,255,255,0.65)', cursor: 'pointer', width: '100%', textAlign: 'left',
-                  fontWeight: active ? 700 : 500, fontSize: 13, fontFamily: 'Plus Jakarta Sans, sans-serif',
-                  transition: 'all 0.15s',
-                }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)' } }}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)' } }}
-                >
-                  <span style={{ opacity: active ? 1 : 0.75, display: 'flex', alignItems: 'center', width: 18, flexShrink: 0, color: active ? '#0D9488' : 'currentColor' }}>{nav.icon}</span>
-                  <span style={{ flex: 1 }}>{nav.label}</span>
-                  {nav.id === 'pasien' && totalCount > 0 && (
-                    <span style={{ background: '#0D9488', color: '#fff', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>
-                      {totalCount}
-                    </span>
-                  )}
-                  {nav.id === 'keluhan' && pendingComplaintsCount > 0 && (
-                    <span style={{ background: '#F59E0B', color: '#fff', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>
-                      {pendingComplaintsCount}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
 
-          {/* Patient summary */}
-          <div style={{ margin: '20px 2px 0', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-            <p style={{ margin: '12px 0 10px 10px', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,0.42)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>Ringkasan Pasien Saya</p>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {[
-                { dot: '#EF4444', label: 'Risiko Bahaya', val: bahayaCount, valColor: '#FCA5A5' },
-                { dot: '#F59E0B', label: 'Perlu Pantau', val: waswasCount, valColor: '#FCD34D' },
-                { dot: '#0D9488', label: 'Status Aman', val: amanCount, valColor: '#5EEAD4' },
-              ].map(item => (
-                <div key={item.label} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '8px 10px',
+        {/* Grouped menu items with dynamic search filtering */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {(() => {
+            const groups: Array<{
+              title: string
+              items: Array<{ id: ActiveView; label: string; count?: number; icon: React.ReactNode }>
+            }> = [
+                {
+                  title: 'Layanan Medis',
+                  items: [
+                    { id: 'pasien', label: 'Pasien Saya', count: totalCount, icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> },
+                    { id: 'keluhan', label: 'Review Keluhan', count: pendingComplaintsCount, icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg> }
+                  ]
+                },
+                {
+                  title: 'Sistem',
+                  items: [
+                    { id: 'notif', label: 'Notifikasi', icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg> },
+                    { id: 'profil', label: 'Profil Saya', icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg> }
+                  ]
+                }
+              ]
+
+            return groups.map((group, gIdx) => {
+              const filteredItems = group.items.filter(item =>
+                item.label.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+
+              if (filteredItems.length === 0) return null
+
+              return (
+                <div key={group.title} style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  paddingTop: gIdx > 0 ? 12 : 0,
+                  borderTop: gIdx > 0 ? '1px dashed rgba(255, 255, 255, 0.12)' : 'none',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{item.label}</span>
+                  <div style={{
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    color: 'rgba(255, 255, 255, 0.48)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.9px',
+                    padding: '0 8px 6px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    opacity: isSidebarCollapsed ? 0 : 1,
+                    height: isSidebarCollapsed ? 0 : 'auto',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}>
+                    {group.title}
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: item.valColor, fontFamily: 'IBM Plex Mono, monospace' }}>{item.val}</span>
+
+                  {filteredItems.map(item => {
+                    const isSelected = activeView === item.id
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          setActiveView(item.id)
+                          if (item.id === 'profil') fetchDoctorProfile()
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 13,
+                          padding: '13px 16px',
+                          borderRadius: 14,
+                          cursor: 'pointer',
+                          background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                          color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
+                          transition: 'all 0.2s',
+                          justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                        }}
+                        onMouseEnter={e => {
+                          if (!isSelected) {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
+                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (!isSelected) {
+                            e.currentTarget.style.background = 'transparent'
+                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
+                          }
+                        }}
+                        title={isSidebarCollapsed ? item.label : undefined}
+                      >
+                        <div style={{
+                          color: isSelected ? '#0D9488' : 'inherit',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: 22,
+                        }}>
+                          {item.icon}
+                        </div>
+                        <span style={{
+                          fontSize: 14.5,
+                          fontWeight: isSelected ? 700 : 500,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          opacity: isSidebarCollapsed ? 0 : 1,
+                          width: isSidebarCollapsed ? 0 : 'auto',
+                          marginLeft: isSidebarCollapsed ? 0 : 4,
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          flex: 1,
+                        }}>
+                          {item.label}
+                        </span>
+                        {item.count !== undefined && item.count > 0 && !isSidebarCollapsed && (
+                          <span style={{
+                            background: item.id === 'keluhan' ? '#F59E0B' : '#0D9488',
+                            color: '#ffffff',
+                            fontSize: 11,
+                            fontWeight: 800,
+                            borderRadius: 12,
+                            padding: '2px 8px',
+                          }}>
+                            {item.count}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
+              )
+            })
+          })()}
+        </div>
+
+        {/* Nakes identity card (who is logged in) */}
+        <div style={{ padding: '12px 16px 0' }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 16,
+            padding: isSidebarCollapsed ? 0 : '13px 15px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+            height: isSidebarCollapsed ? 46 : 'auto',
+            transition: 'all 0.3s',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              width: isSidebarCollapsed ? 34 : 38,
+              height: isSidebarCollapsed ? 34 : 38,
+              borderRadius: 11,
+              flexShrink: 0,
+              background: 'rgba(13, 148, 136, 0.18)',
+              color: '#2DD4BF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 13,
+              fontWeight: 800,
+            }}>
+              {(user?.name ?? 'N')
+                .replace(/^dr\.?\s*/i, '')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(w => w[0]?.toUpperCase())
+                .join('')}
+            </div>
+            <div style={{
+              minWidth: 0,
+              flex: 1,
+              opacity: isSidebarCollapsed ? 0 : 1,
+              width: isSidebarCollapsed ? 0 : 'auto',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user?.name ?? 'Nakes'}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user?.role === 'kader' ? 'Kader Pemantauan' : user?.role === 'admin' ? 'Admin Faskes' : 'Dokter Penanggung Jawab'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Doctor badge */}
-        <div
-          onClick={handleDoctorBadgeClick}
-          style={{
-            margin: '8px 12px 14px', borderRadius: 10,
-            padding: '10px 12px', background: 'rgba(255,255,255,0.06)',
-            display: 'flex', alignItems: 'center', gap: 10,
-            cursor: 'pointer', transition: 'background 0.18s',
-            border: '1px solid rgba(255,255,255,0.08)',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
-        >
-          <div style={{
-            width: 36, height: 36, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0D9488, #38BDF8)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 800, fontSize: 13, flexShrink: 0,
-          }}>
-            {initials(doctorProfile?.full_name ?? user?.name ?? 'DR')}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doctorProfile?.full_name ?? user?.name ?? 'Dokter'}
-            </p>
-            <p style={{ margin: '2px 0 0', fontSize: 10, color: 'rgba(255,255,255,0.42)', fontWeight: 500 }}>
-              {doctorProfile?.specialization ?? (user?.role === 'dokter' ? 'Dokter Umum' : user?.role === 'kader' ? 'Kader Kesehatan' : 'Admin')}
-            </p>
-          </div>
-        </div>
-
-        {/* Logout */}
-        <div style={{ padding: '8px 12px 16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-          <button onClick={() => setShowLogoutConfirm(true)} style={{
-            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            background: 'transparent', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8,
-            padding: '9px 12px', fontSize: 12.5, fontWeight: 600, color: '#F87171', cursor: 'pointer',
-            fontFamily: 'Plus Jakarta Sans, sans-serif', transition: 'all 0.18s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.35)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)' }}
+        {/* Pinned Logout Action (pinned bottom) */}
+        <div style={{
+          padding: '16px 0 0',
+          borderTop: '1px dashed rgba(255, 255, 255, 0.12)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <div
+            onClick={() => setShowLogoutConfirm(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 13,
+              padding: '13px 16px',
+              borderRadius: 14,
+              cursor: 'pointer',
+              background: 'rgba(239, 68, 68, 0.08)',
+              color: '#EF4444',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              width: isSidebarCollapsed ? 38 : 'calc(100% - 32px)',
+              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              margin: '0 auto',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)'
+            }}
+            title={isSidebarCollapsed ? "Keluar Sesi" : undefined}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Keluar
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <span style={{
+              fontSize: 14.5,
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              opacity: isSidebarCollapsed ? 0 : 1,
+              width: isSidebarCollapsed ? 0 : 'auto',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}>
+              Keluar Sesi
+            </span>
+          </div>
         </div>
-      </aside>
-
-      {/* ── Main content ──────────────────────────────────────────────────────── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, background: '#ffffff', borderRadius: 24, boxShadow: '0 8px 30px rgba(15, 36, 68, 0.04)', border: '1px solid #E2E8F0' }}>
 
         {/* Topbar */}
         <header style={{
@@ -455,6 +663,8 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
           )}
         </div>
       </div>
+
+    </div>
 
       {/* Toast */}
       {toast && <ToastNotif msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}

@@ -79,15 +79,23 @@ const emptyBaseline: BaselineFormState = {
   clinical_group: '',
 }
 
+const SELECT_CHEVRON =
+  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%2364748B'%20stroke-width='2.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E"
+
 const selectStyle: CSSProperties = {
   width: '100%',
-  padding: '10px 13px',
+  padding: '10px 34px 10px 13px',
   borderRadius: 9,
   fontSize: 13,
   color: '#2B2D42',
-  background: '#F7F8FA',
+  background: `rgba(255,255,255,0.6) url("${SELECT_CHEVRON}") no-repeat right 12px center`,
+  backgroundSize: '13px',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  MozAppearance: 'none',
   outline: 'none',
   boxSizing: 'border-box',
+  cursor: 'pointer',
 }
 
 export default function PendaftaranTab({
@@ -327,7 +335,7 @@ export default function PendaftaranTab({
         value={baseline[key] as string}
         onChange={e => setBaselineField(key, e.target.value as BaselineFormState[typeof key])}
         placeholder={placeholder}
-        style={{ width: '100%', padding: '10px 13px', border: fieldBorder(baselineErr(errKey)), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box', fontFamily: 'IBM Plex Mono, monospace' }}
+        style={{ width: '100%', padding: '10px 13px', border: fieldBorder(baselineErr(errKey)), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box', fontFamily: 'IBM Plex Mono, monospace' }}
       />
       {baselineErr(errKey) && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{baselineErr(errKey)}</div>}
     </div>
@@ -359,7 +367,7 @@ export default function PendaftaranTab({
     return (
       <button
         onClick={() => setBaselineField(key, !checked as BaselineFormState[typeof key])}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', borderRadius: 9, border: `1.5px solid ${checked ? '#5B6BF0' : '#DCDFE8'}`, background: checked ? '#EEEFFE' : '#F7F8FA', color: checked ? '#5B6BF0' : '#636B78', cursor: 'pointer', fontSize: 12, fontWeight: 600, textAlign: 'left' }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', borderRadius: 9, border: `1.5px solid ${checked ? '#5B6BF0' : '#DCDFE8'}`, background: checked ? '#EEEFFE' : 'rgba(255,255,255,0.6)', color: checked ? '#5B6BF0' : '#636B78', cursor: 'pointer', fontSize: 12, fontWeight: 600, textAlign: 'left' }}
       >
         <span>{label}</span>
         <span style={{ width: 34, height: 20, borderRadius: 999, background: checked ? '#5B6BF0' : '#DCDFE8', padding: 2, boxSizing: 'border-box', display: 'flex', justifyContent: checked ? 'flex-end' : 'flex-start' }}>
@@ -378,7 +386,7 @@ export default function PendaftaranTab({
 
   return (
     <div className="anim-fadein">
-      <div style={{ background: 'linear-gradient(130deg, #1A2066 0%, #262F8A 100%)', borderRadius: 14, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(26,32,102,0.18)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(135deg, #1E2775 0%, #161C5C 100%)', borderRadius: 16, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 20px rgba(26,32,102,0.18)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -20, top: -30, width: 150, height: 150, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
         <div style={{ width: 46, height: 46, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative', zIndex: 1 }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -415,7 +423,7 @@ export default function PendaftaranTab({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Card 1: Data Identitas */}
-          <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8' }}>
+          <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: 22, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EEEFFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -429,7 +437,7 @@ export default function PendaftaranTab({
               <button
                 onClick={() => ptOcrRef.current?.click()}
                 disabled={ptOcrLoading}
-                style={{ display: 'flex', alignItems: 'center', gap: 7, background: ptOcrLoading ? '#F4F5F7' : '#EEEFFE', border: '1.5px dashed #5B6BF0', borderRadius: 9, padding: '7px 13px', cursor: ptOcrLoading ? 'not-allowed' : 'pointer', color: '#5B6BF0', fontSize: 12, fontWeight: 600 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, background: ptOcrLoading ? 'rgba(241,245,249,0.75)' : '#EEEFFE', border: '1.5px dashed #5B6BF0', borderRadius: 9, padding: '7px 13px', cursor: ptOcrLoading ? 'not-allowed' : 'pointer', color: '#5B6BF0', fontSize: 12, fontWeight: 600 }}
               >
                 {ptOcrLoading
                   ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" strokeOpacity="0.25" /><path d="M12 2a10 10 0 0 1 10 10" /></svg>
@@ -445,7 +453,7 @@ export default function PendaftaranTab({
                   type="text" value={ptNik} onChange={e => setPtNik(e.target.value.replace(/\D/g, '').slice(0, 16))}
                   placeholder="16 digit NIK sesuai KTP"
                   maxLength={16}
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('nik') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '2px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('nik') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '2px', boxSizing: 'border-box' }}
                 />
                 {ptErr('nik') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('nik')}</div>}
                 {!ptErr('nik') && ptNik && ptNik.length < 16 && <div style={{ fontSize: 10, color: '#8A93A1', marginTop: 3 }}>{ptNik.length}/16 digit</div>}
@@ -455,7 +463,7 @@ export default function PendaftaranTab({
                 <input
                   type="text" value={ptName} onChange={e => setPtName(e.target.value)}
                   placeholder="Nama sesuai KTP"
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('name') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('name') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('name') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('name')}</div>}
               </div>
@@ -476,7 +484,7 @@ export default function PendaftaranTab({
                     <button
                       key={s}
                       onClick={() => setPtSex(s)}
-                      style={{ flex: 1, padding: '9px 0', borderRadius: 9, border: `1.5px solid ${ptErr('sex') ? '#EF4444' : (ptSex === s ? '#5B6BF0' : '#DCDFE8')}`, background: ptSex === s ? '#EEEFFE' : '#F7F8FA', color: ptSex === s ? '#5B6BF0' : '#636B78', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}
+                      style={{ flex: 1, padding: '9px 0', borderRadius: 9, border: `1.5px solid ${ptErr('sex') ? '#EF4444' : (ptSex === s ? '#5B6BF0' : '#DCDFE8')}`, background: ptSex === s ? '#EEEFFE' : 'rgba(255,255,255,0.6)', color: ptSex === s ? '#5B6BF0' : '#636B78', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}
                     >
                       {s === 'male' ? '♂ Laki-laki' : '♀ Perempuan'}
                     </button>
@@ -489,7 +497,7 @@ export default function PendaftaranTab({
                 <input
                   type="text" value={ptAlamat} onChange={e => setPtAlamat(e.target.value)}
                   placeholder="Alamat sesuai KTP (terisi otomatis via OCR)"
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('alamat') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('alamat') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('alamat') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('alamat')}</div>}
               </div>
@@ -497,7 +505,7 @@ export default function PendaftaranTab({
           </div>
 
           {/* Card 2: Kontak Pasien & Pendamping */}
-          <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8' }}>
+          <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: 22, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EDFAF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1EC8A5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 6.29 6.29l1.64-1.64a2 2 0 0 1 2.11-.45c.91.33 1.85.56 2.81.69A2 2 0 0 1 22 16.92z" /></svg>
@@ -517,7 +525,7 @@ export default function PendaftaranTab({
                     onChange={e => setPtPhone(e.target.value)}
                     onBlur={() => setPtPhone(normalizePhone(ptPhone))}
                     placeholder="628xxxxxxxxxx"
-                    style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('phone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('phone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 {ptErr('phone') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('phone')}</div>}
@@ -534,7 +542,7 @@ export default function PendaftaranTab({
                 <input
                   type="text" value={ptCompanionName} onChange={e => setPtCompanionName(e.target.value)}
                   placeholder="Nama lengkap wali/keluarga"
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('companionName') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('companionName') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('companionName') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('companionName')}</div>}
               </div>
@@ -545,7 +553,7 @@ export default function PendaftaranTab({
                   onChange={e => setPtCompanionPhone(e.target.value)}
                   onBlur={() => setPtCompanionPhone(normalizePhone(ptCompanionPhone))}
                   placeholder="628xxxxxxxxxx (awali dengan 62)"
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('companionPhone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('companionPhone') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('companionPhone') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('companionPhone')}</div>}
               </div>
@@ -553,9 +561,9 @@ export default function PendaftaranTab({
           </div>
 
           {/* Card 4: Penyakit & Akun Login */}
-          <div style={{ order: 4, background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8' }}>
+          <div style={{ order: 4, background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: 22, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F4F5F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(241,245,249,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#636B78" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
               </div>
               <div>
@@ -578,7 +586,7 @@ export default function PendaftaranTab({
                     style={{
                       padding: '11px 8px', borderRadius: 10, cursor: 'pointer', transition: 'all 0.15s', textAlign: 'center',
                       border: `1.5px solid ${ptErr('diseaseType') && !ptDiseaseType ? '#EF4444' : (ptDiseaseType === opt.val ? opt.border : '#DCDFE8')}`,
-                      background: ptDiseaseType === opt.val ? opt.bg : '#F7F8FA',
+                      background: ptDiseaseType === opt.val ? opt.bg : 'rgba(255,255,255,0.6)',
                     }}
                   >
                     <div style={{ fontSize: 11, fontWeight: 700, color: ptDiseaseType === opt.val ? opt.color : '#636B78' }}>{opt.label}</div>
@@ -594,7 +602,7 @@ export default function PendaftaranTab({
                 <input
                   type="text" value={ptUsername} onChange={e => setPtUsername(e.target.value)}
                   placeholder="Min 4 karakter"
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('username') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('username') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('username') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('username')}</div>}
               </div>
@@ -603,7 +611,7 @@ export default function PendaftaranTab({
                 <input
                   type="password" value={ptPassword} onChange={e => setPtPassword(e.target.value)}
                   placeholder="Min 8 karakter"
-                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('password') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: `1.5px solid ${ptErr('password') ? '#EF4444' : '#DCDFE8'}`, borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('password') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('password')}</div>}
               </div>
@@ -611,7 +619,7 @@ export default function PendaftaranTab({
           </div>
 
           {/* Card 3: Baseline Klinis ML */}
-          <div style={{ order: 3, background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8' }}>
+          <div style={{ order: 3, background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: 22, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F0FDF8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
@@ -706,7 +714,7 @@ export default function PendaftaranTab({
                   value={baseline.target_risk}
                   onChange={e => setBaselineField('target_risk', e.target.value)}
                   placeholder="Contoh: moderate"
-                  style={{ width: '100%', padding: '10px 13px', border: fieldBorder(ptErr('baselineTargetRisk')), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 13px', border: fieldBorder(ptErr('baselineTargetRisk')), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {ptErr('baselineTargetRisk') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('baselineTargetRisk')}</div>}
               </div>
@@ -735,7 +743,7 @@ export default function PendaftaranTab({
                     value={baseline.cluster_id}
                     onChange={e => setBaselineField('cluster_id', e.target.value)}
                     placeholder="Kosongkan jika belum ada"
-                    style={{ width: '100%', padding: '10px 13px', border: fieldBorder(ptErr('baselineCluster')), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box', fontFamily: 'IBM Plex Mono, monospace' }}
+                    style={{ width: '100%', padding: '10px 13px', border: fieldBorder(ptErr('baselineCluster')), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box', fontFamily: 'IBM Plex Mono, monospace' }}
                   />
                   {ptErr('baselineCluster') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('baselineCluster')}</div>}
                 </div>
@@ -746,7 +754,7 @@ export default function PendaftaranTab({
                     value={baseline.diagnosis_cluster}
                     onChange={e => setBaselineField('diagnosis_cluster', e.target.value)}
                     placeholder="Opsional"
-                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
@@ -756,7 +764,7 @@ export default function PendaftaranTab({
                     value={baseline.clinical_group}
                     onChange={e => setBaselineField('clinical_group', e.target.value)}
                     placeholder="Opsional"
-                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
@@ -765,7 +773,7 @@ export default function PendaftaranTab({
         </div>
 
         {/* RIGHT: Pilih Nakes PJ */}
-        <div style={{ background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: `1px solid ${ptErr('assignedNakes') ? '#EF4444' : '#DCDFE8'}`, display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
+        <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: 22, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: `1.5px solid ${ptErr('assignedNakes') ? '#EF4444' : 'rgba(255,255,255,0.75)'}`, display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Nakes Penanggung Jawab <span style={{ color: '#EF4444' }}>*</span></div>
@@ -794,7 +802,7 @@ export default function PendaftaranTab({
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, cursor: 'pointer', transition: 'all 0.15s',
                     border: `1.5px solid ${isSelected ? '#5B6BF0' : '#DCDFE8'}`,
-                    background: isSelected ? '#EEEFFE' : '#F7F8FA',
+                    background: isSelected ? '#EEEFFE' : 'rgba(255,255,255,0.6)',
                   }}
                 >
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: isSelected ? '#5B6BF0' : '#EEEFFE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: isSelected ? '#fff' : '#5B6BF0', flexShrink: 0 }}>{initials(d.full_name)}</div>
@@ -817,7 +825,7 @@ export default function PendaftaranTab({
       </div>
 
       {/* Submit bar */}
-      <div style={{ background: '#fff', borderRadius: 14, padding: '16px 22px', boxShadow: '0 1px 4px rgba(15,36,68,0.06)', border: '1px solid #DCDFE8', display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: '16px 22px', boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
           <div style={{ width: 36, height: 36, borderRadius: 9, background: '#EDFAF6', border: '1px solid rgba(30,200,165,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1EC8A5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 6.29 6.29l1.64-1.64a2 2 0 0 1 2.11-.45c.91.33 1.85.56 2.81.69A2 2 0 0 1 22 16.92z" /></svg>
@@ -850,14 +858,14 @@ export default function PendaftaranTab({
         <div
           onClick={e => { if (e.target === e.currentTarget) setRegisterResult(null) }}
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 10000,
+            position: 'fixed', inset: 0, background: 'rgba(23,28,58,0.62)', zIndex: 10000, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backdropFilter: 'blur(5px)', animation: 'fadeIn 0.2s ease-out'
+            animation: 'fadeIn 0.2s ease-out'
           }}
         >
           <div style={{
-            background: '#fff', borderRadius: 20, padding: 32, width: 480, maxWidth: '90vw',
-            boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #DCDFE8',
+            background: '#ffffff', borderRadius: 20, padding: 32, width: 480, maxWidth: '90vw',
+            boxShadow: '0 20px 60px rgba(15,36,68,0.25)', border: '1px solid #ECEEF3',
             maxHeight: '90vh', overflowY: 'auto', boxSizing: 'border-box'
           }}>
             {/* Header / Whatsapp Icon */}
@@ -1001,11 +1009,11 @@ export default function PendaftaranTab({
               <button
                 onClick={() => setRegisterResult(null)}
                 style={{
-                  width: '100%', padding: '10px 0', borderRadius: 10, border: 'none', background: '#F4F5F7',
+                  width: '100%', padding: '10px 0', borderRadius: 10, border: 'none', background: 'rgba(241,245,249,0.75)',
                   color: '#636B78', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = '#E4E5E7'}
-                onMouseLeave={e => e.currentTarget.style.background = '#F4F5F7'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(241,245,249,0.75)'}
               >
                 Tutup &amp; Selesai
               </button>
