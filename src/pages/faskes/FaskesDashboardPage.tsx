@@ -11,28 +11,20 @@ import NakesTab from './components/NakesTab'
 import PasienTab from './components/PasienTab'
 
 // ── Color tokens (from design palette) ─────────────────────────────────────
-const C = {
-  indigo: '#5B6BF0',
-  indigoDark: '#4558E8',
-  teal: '#0D9488',
-  purple: '#8B5CF6',
-  lavender: '#EEF0FF',
-  slate: '#2D3748',
-  sidebarFrom: '#1E2775',
-  sidebarTo: '#161C5C',
-}
 
 // ── Helper: faskes type label ──────────────────────────────────────────────
-function faskesTypeLabel(type: string): string {
-  if (type === 'puskesmas') return 'Puskesmas'
-  if (type === 'klinik') return 'Klinik'
-  if (type === 'rumah_sakit') return 'RS'
-  return type
-}
+// function faskesTypeLabel(type: string): string {
+//   if (type === 'puskesmas') return 'Puskesmas'
+//   if (type === 'klinik') return 'Klinik'
+//   if (type === 'rumah_sakit') return 'RS'
+//   return type
+// }
 
 export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void }) {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'pendaftaran' | 'operasional' | 'eskalasi' | 'dokter' | 'pasien'>('operasional')
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const searchQuery = ''
 
   // Toast State
   const [showToast, setShowToast] = useState(false)
@@ -88,7 +80,6 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   }, [])
 
   const faskesName = profile?.name ?? user?.name ?? 'Faskes'
-  const faskesCode = profile ? `${faskesTypeLabel(profile.type).toUpperCase().slice(0, 3)}-${profile.faskes_id.slice(-8).toUpperCase()}` : '—'
 
   // ── Open escalation count (badge) — real API ────────────────────────────────
   const [escalationCount, setEscalationCount] = useState(0)
@@ -111,13 +102,14 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   // Modal States
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
+
   // ── Tab meta ───────────────────────────────────────────────────────────────
   const TAB_META: Record<string, { title: string; subtitle: string; icon: React.ReactNode }> = {
     pendaftaran: {
       title: 'Fase Pendaftaran',
       subtitle: 'Registrasi pasien & tenaga kesehatan baru',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
         </svg>
       ),
@@ -126,7 +118,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       title: 'Dashboard Monitoring',
       subtitle: 'Ringkasan status pasien Prolanis hari ini',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
         </svg>
       ),
@@ -135,7 +127,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       title: 'Notifikasi & Eskalasi Klinis',
       subtitle: 'Pantau alert risiko & tindak lanjut darurat',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
       ),
@@ -144,7 +136,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       title: 'Manajemen Nakes',
       subtitle: 'Kelola dokter, kader & status aktif/nonaktif',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
@@ -153,7 +145,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
       title: 'Daftar Pasien',
       subtitle: 'Semua pasien Prolanis terdaftar di faskes ini',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
       ),
@@ -163,143 +155,294 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
   const currentTab = TAB_META[activeTab]
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif', background: '#F4F5F7' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif', background: '#F4F6FA' }}>
+      <div style={{ flex: 1, display: 'flex', background: '#F4F6FA', padding: 16, gap: 16, overflow: 'hidden', height: '100%', width: '100%' }}>
 
-      {/* ── SIDEBAR ── */}
+      {/* ── COLLAPSIBLE SIDEBAR ── */}
       <div style={{
-        width: 248,
-        minWidth: 248,
-        background: `linear-gradient(180deg, ${C.sidebarFrom} 0%, ${C.sidebarTo} 100%)`,
+        width: isSidebarCollapsed ? 88 : 300,
+        minWidth: isSidebarCollapsed ? 88 : 300,
+        background: 'linear-gradient(180deg, #1E2775 0%, #161C5C 100%)',
+        borderRadius: 24,
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
         boxShadow: '4px 0 24px rgba(26, 32, 102, 0.18)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflow: 'hidden',
         color: '#ffffff',
-        position: 'relative',
-        zIndex: 10,
+        padding: '20px 0 16px',
       }}>
-
-        {/* Logo */}
-        <div style={{ padding: '28px 24px 18px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-          <img
-            src="/logo_sehatiku_horizontal.png"
-            alt="Sehatiku"
-            style={{ height: 36, objectFit: 'contain', display: 'block' }}
-          />
-          {/* <div style={{ fontSize: 8.5, color: 'rgba(255, 255, 255, 0.5)', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', marginTop: 6, paddingLeft: 2 }}>Admin Faskes</div> */}
-        </div>
-
-
-
-        {/* Nav Menu Header */}
-        <div style={{ padding: '16px 18px 10px 18px' }}>
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255, 255, 255, 0.42)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Menu Utama</div>
-        </div>
-
-        {/* Nav Items */}
-        <div style={{ padding: '0 10px', flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {[
-            { id: 'operasional', label: 'Fase Operasional', icon: TAB_META.operasional.icon },
-            { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon },
-            { id: 'eskalasi', label: 'Notifikasi & Eskalasi', badge: escalationCount > 0 ? String(escalationCount) : undefined, icon: TAB_META.eskalasi.icon },
-            { id: 'dokter', label: 'Manajemen Nakes', icon: TAB_META.dokter.icon },
-            { id: 'pasien', label: 'Daftar Pasien', icon: TAB_META.pasien.icon },
-          ].map(item => {
-            const isSelected = activeTab === item.id
-            return (
-              <div
-                key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
+        {/* Header (Branding Box) */}
+        <div style={{ padding: '0 16px 16px' }}>
+          <div style={{
+            background: isSidebarCollapsed ? 'transparent' : 'rgba(255, 255, 255, 0.06)',
+            border: isSidebarCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 16,
+            padding: isSidebarCollapsed ? 0 : '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+            transition: 'all 0.3s',
+          }}>
+            {isSidebarCollapsed ? (
+              <img
+                src="/logo sehatiku.png"
+                alt="Sehatiku"
+                onClick={() => setIsSidebarCollapsed(false)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '10px 14px',
-                  borderRadius: 8,
+                  height: 36,
+                  width: 36,
+                  objectFit: 'contain',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
+                  transition: 'transform 0.2s',
                 }}
-                onMouseEnter={e => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
-                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!isSelected) {
-                    e.currentTarget.style.background = 'transparent'
-                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
-                  }
-                }}
-              >
-                <div style={{
-                  color: isSelected ? C.teal : 'inherit',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 20, flexShrink: 0
-                }}>
-                  {item.icon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500 }}>{item.label}</div>
-                </div>
-                {item.badge && (
-                  <span style={{
-                    background: '#EF4444', color: '#ffffff', fontSize: 8.5, fontWeight: 800,
-                    minWidth: 16, height: 16, borderRadius: 8, display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', padding: '0 3px', boxShadow: '0 2px 5px rgba(239, 68, 68, 0.3)'
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                title="Expand Sidebar"
+              />
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}>
-                    {item.badge}
-                  </span>
-                )}
+                    <img src="/logo sehatiku.png" alt="Sehatiku" style={{ height: 26, width: 26, objectFit: 'contain' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 16.5, fontWeight: 700, color: '#ffffff', lineHeight: '1.2' }}>Sehatiku</span>
+                    <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.55)', marginTop: 3, fontWeight: 600 }}>Admin Faskes</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    borderRadius: 8,
+                    width: 30,
+                    height: 30,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  title="Collapse Sidebar"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+
+        {/* Grouped menu items with dynamic search filtering */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[
+            {
+              title: 'Navigation',
+              items: [
+                { id: 'operasional', label: 'Dashboard', icon: TAB_META.operasional.icon },
+                { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon },
+                { id: 'eskalasi', label: 'Eskalasi Klinis', icon: TAB_META.eskalasi.icon, badge: escalationCount > 0 ? String(escalationCount) : undefined }
+              ]
+            },
+            {
+              title: 'Manajemen',
+              items: [
+                { id: 'dokter', label: 'Manajemen Nakes', icon: TAB_META.dokter.icon, badge: nakesItems.length > 0 ? String(nakesItems.length) : undefined },
+                { id: 'pasien', label: 'Daftar Pasien', icon: TAB_META.pasien.icon }
+              ]
+            }
+          ].map((group, gIdx) => {
+            const filteredItems = group.items.filter(item =>
+              item.label.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+
+            if (filteredItems.length === 0) return null
+
+            return (
+              <div key={group.title} style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                paddingTop: gIdx > 0 ? 12 : 0,
+                borderTop: gIdx > 0 ? '1px dashed rgba(255, 255, 255, 0.12)' : 'none',
+              }}>
+                <div style={{
+                  fontSize: 11.5,
+                  fontWeight: 800,
+                  color: 'rgba(255, 255, 255, 0.48)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.9px',
+                  padding: '0 8px 6px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  opacity: isSidebarCollapsed ? 0 : 1,
+                  height: isSidebarCollapsed ? 0 : 'auto',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}>
+                  {group.title}
+                </div>
+
+                {filteredItems.map(item => {
+                  const isSelected = activeTab === item.id
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id as any)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 13,
+                        padding: '13px 16px',
+                        borderRadius: 14,
+                        cursor: 'pointer',
+                        background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                        color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
+                        transition: 'all 0.2s',
+                        justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                      }}
+                      onMouseEnter={e => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
+                          e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = 'transparent'
+                          e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
+                        }
+                      }}
+                      title={isSidebarCollapsed ? item.label : undefined}
+                    >
+                      <div style={{
+                        color: isSelected ? '#0D9488' : 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 22,
+                      }}>
+                        {item.icon}
+                      </div>
+                      <span style={{
+                        fontSize: 14.5,
+                        fontWeight: isSelected ? 700 : 500,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        opacity: isSidebarCollapsed ? 0 : 1,
+                        width: isSidebarCollapsed ? 0 : 'auto',
+                        marginLeft: isSidebarCollapsed ? 0 : 4,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        flex: 1,
+                      }}>
+                        {item.label}
+                      </span>
+                      {item.badge && !isSidebarCollapsed && (
+                        <span style={{
+                          background: item.id === 'eskalasi' ? '#EF4444' : '#0D9488',
+                          color: '#ffffff',
+                          fontSize: 11,
+                          fontWeight: 800,
+                          borderRadius: 12,
+                          padding: '2px 8px',
+                        }}>
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )
           })}
+        </div>
 
-          {/* Divider */}
-          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.07)', margin: '16px 12px 10px' }} />
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255, 255, 255, 0.42)', textTransform: 'uppercase', letterSpacing: '1.5px', padding: '0 12px', marginBottom: 10 }}>Ringkasan</div>
-
-          {/* Stat pills */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>Total Nakes</span>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: '#ffffff' }}>{nakesLoading ? '…' : nakesItems.length}</span>
+        {/* Faskes identity card (which clinic is logged in) */}
+        <div style={{ padding: '12px 16px 0' }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 16,
+            padding: isSidebarCollapsed ? 0 : '13px 15px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+            height: isSidebarCollapsed ? 46 : 'auto',
+            transition: 'all 0.3s',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              width: isSidebarCollapsed ? 34 : 38,
+              height: isSidebarCollapsed ? 34 : 38,
+              borderRadius: 11,
+              flexShrink: 0,
+              background: 'rgba(13, 148, 136, 0.18)',
+              color: '#2DD4BF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 21h18" /><path d="M5 21V7l7-4 7 4v14" /><path d="M9 9h1" /><path d="M9 13h1" /><path d="M9 17h1" /><path d="M14 9h1" /><path d="M14 13h1" /><path d="M14 17h1" />
+              </svg>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(30, 200, 165, 0.03)', borderRadius: 8, border: '1px solid rgba(30, 200, 165, 0.08)' }}>
-              <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500 }}>Nakes Aktif</span>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: C.teal }}>{nakesLoading ? '…' : nakesItems.filter(n => n.status === 'active').length}</span>
+            <div style={{
+              minWidth: 0,
+              flex: 1,
+              opacity: isSidebarCollapsed ? 0 : 1,
+              width: isSidebarCollapsed ? 0 : 'auto',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'capitalize' }}>
+                {faskesName}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 2, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Kode: {profile?.faskes_id ?? '—'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Faskes Badge — populated from real API */}
+        {/* Pinned Logout Action (pinned bottom) */}
         <div style={{
-          margin: '8px 12px 14px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: 10,
-          padding: '10px 12px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.05)'
+          padding: '16px 0 0',
+          borderTop: '1px dashed rgba(255, 255, 255, 0.12)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}>
-
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>{faskesName}</div>
-          <div style={{ fontSize: 9.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 2, fontFamily: 'monospace' }}>
-            {profile ? `Kode: ${faskesCode}` : 'Memuat profil...'}
-          </div>
-        </div>
-
-        {/* Logout Button */}
-        <div style={{ padding: '10px 12px 12px' }}>
-          <button
+          <div
             onClick={() => setShowLogoutConfirm(true)}
             style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 8, padding: '8px 12px', background: 'rgba(239, 68, 68, 0.08)',
-              border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 10,
-              cursor: 'pointer', color: '#EF4444', fontSize: 12.5, fontWeight: 700,
-              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 13,
+              padding: '13px 16px',
+              borderRadius: 14,
+              cursor: 'pointer',
+              background: 'rgba(239, 68, 68, 0.08)',
+              color: '#EF4444',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              width: isSidebarCollapsed ? 38 : 'calc(100% - 32px)',
+              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              margin: '0 auto',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
             }}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'
@@ -309,17 +452,28 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'
               e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)'
             }}
+            title={isSidebarCollapsed ? "Keluar Sesi" : undefined}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Keluar
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <span style={{
+              fontSize: 14.5,
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              opacity: isSidebarCollapsed ? 0 : 1,
+              width: isSidebarCollapsed ? 0 : 'auto',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}>
+              Keluar Sesi
+            </span>
+          </div>
         </div>
       </div>
-
-      {/* ── MAIN AREA ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, background: '#ffffff', borderRadius: 24, boxShadow: '0 8px 30px rgba(15, 36, 68, 0.04)', border: '1px solid #E2E8F0' }}>
 
         {/* ── TOP HEADER BAR ── */}
         <header style={{
@@ -364,7 +518,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
         </header>
 
         {/* ── SCROLLABLE TAB CONTENTS ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: '#F4F5F7' }}>
+        <div className="aurora-field" style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
 
           {activeTab === 'pendaftaran' && (
             <PendaftaranTab
@@ -402,6 +556,8 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           )}
 
         </div>
+      </div>
+
       </div>
 
       {/* ── TOAST MESSAGE ── */}

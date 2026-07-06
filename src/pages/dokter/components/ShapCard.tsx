@@ -29,7 +29,8 @@ const FEATURE_LABEL: Record<string, string> = {
   cvd_risk: 'Risiko Kardiovaskular',
 }
 
-function labelFor(feature: string): string {
+function labelFor(feature?: string | null): string {
+  if (!feature) return 'Faktor Lain'
   if (FEATURE_LABEL[feature]) return FEATURE_LABEL[feature]
   return feature
     .replace(/_/g, ' ')
@@ -37,7 +38,7 @@ function labelFor(feature: string): string {
 }
 
 const CardShell = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #F0F1F4', display: 'flex', flexDirection: 'column' }}>{children}</div>
+  <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: '0 1px 3px rgba(15,36,68,0.04)', border: '1px solid #ECEEF3', display: 'flex', flexDirection: 'column' }}>{children}</div>
 )
 
 const Header = (

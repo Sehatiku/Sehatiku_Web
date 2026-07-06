@@ -11,6 +11,7 @@ import {
 import TrendChart from './TrendChart'
 import ShapCard from './ShapCard'
 import LogCard from './LogCard'
+import TrenView from './TrenView'
 
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 type ViewMode = 'antrean' | 'tren'
@@ -54,7 +55,7 @@ const FILTERS: { id: QueueFilter; label: string }[] = [
 
 function SearchBar({ value, onChange, placeholder = 'Cari nama pasien...' }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F3F4F6', borderRadius: 9, padding: '7px 12px', width: 240 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(226,232,240,0.9)', borderRadius: 10, padding: '7px 12px', width: 240 }}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
@@ -78,7 +79,7 @@ function SearchBar({ value, onChange, placeholder = 'Cari nama pasien...' }: { v
 
 function FilterSegment({ selected, onChange }: { selected: QueueFilter; onChange: (f: QueueFilter) => void }) {
   return (
-    <div style={{ display: 'flex', background: '#F3F4F6', borderRadius: 10, padding: 3, gap: 2 }}>
+    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.55)', border: '1px solid rgba(226,232,240,0.9)', borderRadius: 10, padding: 3, gap: 2 }}>
       {FILTERS.map(f => (
         <button
           key={f.id}
@@ -123,22 +124,35 @@ function KpiCards({
   ]
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 14 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 16 }}>
       {loading
         ? Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div key={i} style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', borderRadius: 16, padding: 20, border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 8px 24px rgba(15,36,68,0.06)' }}>
             <SkeletonCard h={72} />
           </div>
         ))
-        : stats.map(stat => (
-          <div key={stat.label} style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        : stats.map((stat, i) => i === 0 ? (
+          // Kartu pertama filled (Donezo style)
+          <div key={stat.label} style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', borderRadius: 16, padding: '16px 18px', boxShadow: '0 8px 20px rgba(13, 148, 136, 0.25)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: -24, right: -24, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-              <p style={{ margin: 0, fontSize: 12.5, color: '#6B7280', fontWeight: 500, lineHeight: 1.4, flex: 1, paddingRight: 8 }}>{stat.label}</p>
+              <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', fontWeight: 600, lineHeight: 1.4, flex: 1, paddingRight: 8 }}>{stat.label}</p>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.15)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+              </div>
+            </div>
+            <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#ffffff', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{stat.value}</p>
+            <p style={{ margin: 0, fontSize: 11.5, color: 'rgba(255,255,255,0.7)' }}>{stat.sub}</p>
+          </div>
+        ) : (
+          <div key={stat.label} style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', border: '1px solid #ECEEF3', boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <p style={{ margin: 0, fontSize: 12.5, color: '#64748B', fontWeight: 500, lineHeight: 1.4, flex: 1, paddingRight: 8 }}>{stat.label}</p>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: stat.iconBg, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {stat.icon}
               </div>
             </div>
-            <p style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 800, color: stat.color, fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{stat.value}</p>
+            <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: stat.color, fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{stat.value}</p>
             <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF' }}>{stat.sub}</p>
           </div>
         ))
@@ -169,8 +183,6 @@ export default function PasienView({
   // Ekstraksi defensif: BE bisa kirim null / bentuk tak terduga → selalu jadikan array aman.
   const dailyLogs = Array.isArray(patientDetail?.daily_logs) ? patientDetail!.daily_logs : []
   const topFactors = Array.isArray(patientDetail?.risk?.top_factors) ? patientDetail!.risk!.top_factors : []
-  const scoreHistory = Array.isArray(patientDetail?.health_score_history) ? patientDetail!.health_score_history : []
-  const baseline = patientDetail?.baseline ?? null
 
   // Unified filtered list — same patients in both modes, just different columns
   const sharedList = useMemo(() => {
@@ -184,7 +196,7 @@ export default function PasienView({
   }, [queue, queueFilter, trenSearch])
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px', background: '#F4F5F7' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: 'transparent' }}>
       <style>{`
         @keyframes modalIn   { from { opacity:0; transform:scale(0.97) translateY(10px) } to { opacity:1; transform:scale(1) translateY(0) } }
         @keyframes backdropIn { from { opacity:0 } to { opacity:1 } }
@@ -198,7 +210,7 @@ export default function PasienView({
 
       {/* ── View Mode Toggle ────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
-        <div style={{ display: 'inline-flex', background: '#E2E5EF', borderRadius: 13, padding: 4, gap: 3 }}>
+        <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 4px 14px rgba(15,36,68,0.05)', borderRadius: 13, padding: 4, gap: 3 }}>
           {([
             {
               id: 'antrean' as ViewMode, label: 'Antrean & Tindakan',
@@ -231,7 +243,7 @@ export default function PasienView({
             )
           })}
         </div>
-        <span style={{ fontSize: 12, color: '#B0B7C3', fontStyle: 'italic' }}>
+        <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
           {viewMode === 'antrean' ? 'Pantau & lakukan tindakan klinis pada pasien prioritas' : 'Analisis tren kesehatan & lihat riwayat klinis pasien'}
         </span>
       </div>
@@ -247,15 +259,16 @@ export default function PasienView({
 
       {/* ── Toolbar — shared for both modes ────────────────────────────────── */}
       <div style={{
-        background: '#fff', borderRadius: 14, padding: '12px 18px',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #F0F1F4',
+        background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)',
+        borderRadius: 16, padding: '12px 18px',
+        boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         gap: 12, marginBottom: 14, flexWrap: 'wrap',
       }}>
         <SearchBar value={trenSearch} onChange={setTrenSearch} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <FilterSegment selected={queueFilter} onChange={setQueueFilter} />
-          <span style={{ background: '#F0F0F5', borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 700, color: '#6B7280' }}>
+          <span style={{ background: 'rgba(91,107,240,0.08)', borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 700, color: '#5B6BF0' }}>
             {sharedList.length} pasien
           </span>
         </div>
@@ -263,8 +276,8 @@ export default function PasienView({
 
       {/* ── Table: Antrean Mode ────────────────────────────────────────────── */}
       {viewMode === 'antrean' && (
-        <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #F0F1F4', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', padding: '10px 22px', gap: 16, background: '#FAFAFA', borderBottom: '1px solid #F0F0F0' }}>
+        <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
             {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', ''].map(h => (
               <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
             ))}
@@ -326,8 +339,8 @@ export default function PasienView({
 
       {/* ── Table: Tren Mode ───────────────────────────────────────────────── */}
       {viewMode === 'tren' && (
-        <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 2px rgba(0,0,0,0.06)', border: '1px solid #F0F1F4', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', padding: '10px 22px', gap: 16, background: '#FAFAFA', borderBottom: '1px solid #F0F0F0' }}>
+        <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
             {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', ''].map(h => (
               <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
             ))}
@@ -379,17 +392,19 @@ export default function PasienView({
       {/* ── Antrean Detail: Modal Popup (center) ───────────────────────────── */}
       {viewMode === 'antrean' && selectedPatient && (() => {
         // risk_score = health_score (TINGGI = sehat); status/risk_label langsung dari BE.
-        const hs = selectedPatient.risk_score
-        const calculatedStatus = selectedPatient.status
-        const calculatedRiskLabel = selectedPatient.risk_label
+        const hs = patientDetail?.risk?.score ?? selectedPatient.risk_score
+        const calculatedStatus = patientDetail?.risk?.status ?? selectedPatient.status
+        const calculatedRiskLabel = calculatedStatus === 'bahaya' ? 'kritis' : calculatedStatus === 'waswas' ? 'sedang' : 'rendah'
         const rc = getSafeRiskColor(calculatedRiskLabel)
-        const hsBg = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
+        const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#D97706' : '#DC2626'
+        const hsBgTint = hs >= 70 ? 'rgba(16,185,129,0.06)' : hs >= 40 ? 'rgba(245,158,11,0.06)' : 'rgba(239,68,68,0.06)'
+        const hsBorder = hs >= 70 ? 'rgba(16,185,129,0.25)' : hs >= 40 ? 'rgba(245,158,11,0.25)' : 'rgba(239,68,68,0.25)'
         return (
           <div
             onClick={e => { if (e.target === e.currentTarget) setSelectedId(null) }}
-            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'backdropIn 0.18s ease' }}
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(23,28,58,0.62)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'backdropIn 0.18s ease' }}
           >
-            <div style={{ width: '100%', maxWidth: 880, maxHeight: '92vh', background: '#F4F5F7', borderRadius: 20, boxShadow: '0 32px 80px rgba(15,23,42,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'modalIn 0.2s cubic-bezier(0.34,1.2,0.64,1)' }}>
+            <div style={{ width: '100%', maxWidth: 880, maxHeight: '92vh', background: '#F6F8FC', borderRadius: 20, boxShadow: '0 32px 80px rgba(15,23,42,0.28)', border: '1px solid rgba(255,255,255,0.7)', display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'modalIn 0.2s cubic-bezier(0.34,1.2,0.64,1)' }}>
               {/* Modal topbar */}
               <div style={{ background: '#fff', borderBottom: '1px solid #F0F0F0', padding: '13px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -404,42 +419,73 @@ export default function PasienView({
               {/* Modal body */}
               <div style={{ overflowY: 'auto', flex: 1, padding: '18px 18px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {/* Hero card */}
-                <div style={{ background: '#fff', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                  <div style={{ height: 3, background: `linear-gradient(90deg, ${rc.edge}, ${rc.edge}40)` }} />
-                  <div style={{ padding: '18px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                      <AvatarCircle name={selectedPatient.full_name} size={52} bg={rc.sqBg} />
+                <div style={{
+                  flexShrink: 0,
+                  background: '#fff',
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02)',
+                  border: '1px solid #E2E8F0',
+                  position: 'relative'
+                }}>
+                  <div style={{ padding: '20px 22px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <AvatarCircle name={selectedPatient.full_name} size={56} bg={rc.sqBg} />
+                        <div style={{ position: 'absolute', inset: -3, borderRadius: '50%', border: '2.5px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
+                      </div>
+                      {/* Middle: Name and details */}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 18, color: '#111827', lineHeight: 1.2 }}>{selectedPatient.full_name}</p>
-                        <p style={{ margin: '0 0 10px', fontSize: 12.5, color: '#9CA3AF' }}>
+                        <p style={{ margin: '0 0 5px', fontWeight: 750, fontSize: 19, color: '#1E293B', lineHeight: 1.2, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{selectedPatient.full_name}</p>
+                        <p style={{ margin: '0 0 10px', fontSize: 13, color: '#6B7280', fontWeight: 500 }}>
                           {selectedPatient.age} tahun · Pasien Prolanis
-                          {selectedPatient.main_factor && <em style={{ color: '#B0B7C3' }}> · {selectedPatient.main_factor}</em>}
+                          {selectedPatient.main_factor && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: 4, marginLeft: 8, fontSize: 10.5, fontWeight: 600 }}>
+                              🎯 {selectedPatient.main_factor}
+                            </span>
+                          )}
                         </p>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                           <DiseasePill type={selectedPatient.disease_type} />
                           <StatusPill label={calculatedStatus === 'bahaya' ? 'Bahaya' : calculatedStatus === 'waswas' ? 'Waswas' : 'Aman'} risk={calculatedRiskLabel} />
                         </div>
                       </div>
-                      {/* Score + action */}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ width: 56, height: 56, borderRadius: 13, background: hsBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 20, fontFamily: 'IBM Plex Mono, monospace', boxShadow: `0 4px 12px ${hsBg}44` }}>{hs}</div>
-                          <span style={{ display: 'block', marginTop: 4, fontSize: 9, fontWeight: 600, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Health Score</span>
+                      
+                      {/* Right: Score + Action in premium layout */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
+                        {/* Health Score Mini Widget */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: hsBgTint, border: `1.5px solid ${hsBorder}`, padding: '6px 12px', borderRadius: 12 }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1 }}>Health</span>
+                            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1.5 }}>Score</span>
+                          </div>
+                          <div style={{ fontSize: 24, fontWeight: 900, color: hsColor, fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{hs}</div>
                         </div>
+
+                        {/* Divider */}
+                        <div style={{ width: 1, height: 40, background: '#E2E8F0' }} />
+                        
                         {contacted.has(selectedPatient.patient_id) ? (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#F0FDF9', border: '1px solid #A7F3D0', borderRadius: 8, padding: '6px 12px', fontSize: 11.5, fontWeight: 700, color: '#059669' }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 10, padding: '9px 16px', fontSize: 12, fontWeight: 700, color: '#059669', boxShadow: '0 2px 6px rgba(16,185,129,0.06)' }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                             Dihubungi
                           </div>
                         ) : (
-                          <button className="contact-btn" onClick={() => handleContact(selectedPatient.patient_id)} style={{ background: '#0D9488', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 3px 10px rgba(13,148,136,0.3)', transition: 'background 0.15s' }}>
+                          <button className="contact-btn" onClick={() => handleContact(selectedPatient.patient_id)} style={{ background: '#0D9488', border: 'none', borderRadius: 10, padding: '9px 18px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(13,148,136,0.25)', transition: 'all 0.15s' }}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.85a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16.92z" /></svg>
                             Hubungi
                           </button>
                         )}
                       </div>
                     </div>
-                    <p style={{ margin: '12px 0 0', fontSize: 10.5, color: '#C4CBD4', paddingTop: 12, borderTop: '1px solid #F5F5F7' }}>⚠️ Health Score & atribusi bersifat indikatif — bukan diagnosis medis.</p>
+                    
+                    {/* Bottom Alert Callout */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F8FAFC', border: '1px solid #ECEEF3', borderRadius: 10, padding: '10px 14px', marginTop: 16 }}>
+                      <span style={{ fontSize: 13 }}>⚠️</span>
+                      <p style={{ margin: 0, fontSize: 11, color: '#475569', fontWeight: 500, lineHeight: 1.4 }}>
+                        <strong>Disclaimer Klinis:</strong> Health Score &amp; atribusi faktor di atas bersifat indikatif dari model AI untuk mempermudah monitoring, bukan merupakan pengganti diagnosis medis resmi.
+                      </p>
+                    </div>
                   </div>
                 </div>
                 {/* Chart + SHAP */}
@@ -456,173 +502,16 @@ export default function PasienView({
       })()}
 
       {/* ── Tren Detail: Slide Panel (from right) — real BE data ───────────── */}
-      {viewMode === 'tren' && trenPatient && (() => {
-        // Tren health score kronologis dari BE (health_score_history)
-        const chrono = [...scoreHistory].sort((a, b) => (a.scored_at ?? '').localeCompare(b.scored_at ?? ''))
-        const recent = chrono.slice(-8)
-        const fmtShort = (iso: string) => {
-          try { return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) } catch { return iso }
-        }
-        const currHs = recent.length ? recent[recent.length - 1].score : trenPatient.risk_score
-        const firstHs = recent.length ? recent[0].score : currHs
-        const delta = currHs - firstHs
-        const calculatedStatus = currHs >= 70 ? 'aman' : currHs >= 40 ? 'waswas' : 'bahaya'
-        const calculatedRiskLabel = currHs >= 70 ? 'rendah' : currHs >= 40 ? 'sedang' : 'kritis'
-        const hsColor = currHs >= 70 ? '#10B981' : currHs >= 40 ? '#F59E0B' : '#EF4444'
-        const hsBg = currHs >= 70 ? '#ECFDF5' : currHs >= 40 ? '#FFFBEB' : '#FEF2F2'
-        const deltaColor = delta > 0 ? '#059669' : delta < 0 ? '#EF4444' : '#D97706'
-        const deltaBg = delta > 0 ? '#ECFDF5' : delta < 0 ? '#FEF2F2' : '#FFFBEB'
-        const deltaLabel = delta > 0 ? '↑ membaik' : delta < 0 ? '↓ memburuk' : '→ stabil'
-        const deltaTxt = delta > 0 ? `+${delta}` : `${delta}`
-
-        // Parameter klinis dari baseline terbaru
-        const metrics = baseline ? [
-          { label: 'HbA1c', value: `${baseline.hba1c_pct}`, unit: '%' },
-          { label: 'Gula Puasa', value: `${baseline.fasting_glucose_mgdl}`, unit: 'mg/dL' },
-          { label: 'Tekanan Darah', value: `${baseline.systolic_bp_mmhg}/${baseline.diastolic_bp_mmhg}`, unit: 'mmHg' },
-          { label: 'BMI', value: `${baseline.bmi}`, unit: 'kg/m²' },
-          { label: 'eGFR', value: `${baseline.egfr}`, unit: 'mL/min' },
-          { label: 'LDL', value: `${baseline.ldl_mgdl}`, unit: 'mg/dL' },
-        ] : []
-
-        // Riwayat klinis = titik health score (terbaru dulu)
-        const timeline = [...chrono].reverse().slice(0, 6)
-
-        return (
-          <>
-            {/* Backdrop */}
-            <div
-              onClick={() => setTrenPatientId(null)}
-              style={{ position: 'fixed', inset: 0, zIndex: 900, background: 'rgba(15,23,42,0.35)', backdropFilter: 'blur(3px)', animation: 'backdropIn 0.2s ease' }}
-            />
-            {/* Slide panel */}
-            <div style={{
-              position: 'fixed', top: 0, right: 0, height: '100vh', width: 520,
-              background: '#F4F5F7', zIndex: 901, overflowY: 'auto',
-              boxShadow: '-6px 0 32px rgba(15,23,42,0.18)',
-              animation: 'slideInRight 0.25s cubic-bezier(0.34,1.1,0.64,1)',
-              display: 'flex', flexDirection: 'column',
-            }}>
-              {/* Panel header */}
-              <div style={{ background: '#fff', borderBottom: '1px solid #F0F0F0', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'sticky', top: 0, zIndex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: getSafeRiskColor(calculatedRiskLabel).edge }} />
-                  <span style={{ fontWeight: 700, fontSize: 13.5, color: '#111827' }}>Tren & Riwayat Klinis</span>
-                </div>
-                <button className="close-btn" onClick={() => setTrenPatientId(null)} style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid #E5E7EB', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', transition: 'all 0.15s' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                </button>
-              </div>
-
-              {/* Panel body */}
-              <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {/* Patient mini-header */}
-                <div style={{ background: '#fff', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <AvatarCircle name={trenPatient.full_name} size={44} bg={getSafeRiskColor(calculatedRiskLabel).sqBg} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 5 }}>
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#111827' }}>{trenPatient.full_name}</p>
-                      <StatusPill label={calculatedStatus === 'bahaya' ? 'Bahaya' : calculatedStatus === 'waswas' ? 'Waswas' : 'Aman'} risk={calculatedRiskLabel} />
-                    </div>
-                    <p style={{ margin: '0 0 8px', fontSize: 12, color: '#9CA3AF' }}>
-                      {trenPatient.age} tahun · {DISEASE_LABEL[trenPatient.disease_type]}
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: hsBg, borderRadius: 8, padding: '3px 9px', border: `1px solid ${hsColor}33` }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{currHs}</span>
-                        <span style={{ fontSize: 10, color: hsColor, fontWeight: 600 }}>Health Score</span>
-                      </div>
-                      {recent.length > 1 && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: deltaBg, color: deltaColor, borderRadius: 8, padding: '3px 9px', fontSize: 11.5, fontWeight: 700, border: `1px solid ${deltaColor}33` }}>
-                          {deltaTxt} {deltaLabel}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {detailLoading ? (
-                  <div style={{ background: '#fff', borderRadius: 14, padding: '40px 16px', textAlign: 'center', color: '#9CA3AF', fontSize: 13, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>Memuat tren &amp; riwayat klinis…</div>
-                ) : (
-                  <>
-                    {/* Health Score Bar Chart */}
-                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                      <p style={{ margin: '0 0 2px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Tren Health Score</p>
-                      <p style={{ margin: '0 0 14px', fontSize: 11, color: '#9CA3AF' }}>Skor kesehatan dari waktu ke waktu (0–100)</p>
-                      {recent.length === 0 ? (
-                        <div style={{ padding: '24px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 12.5 }}>Belum ada riwayat health score.</div>
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 130, padding: '0 4px' }}>
-                          {recent.map((entry, i) => {
-                            const hs = entry.score
-                            const barColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
-                            const barH = Math.max(10, Math.round((hs / 100) * 96))
-                            return (
-                              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                                <span style={{ fontSize: 10.5, fontWeight: 700, color: barColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
-                                <div style={{ width: '100%', height: barH, background: `linear-gradient(180deg, ${barColor}BB 0%, ${barColor} 100%)`, borderRadius: '5px 5px 0 0', boxShadow: `0 2px 5px ${barColor}33` }} />
-                                <span style={{ fontSize: 9, color: '#9CA3AF' }}>{fmtShort(entry.scored_at)}</span>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Clinical metrics dari baseline */}
-                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                      <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Parameter Klinis (Baseline Terbaru)</p>
-                      {metrics.length === 0 ? (
-                        <div style={{ padding: '20px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 12.5 }}>Belum ada baseline klinis tercatat.</div>
-                      ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                          {metrics.map((m, i) => (
-                            <div key={i} style={{ background: '#F9FAFB', borderRadius: 10, padding: '11px 13px', border: '1px solid #F0F1F4' }}>
-                              <p style={{ margin: '0 0 5px', fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{m.label}</p>
-                              <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                                <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', fontFamily: 'IBM Plex Mono, monospace' }}>{m.value}</span>
-                                {m.unit && <span style={{ fontSize: 10, color: '#9CA3AF' }}>{m.unit}</span>}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Timeline health score */}
-                    <div style={{ background: '#fff', borderRadius: 14, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                      <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 13, color: '#111827' }}>Riwayat Health Score</p>
-                      {timeline.length === 0 ? (
-                        <div style={{ padding: '12px 0', textAlign: 'center', color: '#9CA3AF', fontSize: 12.5 }}>Belum ada riwayat.</div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          {timeline.map((tl, i) => {
-                            const last = i === timeline.length - 1
-                            const c = tl.score >= 70 ? '#10B981' : tl.score >= 40 ? '#F59E0B' : '#EF4444'
-                            return (
-                              <div key={i} style={{ display: 'flex', gap: 12, paddingBottom: last ? 0 : 14 }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: c, flexShrink: 0 }} />
-                                  {!last && <div style={{ width: 1.5, flex: 1, background: '#F0F0F0', marginTop: 4, minHeight: 18 }} />}
-                                </div>
-                                <div style={{ paddingBottom: last ? 0 : 4 }}>
-                                  <p style={{ margin: '0 0 2px', fontSize: 10.5, color: '#9CA3AF' }}>{fmtShort(tl.scored_at)}</p>
-                                  <p style={{ margin: '0 0 1px', fontWeight: 600, fontSize: 12.5, color: '#111827' }}>Health Score: {tl.score}</p>
-                                  <p style={{ margin: 0, fontSize: 11.5, color: '#6B7280', textTransform: 'capitalize' }}>Status: {tl.status}</p>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </>
-        )
-      })()}
+      
+{viewMode === 'tren' && trenPatient && (
+        <TrenView
+          patient={trenPatient}
+          patientDetail={patientDetail}
+          loading={detailLoading}
+          onClose={() => setTrenPatientId(null)}
+        />
+      )}
     </div>
   )
 }
+

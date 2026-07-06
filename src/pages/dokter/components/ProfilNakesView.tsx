@@ -23,7 +23,7 @@ export default function ProfilNakesView({
 }: ProfilNakesViewProps) {
   if (loading) {
     return (
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <SkeletonCard h={100} />
         <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: 14 }}>
           <SkeletonCard h={360} />
@@ -63,20 +63,24 @@ export default function ProfilNakesView({
   ]
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: '#F4F5F7', display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: 'transparent', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
       {/* ── Hero banner ── */}
       <div style={{
-        background: '#1E2775',
-        borderRadius: 14, padding: '16px 22px',
+        background: 'linear-gradient(135deg, #1E2775 0%, #161C5C 100%)',
+        borderRadius: 16, padding: '18px 24px',
+        boxShadow: '0 8px 24px rgba(22, 28, 92, 0.15)',
         display: 'flex', alignItems: 'center', gap: 14,
+        position: 'relative', overflow: 'hidden',
       }}>
+        <div style={{ position: 'absolute', top: -30, right: -30, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255, 255, 255, 0.05)' }} />
         {/* Avatar */}
         <div style={{
-          width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-          background: '#2D3DBF',
+          width: 52, height: 52, borderRadius: '50%', flexShrink: 0,
+          background: 'linear-gradient(135deg, #5B6BF0 0%, #8B5CF6 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 16, fontWeight: 800, color: '#fff',
+          fontSize: 17, fontWeight: 800, color: '#fff',
+          boxShadow: '0 4px 10px rgba(91, 107, 240, 0.3)',
         }}>
           {initials(profile.full_name)}
         </div>
@@ -116,7 +120,7 @@ export default function ProfilNakesView({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Detail Data Diri */}
-          <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: '20px 24px', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 8px 24px rgba(15,36,68,0.06)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid #F1F5F9' }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6BF0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -152,7 +156,7 @@ export default function ProfilNakesView({
 
           {/* Jadwal Praktek */}
           {profile.role === 'dokter' && profile.schedule && profile.schedule.length > 0 && (
-            <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: '20px 24px', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 8px 24px rgba(15,36,68,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #F1F5F9' }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -166,7 +170,7 @@ export default function ProfilNakesView({
                   <div key={idx} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '10px 14px', borderRadius: 9,
-                    background: '#F8FAFC', border: '1px solid #F0F1F4',
+                    background: '#F8FAFC', border: '1px solid #ECEEF3',
                   }}>
                     <span style={{ fontSize: 13, color: '#475569', fontWeight: 600 }}>{s.days}</span>
                     <span style={{ fontSize: 13, color: '#1E293B', fontWeight: 700, fontFamily: 'IBM Plex Mono, monospace' }}>{s.time}</span>
@@ -178,7 +182,7 @@ export default function ProfilNakesView({
         </div>
 
         {/* Right column: Tanggung Jawab Klinis */}
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 24px', border: '1px solid #F0F1F4', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: '20px 24px', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 8px 24px rgba(15,36,68,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid #F1F5F9' }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -237,19 +241,7 @@ export default function ProfilNakesView({
               </div>
             </div>
 
-            {/* Note */}
-            <div style={{
-              background: '#FAFAFA', borderRadius: 9, padding: '10px 12px',
-              border: '1px solid #F0F1F4',
-              display: 'flex', alignItems: 'flex-start', gap: 8,
-            }}>
-              <svg width="13" height="13" style={{ marginTop: 1, flexShrink: 0 }} viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <p style={{ margin: 0, fontSize: 11, color: '#9CA3AF', lineHeight: 1.5 }}>
-                Data distribusi pasien diperbarui otomatis setiap 60 detik.
-              </p>
-            </div>
+            
           </div>
         </div>
 

@@ -16,14 +16,15 @@ const PHONE_RE = /^(08|628)\d{8,12}$/
 // ─── Styles helpers ───────────────────────────────────────────────────────────
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 13px', border: '1.5px solid #E2EAF2',
-  borderRadius: 10, fontSize: 14, color: '#0F2444', background: '#FAFCFF',
+  width: '100%', padding: '14px 16px', border: '1.5px solid #E4E9F0',
+  borderRadius: 12, fontSize: 14.5, color: '#0F2444', background: '#FFFFFF',
   fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+  transition: 'border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease',
 }
 
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: 10, fontWeight: 700, color: '#475569',
-  marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.5px',
+  display: 'block', fontSize: 11, fontWeight: 700, color: '#334155',
+  marginBottom: 8, letterSpacing: '0.2px',
 }
 
 // Tipe faskes — visual picker options
@@ -127,12 +128,13 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
   const isDr = role === 'dokter'
   const isRegister = mode === 'register' && !isDr
 
-  // Accent colors
-  const accentBg     = isDr ? '#5B6BF0' : '#1EC8A5'
-  const accentShadow = isDr ? 'rgba(91,107,240,0.28)' : 'rgba(30,200,165,0.28)'
-  const accentHover  = isDr ? '#4f52d8' : '#17b093'
-  const focusColor   = isDr ? '#5B6BF0' : '#1EC8A5'
-  const focusShadow  = isDr ? 'rgba(91,107,240,0.15)' : 'rgba(30,200,165,0.15)'
+  // Accent colors — unified indigo→blue gradient CTA for both roles; solid tone for text/focus
+  const accentSolid     = isDr ? '#5B6BF0' : '#0D9488'
+  const accentGrad      = 'linear-gradient(120deg, #5B6BF0 0%, #3D48C4 100%)'
+  const accentGradHover = 'linear-gradient(120deg, #4F52D8 0%, #333DAB 100%)'
+  const accentShadow    = 'rgba(77,72,196,0.32)'
+  const focusColor   = accentSolid
+  const focusShadow  = isDr ? 'rgba(91,107,240,0.15)' : 'rgba(13,148,136,0.15)'
 
   const focusHandlers = {
     onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -289,11 +291,15 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
       {/* ── LEFT: Brand panel ── */}
       <div style={{
         position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(150deg, #1A2066 0%, #262F8A 55%, #2D3799 100%)',
+        background: 'linear-gradient(150deg, #161B57 0%, #232C86 52%, #2D3799 100%)',
         padding: '56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       }}>
-        <div style={{ position: 'absolute', top: -80, right: -60, width: 280, height: 280, background: 'rgba(255,255,255,0.06)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', bottom: -100, left: -40, width: 240, height: 240, background: 'rgba(30,200,165,0.14)', borderRadius: '50%' }} />
+        {/* Mesh glows */}
+        <div style={{ position: 'absolute', top: -120, right: -80, width: 340, height: 340, background: 'radial-gradient(circle, rgba(91,107,240,0.55) 0%, rgba(91,107,240,0) 70%)', borderRadius: '50%', filter: 'blur(10px)' }} />
+        <div style={{ position: 'absolute', bottom: -140, left: -60, width: 320, height: 320, background: 'radial-gradient(circle, rgba(30,200,165,0.4) 0%, rgba(30,200,165,0) 70%)', borderRadius: '50%', filter: 'blur(8px)' }} />
+        <div style={{ position: 'absolute', top: '40%', left: '55%', width: 200, height: 200, background: 'radial-gradient(circle, rgba(122,201,67,0.14) 0%, rgba(122,201,67,0) 70%)', borderRadius: '50%' }} />
+        {/* Dot grid texture */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize: '22px 22px', opacity: 0.6, maskImage: 'linear-gradient(to bottom, black, transparent 80%)', WebkitMaskImage: 'linear-gradient(to bottom, black, transparent 80%)' }} />
 
         <div style={{ position: 'relative', zIndex: 1, marginBottom: 24 }}>
           <img
@@ -304,7 +310,7 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
         </div>
 
         <div key={`panel-${role}-${isRegister}`} className="anim-fadein" style={{ position: 'relative', zIndex: 1 }}>
-          <h2 style={{ fontSize: 34, lineHeight: 1.2, fontWeight: 800, color: '#fff', letterSpacing: '-0.8px', margin: '0 0 16px' }}>
+          <h2 style={{ fontSize: 36, lineHeight: 1.15, fontWeight: 800, color: '#fff', letterSpacing: '-0.9px', margin: '0 0 16px' }}>
             {panelTitle}
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.65, color: 'rgba(255,255,255,0.78)', margin: '0 0 28px', maxWidth: 380 }}>
@@ -352,11 +358,11 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
         <div style={{ width: '100%', maxWidth: 400 }}>
 
           {/* Role toggle: Faskes / Dokter — sliding pill */}
-          <div style={{ position: 'relative', display: 'flex', background: '#F0F5FA', border: '1px solid #E2EAF2', borderRadius: 11, padding: 4, marginBottom: 20 }}>
+          <div style={{ position: 'relative', display: 'flex', background: '#EEF2F8', border: '1px solid #E4E9F0', borderRadius: 14, padding: 5, marginBottom: 18 }}>
             {/* sliding thumb */}
             <div style={{
-              position: 'absolute', top: 4, bottom: 4, left: 4, width: 'calc(50% - 4px)',
-              background: '#fff', borderRadius: 8, boxShadow: '0 1px 6px rgba(15,36,68,0.14)',
+              position: 'absolute', top: 5, bottom: 5, left: 5, width: 'calc(50% - 5px)',
+              background: '#fff', borderRadius: 10, boxShadow: '0 2px 10px rgba(15,36,68,0.12)',
               transform: role === 'dokter' ? 'translateX(100%)' : 'translateX(0)',
               transition: 'transform 0.36s cubic-bezier(0.34, 1.4, 0.5, 1)',
             }} />
@@ -373,7 +379,7 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
               )},
             ]).map(({ r, label, icon }) => {
               const active = role === r
-              const colActive = r === 'faskes' ? '#1EC8A5' : '#5B6BF0'
+              const colActive = r === 'faskes' ? '#0D9488' : '#5B6BF0'
               const col = active ? colActive : '#94A3B8'
               return (
                 <button
@@ -382,8 +388,8 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                   style={{
                     position: 'relative', zIndex: 1,
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    padding: '10px', border: 'none', borderRadius: 8,
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '11px', border: 'none', borderRadius: 10,
+                    fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                     transition: 'color 0.25s ease',
                     background: 'transparent',
                     color: col,
@@ -397,12 +403,12 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
 
           {/* Mode toggle: Login / Daftar — only for faskes — sliding pill */}
           {!isDr && (
-            <div style={{ position: 'relative', display: 'flex', background: '#F8FAFC', border: '1px solid #E2EAF2', borderRadius: 10, padding: 3, marginBottom: 22 }}>
+            <div style={{ position: 'relative', display: 'flex', background: '#EEF2F8', border: '1px solid #E4E9F0', borderRadius: 12, padding: 4, marginBottom: 22 }}>
               {/* sliding thumb */}
               <div style={{
-                position: 'absolute', top: 3, bottom: 3, left: 3, width: 'calc(50% - 3px)',
-                background: 'linear-gradient(120deg, #1EC8A5, #17b093)', borderRadius: 8,
-                boxShadow: '0 2px 8px rgba(30,200,165,0.32)',
+                position: 'absolute', top: 4, bottom: 4, left: 4, width: 'calc(50% - 4px)',
+                background: 'linear-gradient(120deg, #5B6BF0 0%, #3D48C4 100%)', borderRadius: 9,
+                boxShadow: '0 3px 12px rgba(77,72,196,0.34)',
                 transform: mode === 'register' ? 'translateX(100%)' : 'translateX(0)',
                 transition: 'transform 0.36s cubic-bezier(0.34, 1.4, 0.5, 1)',
               }} />
@@ -412,8 +418,8 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                   onClick={() => setMode(m)}
                   style={{
                     position: 'relative', zIndex: 1,
-                    flex: 1, padding: '9px', border: 'none', borderRadius: 8,
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.25s ease',
+                    flex: 1, padding: '10px', border: 'none', borderRadius: 9,
+                    fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.25s ease',
                     background: 'transparent',
                     color: mode === m ? '#fff' : '#94A3B8',
                   }}
@@ -833,24 +839,20 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '12px 0 20px' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: accentBg, cursor: 'pointer' }}>
-                  Lupa sandi?
-                </span>
-              </div>
+              <div style={{ height: 22 }} />
 
               <button
                 onClick={handleLogin}
                 disabled={loginLoading}
                 style={{
-                  width: '100%', background: loginLoading ? '#A0A9C5' : accentBg, color: '#fff', border: 'none',
-                  borderRadius: 11, padding: '14px', fontSize: 15, fontWeight: 700,
+                  width: '100%', background: loginLoading ? '#A0A9C5' : accentGrad, color: '#fff', border: 'none',
+                  borderRadius: 12, padding: '15px', fontSize: 15, fontWeight: 700,
                   cursor: loginLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: '0.15s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                  boxShadow: loginLoading ? 'none' : `0 6px 20px ${accentShadow}`,
+                  boxShadow: loginLoading ? 'none' : `0 8px 22px ${accentShadow}`,
                 }}
-                onMouseEnter={e => { if (!loginLoading) { e.currentTarget.style.background = accentHover; e.currentTarget.style.transform = 'translateY(-1px)' } }}
-                onMouseLeave={e => { if (!loginLoading) { e.currentTarget.style.background = accentBg; e.currentTarget.style.transform = 'none' } }}
+                onMouseEnter={e => { if (!loginLoading) { e.currentTarget.style.background = accentGradHover; e.currentTarget.style.transform = 'translateY(-1px)' } }}
+                onMouseLeave={e => { if (!loginLoading) { e.currentTarget.style.background = accentGrad; e.currentTarget.style.transform = 'none' } }}
               >
                 {loginLoading ? (
                   <>
@@ -875,10 +877,10 @@ export default function LoginPage({ isOpen, onClose, defaultRole = 'faskes', onL
                   ? 'Akun dokter didaftarkan oleh faskes. '
                   : 'Faskes belum terdaftar? '}
                 {isDr ? (
-                  <span style={{ fontWeight: 700, color: accentBg, cursor: 'pointer' }}>Belum terima kredensial?</span>
+                  <span style={{ fontWeight: 700, color: accentSolid, cursor: 'pointer' }}>Belum terima kredensial?</span>
                 ) : (
                   <span
-                    style={{ fontWeight: 700, color: accentBg, cursor: 'pointer' }}
+                    style={{ fontWeight: 700, color: accentSolid, cursor: 'pointer' }}
                     onClick={() => setMode('register')}
                   >
                     Daftar sekarang →

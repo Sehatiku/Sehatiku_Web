@@ -135,85 +135,189 @@ body {
   animation: floatY 6s ease-in-out -3s infinite;
 }
 
+/* Opacity-only fade — MUST NOT use transform.
+   A lingering transform (via `both` fill-mode) turns this element into a
+   containing block for position:fixed descendants, which would break any
+   modal/drawer rendered inside a tab wrapped in .anim-fadein. */
+@keyframes fadeInOpacity {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .anim-fadein {
-  animation: fadeIn 0.25s ease both;
+  animation: fadeInOpacity 0.25s ease both;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.94) translateY(8px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(1.3); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
 }
 
 /* ===== LANDING — elevated motion system ===== */
 
 /* Slowly drifting aurora blobs */
 @keyframes auroraA {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(40px, -30px) scale(1.12); }
-  66%  { transform: translate(-30px, 24px) scale(0.94); }
-  100% { transform: translate(0, 0) scale(1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(40px, -30px) scale(1.12);
+  }
+
+  66% {
+    transform: translate(-30px, 24px) scale(0.94);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
+
 @keyframes auroraB {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(-46px, 28px) scale(0.92); }
-  66%  { transform: translate(34px, -22px) scale(1.1); }
-  100% { transform: translate(0, 0) scale(1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(-46px, 28px) scale(0.92);
+  }
+
+  66% {
+    transform: translate(34px, -22px) scale(1.1);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 /* Animated gradient for text / fills */
 @keyframes gradientShift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Marquee ticker */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* Sheen sweep for buttons */
 @keyframes sheen {
-  0%   { transform: translateX(-130%) skewX(-18deg); }
-  100% { transform: translateX(260%)  skewX(-18deg); }
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+
+  100% {
+    transform: translateX(260%) skewX(-18deg);
+  }
 }
 
 /* Soft conic ring rotation behind mockup */
 @keyframes spinSlow {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Subtle floating with rotation for orbiting chips */
 @keyframes floatTilt {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50%      { transform: translateY(-14px) rotate(2deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+  }
 }
 
 /* Vertical drift for grid parallax dots */
 @keyframes driftDots {
-  from { background-position: 0 0; }
-  to   { background-position: 0 -42px; }
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 -42px;
+  }
 }
 
 /* ===== Scroll reveal ===== */
@@ -221,9 +325,10 @@ body {
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
+
 .reveal.is-visible {
   opacity: 1;
   transform: none;
@@ -240,72 +345,276 @@ body {
   animation: gradientShift 9s ease infinite;
 }
 
-.aurora-a { animation: auroraA 18s ease-in-out infinite; }
-.aurora-b { animation: auroraB 22s ease-in-out infinite; }
-.anim-spin-slow { animation: spinSlow 26s linear infinite; }
-.anim-float-tilt { animation: floatTilt 7s ease-in-out infinite; }
+.aurora-a {
+  animation: auroraA 18s ease-in-out infinite;
+}
 
-.btn-sheen { position: relative; overflow: hidden; }
+.aurora-b {
+  animation: auroraB 22s ease-in-out infinite;
+}
+
+.anim-spin-slow {
+  animation: spinSlow 26s linear infinite;
+}
+
+.anim-float-tilt {
+  animation: floatTilt 7s ease-in-out infinite;
+}
+
+.btn-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
 .btn-sheen::after {
   content: '';
-  position: absolute; top: 0; left: 0; bottom: 0; width: 36%;
-  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 36%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
   transform: translateX(-130%) skewX(-18deg);
   pointer-events: none;
 }
-.btn-sheen:hover::after { animation: sheen 0.85s ease; }
+
+.btn-sheen:hover::after {
+  animation: sheen 0.85s ease;
+}
 
 .marquee-track {
   display: inline-flex;
   white-space: nowrap;
   animation: marquee 28s linear infinite;
 }
-.marquee-mask:hover .marquee-track { animation-play-state: paused; }
+
+.marquee-mask:hover .marquee-track {
+  animation-play-state: paused;
+}
 
 .link-underline {
   position: relative;
 }
+
 .link-underline::after {
   content: '';
-  position: absolute; left: 13px; right: 13px; bottom: 4px; height: 2px;
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  bottom: 4px;
+  height: 2px;
   background: linear-gradient(90deg, #6366F1, #14B9A0);
   border-radius: 2px;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.link-underline:hover::after { transform: scaleX(1); }
+
+.link-underline:hover::after {
+  transform: scaleX(1);
+}
 
 /* ECG monitor strip — scrolling heartbeat */
 @keyframes ecgScroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-180px); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-180px);
+  }
 }
-.ecg-scroll { animation: ecgScroll 3s linear infinite; }
+
+.ecg-scroll {
+  animation: ecgScroll 3s linear infinite;
+}
 
 /* Sparkline self-draw */
 @keyframes sparkDraw {
-  from { stroke-dashoffset: 600; }
-  to   { stroke-dashoffset: 0; }
+  from {
+    stroke-dashoffset: 600;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
 }
-.spark-draw { stroke-dasharray: 600; animation: sparkDraw 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards; }
+
+.spark-draw {
+  stroke-dasharray: 600;
+  animation: sparkDraw 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
 
 /* Gauge ring fill to 78% (circumference ~214) */
 @keyframes gaugeFill {
-  from { stroke-dashoffset: 214; }
-  to   { stroke-dashoffset: 47; }
+  from {
+    stroke-dashoffset: 214;
+  }
+
+  to {
+    stroke-dashoffset: 47;
+  }
 }
-.gauge-fill { stroke-dasharray: 214; stroke-dashoffset: 47; animation: gaugeFill 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s backwards; }
+
+.gauge-fill {
+  stroke-dasharray: 214;
+  stroke-dashoffset: 47;
+  animation: gaugeFill 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s backwards;
+}
 
 /* Risk bar self-grow */
-.bar-grow { transform-origin: left; animation: growBar 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.4s backwards; }
+.bar-grow {
+  transform-origin: left;
+  animation: growBar 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.4s backwards;
+}
 
 /* ===== Respect reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
-  .aurora-a, .aurora-b, .anim-spin-slow, .anim-float-tilt,
-  .anim-float, .anim-float-delayed, .anim-blink, .marquee-track,
-  .text-gradient-anim, .ecg-scroll, .spark-draw, .gauge-fill, .bar-grow {
+
+  .aurora-a,
+  .aurora-b,
+  .anim-spin-slow,
+  .anim-float-tilt,
+  .anim-float,
+  .anim-float-delayed,
+  .anim-blink,
+  .marquee-track,
+  .text-gradient-anim,
+  .ecg-scroll,
+  .spark-draw,
+  .gauge-fill,
+  .bar-grow {
     animation: none !important;
   }
-  .reveal { transition: none; opacity: 1; transform: none; }
+
+  .reveal {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wave {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  15% {
+    transform: rotate(14deg);
+  }
+
+  30% {
+    transform: rotate(-8deg);
+  }
+
+  45% {
+    transform: rotate(14deg);
+  }
+
+  60% {
+    transform: rotate(-4deg);
+  }
+
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+.anim-wave {
+  animation: wave 2s ease-in-out infinite;
+  transform-origin: 70% 70%;
+  display: inline-block;
+}
+
+/* ============================================================
+   GLASSMORPHISM SYSTEM — animated aurora field + glass surfaces
+   ============================================================ */
+
+/* The tinted, softly-lit backdrop that makes glass read as glass.
+   Layered radial gradients give the light a colored, dimensional feel. */
+.aurora-field {
+  position: relative;
+  isolation: isolate;
+  /* Clean, neutral cool-grey backdrop — matches the dokter dashboard.
+     A whisper of teal (brand) at the bottom keeps it from feeling dead,
+     with no purple and no motion. */
+  background:
+    radial-gradient(900px 520px at 100% 116%, rgba(13, 148, 136, 0.06), transparent 62%),
+    linear-gradient(180deg, #F4F6FA 0%, #F1F4F9 100%);
+}
+
+/* Extra free-floating orb you can drop anywhere inside an aurora-field */
+.aurora-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(64px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Frosted-glass card surface. Use as a className; inline styles can still
+   override radius/padding per component. */
+.glass-card {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 10px 30px rgba(24, 39, 105, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Deep frosted glass for dark/branded panels */
+.glass-card-dark {
+  background: linear-gradient(140deg, rgba(30, 39, 117, 0.88), rgba(22, 28, 92, 0.82));
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 14px 40px rgba(15, 20, 70, 0.35);
+}
+
+/* Sheen highlight that sweeps across on hover — for hero/glass cards */
+.glass-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glass-hover:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 18px 44px rgba(24, 39, 105, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .aurora-field::before,
+  .aurora-field::after {
+    animation: none !important;
+  }
+}
+
+/* Skeleton shimmer for loading states */
+@keyframes skShimmer {
+  0% {
+    background-position: -420px 0;
+  }
+
+  100% {
+    background-position: 420px 0;
+  }
+}
+
+.sk-shimmer {
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.55) 25%, rgba(203, 213, 225, 0.75) 50%, rgba(226, 232, 240, 0.55) 75%);
+  background-size: 840px 100%;
+  animation: skShimmer 1.3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-shimmer {
+    animation: none;
+  }
 }

@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 
 interface DatePickerProps {
   value: string // Format "YYYY-MM-DD"
@@ -17,6 +18,24 @@ const DAYS_SHORT = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 export default function DatePicker({ value, onChange, error, placeholder = 'Pilih tanggal' }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
+
+  // Popup position (fixed, rendered in a portal so it can never be clipped
+  // by an ancestor's overflow:hidden / scroll container).
+  const POPUP_WIDTH = 306
+  const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+
+  // Always anchor the popup directly BELOW the field.
+  const reposition = useCallback(() => {
+    const btn = containerRef.current
+    if (!btn) return
+    const r = btn.getBoundingClientRect()
+    let left = r.left
+    if (left + POPUP_WIDTH > window.innerWidth - 8) {
+      left = Math.max(8, window.innerWidth - POPUP_WIDTH - 8)
+    }
+    setCoords({ top: r.bottom + 6, left })
+  }, [])
 
   // Parse initial value or default to today
   const today = new Date()
@@ -43,16 +62,59 @@ export default function DatePicker({ value, onChange, error, placeholder = 'Pili
     }
   }, [isOpen, selectedYear, selectedMonth])
 
-  // Handle outside clicks to close picker
+  // Handle outside clicks to close picker (popup lives in a portal, so check
+  // both the trigger and the popup).
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const t = event.target as Node
+      if (
+        containerRef.current && !containerRef.current.contains(t) &&
+        popupRef.current && !popupRef.current.contains(t)
+      ) {
         setIsOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Find the nearest scrollable ancestor so we can nudge the field up when
+  // there isn't room for the popup below it.
+  const getScrollParent = (el: HTMLElement | null): HTMLElement | null => {
+    let p = el?.parentElement ?? null
+    while (p) {
+      const oy = getComputedStyle(p).overflowY
+      if ((oy === 'auto' || oy === 'scroll') && p.scrollHeight > p.clientHeight) return p
+      p = p.parentElement
+    }
+    return null
+  }
+
+  // Position the popup on open and keep it anchored while scrolling/resizing.
+  useEffect(() => {
+    if (!isOpen) return
+
+    // If the popup wouldn't fit below the field, scroll the container so it does.
+    const btn = containerRef.current
+    if (btn) {
+      const r = btn.getBoundingClientRect()
+      const estHeight = 360
+      const overflow = (r.bottom + 6 + estHeight) - (window.innerHeight - 8)
+      if (overflow > 0) {
+        const sp = getScrollParent(btn)
+        if (sp) sp.scrollBy({ top: overflow, behavior: 'auto' })
+      }
+    }
+
+    reposition()
+    const onScroll = () => reposition()
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [isOpen, reposition])
 
   // Helper date generators
   const getDaysInMonth = (year: number, month: number) => {
@@ -118,6 +180,28 @@ export default function DatePicker({ value, onChange, error, placeholder = 'Pili
     dayCells.push(i)
   }
 
+  // Shared clean style for the month / year selects (native arrow removed,
+  // replaced with a consistent custom chevron).
+  const chevron =
+    "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%2364748B'%20stroke-width='2.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E"
+  const selectStyle: React.CSSProperties = {
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    border: '1px solid #E2E8F0',
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#1E293B',
+    background: `#F8FAFC url("${chevron}") no-repeat right 9px center`,
+    backgroundSize: '11px',
+    padding: '7px 28px 7px 12px',
+    borderRadius: 9,
+    outline: 'none',
+    cursor: 'pointer',
+    height: 34,
+    transition: 'border-color 0.15s, background-color 0.15s, box-shadow 0.15s',
+  }
+
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
       <button
@@ -150,19 +234,19 @@ export default function DatePicker({ value, onChange, error, placeholder = 'Pili
         </svg>
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
+          ref={popupRef}
           style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            zIndex: 100,
-            marginTop: 6,
-            width: 290,
+            position: 'fixed',
+            top: coords.top,
+            left: coords.left,
+            zIndex: 3000,
+            width: POPUP_WIDTH,
             background: '#FFFFFF',
             border: '1.5px solid #E2E8F0',
             borderRadius: 12,
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 20px 45px -12px rgba(15, 36, 68, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
             padding: '14px 16px',
             boxSizing: 'border-box',
             animation: 'fadeIn 0.15s ease-out'
@@ -193,21 +277,13 @@ export default function DatePicker({ value, onChange, error, placeholder = 'Pili
             </button>
 
             {/* Quick selectors for Month & Year */}
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <select
                 value={viewMonth}
                 onChange={e => setViewMonth(parseInt(e.target.value))}
-                style={{
-                  border: 'none',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: '#1E293B',
-                  background: '#F1F5F9',
-                  padding: '4px 6px',
-                  borderRadius: 6,
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
+                style={{ ...selectStyle, minWidth: 108 }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#5B6BF0'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(91,107,240,0.15)' }}
+                onBlur={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = 'none' }}
               >
                 {MONTH_NAMES.map((name, i) => (
                   <option key={name} value={i}>{name}</option>
@@ -217,17 +293,9 @@ export default function DatePicker({ value, onChange, error, placeholder = 'Pili
               <select
                 value={viewYear}
                 onChange={e => setViewYear(parseInt(e.target.value))}
-                style={{
-                  border: 'none',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: '#1E293B',
-                  background: '#F1F5F9',
-                  padding: '4px 6px',
-                  borderRadius: 6,
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
+                style={{ ...selectStyle, minWidth: 82 }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#5B6BF0'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(91,107,240,0.15)' }}
+                onBlur={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = 'none' }}
               >
                 {years.map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -359,7 +427,8 @@ export default function DatePicker({ value, onChange, error, placeholder = 'Pili
               Hari Ini
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

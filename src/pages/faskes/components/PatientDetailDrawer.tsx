@@ -35,8 +35,11 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 10, fontWeight: 800, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>{title}</div>
+    <div style={{ marginBottom: 18, background: 'rgba(255,255,255,0.7)', border: '1px solid #EEF0F4', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(15,36,68,0.03)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <span style={{ width: 3, height: 12, borderRadius: 3, background: 'linear-gradient(180deg, #5B6BF0, #0D9488)' }} />
+        <div style={{ fontSize: 10, fontWeight: 800, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{title}</div>
+      </div>
       {children}
     </div>
   )
@@ -162,13 +165,13 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
 
   return createPortal(
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(43,45,66,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', animation: 'fadeIn 0.2s ease-out' }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(23,28,58,0.62)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', animation: 'fadeIn 0.2s ease-out' }}
       onClick={e => { if (e.target === e.currentTarget && !submitting) onClose() }}
     >
-      <div style={{ width: activeTab === 'profile' ? 560 : 880, maxWidth: '92vw', maxHeight: '90vh', background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(15,36,68,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden', transition: 'width 0.2s ease-in-out' }}>
+      <div style={{ width: 820, maxWidth: '92vw', maxHeight: '90vh', background: '#ffffff', borderRadius: 22, boxShadow: '0 30px 70px rgba(15,36,68,0.32)', border: '1px solid rgba(255,255,255,0.7)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ padding: '16px 22px', borderBottom: '1px solid #DCDFE8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ padding: '16px 22px', borderBottom: '1px solid #ECEEF3', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2D42' }}>Detail Pasien</div>
             <div style={{ display: 'flex', background: '#F4F5F7', borderRadius: 8, padding: 3, gap: 2 }}>
@@ -188,11 +191,11 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
               </button>
             </div>
           </div>
-          <button onClick={onClose} disabled={submitting} style={{ width: 30, height: 30, borderRadius: 8, background: '#F4F5F7', border: '1px solid #DCDFE8', cursor: submitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16 }}>×</button>
+          <button onClick={onClose} disabled={submitting} style={{ width: 30, height: 30, borderRadius: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', cursor: submitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#636B78', fontSize: 16 }}>×</button>
         </div>
 
         {/* Scrollable Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px', background: activeTab === 'profile' ? '#fff' : '#F7F8FA' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px', background: activeTab === 'profile' ? 'linear-gradient(180deg, #FBFBFE 0%, #F4F6FC 100%)' : '#F8FAFC' }}>
           {loading && (
             <div style={{ textAlign: 'center', padding: '60px 0', color: '#8A93A1', fontSize: 13 }}>Memuat detail...</div>
           )}
@@ -204,7 +207,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
             if (activeTab === 'profile') {
               return (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, padding: '16px', background: '#F7F8FA', borderRadius: 12, border: '1px solid #DCDFE8' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #ECEEF3' }}>
                     <div style={{ width: 52, height: 52, borderRadius: 14, background: dc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: dc.color, flexShrink: 0 }}>
                       {initials(detail.full_name)}
                     </div>
@@ -320,7 +323,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                   {/* Latest Baseline Card */}
-                  <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #DCDFE8', padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ECEEF3', padding: 20, boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>Baseline Klinis Terbaru</div>
@@ -402,7 +405,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                   </div>
 
                   {/* History Logs */}
-                  <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #DCDFE8', padding: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ECEEF3', padding: 20, boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42', marginBottom: 14 }}>Riwayat Kontrol (Kemajuan)</div>
                     {history.length === 0 ? (
                       <div style={{ color: '#8A93A1', fontSize: 12.5, textAlign: 'center', padding: '16px 0' }}>Tidak ada riwayat baseline sebelumnya.</div>
@@ -434,7 +437,7 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
 
             if (activeTab === 'form' && formData) {
               return (
-                <form onSubmit={handleSubmit} style={{ background: '#fff', borderRadius: 14, border: '1px solid #DCDFE8', padding: 22, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <form onSubmit={handleSubmit} style={{ background: '#fff', borderRadius: 16, border: '1px solid #ECEEF3', padding: 22, boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>Catat Kontrol Baseline Baru</span>
                     <button
