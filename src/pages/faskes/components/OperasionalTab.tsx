@@ -836,6 +836,7 @@ export default function OperasionalTab({
                   {(() => {
                     const latest = progressHistory[0]
                     const oldest = progressHistory[progressHistory.length - 1]
+                    const isSingleRecord = progressHistory.length < 2
 
                     const latestScore = Math.max(0, 100 - (latest.cvd_risk_10yr_pct ?? 0))
                     const oldestScore = Math.max(0, 100 - (oldest.cvd_risk_10yr_pct ?? 0))
@@ -898,17 +899,27 @@ export default function OperasionalTab({
                             <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Tren Health Score</div>
                             <div style={{ fontSize: 11, color: '#8A93A1', marginTop: 1 }}>{chartData.length} catatan terakhir</div>
                           </div>
-                          <div style={{
-                            display: 'flex', flexDirection: 'column', alignItems: 'center',
-                            background: trendBg, border: `1.5px solid ${trendBorder}`,
-                            borderRadius: 10, padding: '7px 14px', minWidth: 64,
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ fontSize: 16, fontWeight: 900, color: trendColor, lineHeight: 1 }}>{arrow}</span>
-                              <span style={{ fontSize: 18, fontWeight: 900, color: trendColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{trendVal}</span>
+                          {isSingleRecord ? (
+                            <div style={{
+                              display: 'flex', flexDirection: 'column', alignItems: 'center',
+                              background: '#F1F5F9', border: '1.5px solid #E2E8F0',
+                              borderRadius: 10, padding: '7px 14px', minWidth: 64,
+                            }}>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', lineHeight: 1.3 }}>Data pertama</span>
                             </div>
-                            <span style={{ fontSize: 9.5, fontWeight: 700, color: trendColor, marginTop: 3, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{trendLabel}</span>
-                          </div>
+                          ) : (
+                            <div style={{
+                              display: 'flex', flexDirection: 'column', alignItems: 'center',
+                              background: trendBg, border: `1.5px solid ${trendBorder}`,
+                              borderRadius: 10, padding: '7px 14px', minWidth: 64,
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span style={{ fontSize: 16, fontWeight: 900, color: trendColor, lineHeight: 1 }}>{arrow}</span>
+                                <span style={{ fontSize: 18, fontWeight: 900, color: trendColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{trendVal}</span>
+                              </div>
+                              <span style={{ fontSize: 9.5, fontWeight: 700, color: trendColor, marginTop: 3, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{trendLabel}</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Monthly progress bars */}
@@ -939,10 +950,12 @@ export default function OperasionalTab({
                             const badColor = '#EF4444'
                             const goodBg = 'rgba(16,185,129,0.10)'
                             const badBg = 'rgba(239,68,68,0.10)'
-                            const arrowColor = m.isImproving ? goodColor : badColor
-                            const arrowBg = m.isImproving ? goodBg : badBg
-                            const borderCol = m.isImproving ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'
-                            const shadowCol = m.isImproving ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)'
+                            const neutralColor = '#94A3B8'
+                            const neutralBg = 'rgba(148,163,184,0.10)'
+                            const arrowColor = isSingleRecord ? neutralColor : m.isImproving ? goodColor : badColor
+                            const arrowBg = isSingleRecord ? neutralBg : m.isImproving ? goodBg : badBg
+                            const borderCol = isSingleRecord ? '#E2E8F0' : m.isImproving ? 'rgba(16,185,129,0.22)' : 'rgba(239,68,68,0.22)'
+                            const shadowCol = isSingleRecord ? 'rgba(148,163,184,0.06)' : m.isImproving ? 'rgba(16,185,129,0.07)' : 'rgba(239,68,68,0.07)'
                             const arrowIcon = m.isImproving ? '↑' : '↓'
                             const trendLabel = m.isImproving ? 'Membaik' : 'Memburuk'
                             return (
@@ -956,17 +969,19 @@ export default function OperasionalTab({
                                 boxShadow: `0 2px 10px ${shadowCol}`,
                               }}>
                                 {/* Score badge — kanan atas */}
-                                <div style={{
-                                  position: 'absolute', top: 10, right: 10,
-                                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                  background: arrowBg, borderRadius: 8, padding: '4px 8px', minWidth: 42,
-                                }}>
-                                  <span style={{ fontSize: 13, fontWeight: 900, color: arrowColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{m.delta}</span>
-                                  <span style={{ fontSize: 8, fontWeight: 700, color: arrowColor, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{trendLabel}</span>
-                                </div>
+                                {!isSingleRecord && (
+                                  <div style={{
+                                    position: 'absolute', top: 10, right: 10,
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                    background: arrowBg, borderRadius: 8, padding: '4px 8px', minWidth: 42,
+                                  }}>
+                                    <span style={{ fontSize: 13, fontWeight: 900, color: arrowColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{m.delta}</span>
+                                    <span style={{ fontSize: 8, fontWeight: 700, color: arrowColor, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{trendLabel}</span>
+                                  </div>
+                                )}
 
                                 {/* Label + nilai */}
-                                <div style={{ paddingRight: 58 }}>
+                                <div style={{ paddingRight: isSingleRecord ? 0 : 58 }}>
                                   <div style={{ fontSize: 10, color: '#8A93A1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 6 }}>{m.label}</div>
                                   <div style={{ fontSize: 18, fontWeight: 800, color: '#2B2D42', lineHeight: 1.1 }}>
                                     {m.value}{' '}
@@ -976,17 +991,23 @@ export default function OperasionalTab({
 
                                 {/* Panah klinis */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 10 }}>
-                                  <div style={{
-                                    width: 22, height: 22, borderRadius: 6,
-                                    background: arrowBg,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 14, fontWeight: 900, color: arrowColor, lineHeight: 1,
-                                  }}>
-                                    {arrowIcon}
-                                  </div>
-                                  <span style={{ fontSize: 11, fontWeight: 600, color: arrowColor }}>
-                                    {m.isImproving ? 'Kondisi membaik' : 'Kondisi memburuk'}
-                                  </span>
+                                  {isSingleRecord ? (
+                                    <span style={{ fontSize: 11, fontWeight: 600, color: neutralColor }}>Belum ada perbandingan</span>
+                                  ) : (
+                                    <>
+                                      <div style={{
+                                        width: 22, height: 22, borderRadius: 6,
+                                        background: arrowBg,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: 14, fontWeight: 900, color: arrowColor, lineHeight: 1,
+                                      }}>
+                                        {arrowIcon}
+                                      </div>
+                                      <span style={{ fontSize: 11, fontWeight: 600, color: arrowColor }}>
+                                        {m.isImproving ? 'Kondisi membaik' : 'Kondisi memburuk'}
+                                      </span>
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             )

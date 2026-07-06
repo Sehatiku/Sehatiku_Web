@@ -241,19 +241,7 @@ export default function ProfilNakesView({
               </div>
             </div>
 
-            {/* Note */}
-            <div style={{
-              background: '#FAFAFA', borderRadius: 9, padding: '10px 12px',
-              border: '1px solid #ECEEF3',
-              display: 'flex', alignItems: 'flex-start', gap: 8,
-            }}>
-              <svg width="13" height="13" style={{ marginTop: 1, flexShrink: 0 }} viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <p style={{ margin: 0, fontSize: 11, color: '#9CA3AF', lineHeight: 1.5 }}>
-                Data distribusi pasien diperbarui otomatis setiap 60 detik.
-              </p>
-            </div>
+            
           </div>
         </div>
 

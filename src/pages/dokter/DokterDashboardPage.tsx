@@ -133,12 +133,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
   useEffect(() => {
     fetchData()
+    fetchDoctorProfile()
     intervalRef.current = setInterval(fetchData, 60_000)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
     }
-  }, [fetchData])
+  }, [fetchData, fetchDoctorProfile])
 
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
@@ -361,10 +362,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                     return (
                       <div
                         key={item.id}
-                        onClick={() => {
-                          setActiveView(item.id)
-                          if (item.id === 'profil') fetchDoctorProfile()
-                        }}
+                        onClick={() => setActiveView(item.id)}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -644,13 +642,15 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
             />
           )}
 
-          {/* ── VIEW: Notifikasi & Eskalasi ───────────────────────────────────── */}
-          {!fetchError && activeView === 'notif' && (
+          {/* ── VIEW: Notifikasi & Eskalasi ─────────────────────────────────────
+              Selalu di-mount (disembunyikan via CSS, bukan unmount) agar data
+              sudah siap saat tab dibuka — tidak perlu fetch ulang tiap switch. */}
+          <div style={{ display: !fetchError && activeView === 'notif' ? 'flex' : 'none', flex: 1, flexDirection: 'column', overflow: 'hidden' }}>
             <NotifikasiView showToast={showToast} />
-          )}
+          </div>
 
-          {/* ── VIEW 4: Profil Saya ───────────────────────────────────────────── */}
-          {!fetchError && activeView === 'profil' && (
+          {/* ── VIEW 4: Profil Saya (sama, tetap ter-mount) ─────────────────── */}
+          <div style={{ display: !fetchError && activeView === 'profil' ? 'flex' : 'none', flex: 1, flexDirection: 'column', overflow: 'hidden' }}>
             <ProfilNakesView
               profile={doctorProfile}
               loading={loadingProfile}
@@ -660,7 +660,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               waswasCount={waswasCount}
               amanCount={amanCount}
             />
-          )}
+          </div>
         </div>
       </div>
 
