@@ -685,6 +685,61 @@ export interface EscalationResponse {
   paging: Paging
 }
 
+// ─── Pre-Visit Prolanis Brief (GET /api/v1/nakes/patients/:id/brief) ─────────
+
+export interface BriefTrajectoryDay {
+  date: string
+  blood_sugar: number
+  systolic: number
+  diastolic: number
+  weight: number
+  health_score: number
+}
+
+/** risk.top_factors di sini adalah kalimat siap-tampil (string[]), bukan RiskFactor[] SHAP */
+export interface BriefRiskInfo {
+  score: number
+  status: PatientStatus
+  scoring_mode: string
+  scored_at: string
+  top_factors: string[]
+}
+
+export interface BriefMedAdherence {
+  adherence_rate_pct: number
+  taken_days: number
+  missed_days: number
+  missed_dates: string[]
+  missed_weekdays: Record<string, number>
+}
+
+export interface BriefEscalationSummary {
+  tier: EscalationTier
+  status: EscalationStatus
+  feedback: EscalationFeedbackValue | null
+  sent_at: string
+  acted_at: string | null
+}
+
+/** GET /api/v1/nakes/patients/:id/brief — selalu 200, sub-shape null/kosong bila data belum ada */
+export interface NakesPatientBrief {
+  period: { start: string; end: string }
+  coverage: { logged_days: number; window_days: number; streak_days: number }
+  history_days: number
+  trajectory: {
+    daily: BriefTrajectoryDay[]
+    glucose_slope_per_week: number | null
+    systolic_slope_per_week: number | null
+  }
+  aggregates: NakesPatientSummaryAggregates | null
+  risk: BriefRiskInfo | null
+  med_adherence: BriefMedAdherence
+  escalations_this_month: BriefEscalationSummary[]
+  narrative: string
+  anamnesis_questions: string[]
+  generated_at: string
+}
+
 export interface EscalationQuery {
   status?: EscalationStatus
   tier?: EscalationTier

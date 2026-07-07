@@ -40,6 +40,7 @@ import type {
   HealthScorePoint,
   NakesPatientSummary,
   NakesPatientDetailData,
+  NakesPatientBrief,
   HealthSummary,
   SummaryWindow,
   EscalationItem,
@@ -883,6 +884,76 @@ function mockNakesPatientDetail(patientId: string): NakesPatientDetailData {
   }
 }
 
+function mockNakesPatientBrief(patientId: string): NakesPatientBrief {
+  const daily = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (29 - i))
+    return {
+      date: d.toISOString().slice(0, 10),
+      blood_sugar: Math.round(140 + i * 2.5 + Math.random() * 20),
+      systolic: Math.round(150 - i * 0.5 + Math.random() * 10),
+      diastolic: Math.round(90 + Math.random() * 8),
+      weight: Math.round((72 - i * 0.05 + Math.random()) * 10) / 10,
+      health_score: Math.round(45 + Math.random() * 15),
+    }
+  })
+  return {
+    period: { start: daily[0].date, end: daily[daily.length - 1].date },
+    coverage: { logged_days: 21, window_days: 30, streak_days: 4 },
+    history_days: 45,
+    trajectory: { daily, glucose_slope_per_week: 4.2, systolic_slope_per_week: -1.1 },
+    aggregates: {
+      glucose: { avg_mgdl: 212.5, min_mgdl: 140, max_mgdl: 260, count: 21 },
+      blood_pressure: { avg_systolic: 142.3, avg_diastolic: 91.5, count: 21 },
+      med_adherence: { adherence_rate_pct: 73.3, count: 15 },
+      nutrition: { avg_kcal_per_day: 1900, avg_carbs_g_per_day: 225, avg_sodium_mg_per_day: 1550, meal_count: 40 },
+      activity: { avg_minutes_per_day: 20, total_minutes: 420, count: 18 },
+      sleep: { avg_hours: 6.1, count: 20 },
+      stress: { avg_level: 5.5, count: 18 },
+      weight: { start_kg: 72, latest_kg: 70.6, delta_kg: -1.4, count: 21 },
+    },
+    risk: {
+      score: 40,
+      status: 'waswas',
+      scoring_mode: 'cohort',
+      scored_at: new Date().toISOString(),
+      top_factors: [
+        'Gula darah rata-rata Anda cukup tinggi (212.5 mg/dL).',
+        'Kepatuhan minum obat masih perlu ditingkatkan (73%).',
+        'Tekanan darah sistolik menunjukkan tren membaik.',
+      ],
+    },
+    med_adherence: {
+      adherence_rate_pct: 73.3,
+      taken_days: 11,
+      missed_days: 4,
+      missed_dates: ['2026-06-14', '2026-06-21', '2026-06-15', '2026-06-22'],
+      missed_weekdays: { Sabtu: 2, Minggu: 2 },
+    },
+    escalations_this_month: [
+      { tier: 'acute_today', status: 'acted', feedback: 'accurate', sent_at: '2026-07-02T09:00:00Z', acted_at: '2026-07-02T10:30:00Z' },
+      { tier: 'trend_this_week', status: 'sent', feedback: null, sent_at: '2026-07-05T08:00:00Z', acted_at: null },
+    ],
+    narrative: `Pasien ${patientId} menunjukkan tren gula darah yang meningkat dalam 30 hari terakhir dengan rata-rata 212.5 mg/dL, di atas target normal. Kepatuhan minum obat 73% dengan pola sering lupa di akhir pekan. Tekanan darah sistolik justru membaik. Disarankan evaluasi kepatuhan pengobatan akhir pekan dan edukasi pola makan.`,
+    anamnesis_questions: [
+      'Apakah Bapak/Ibu sering lupa minum obat di akhir pekan?',
+      'Apakah ada perubahan pola makan dalam sebulan terakhir?',
+      'Apakah ada gejala seperti sering haus atau sering buang air kecil?',
+    ],
+    generated_at: new Date().toISOString(),
+  }
+}
+
+function mockNakesPatientBriefReportHtml(patientId: string): string {
+  const brief = mockNakesPatientBrief(patientId)
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Laporan Pra-Kontrol</title></head>
+<body style="font-family: sans-serif; padding: 24px;">
+  <h1>Laporan Pra-Kontrol Prolanis</h1>
+  <p>Pasien: ${patientId} — Periode ${brief.period.start} s/d ${brief.period.end}</p>
+  <p>${brief.narrative}</p>
+</body></html>`
+}
+
 function mockHealthSummary(window: SummaryWindow): HealthSummary {
   return {
     window,
@@ -1499,6 +1570,22 @@ export const nakesApi = {
       `/api/v1/nakes/patients/${patientId}/summary?window=${window}`,
     )
     return res.data
+  },
+
+  /** GET /api/v1/nakes/patients/:id/brief — dossier pra-kontrol 30 hari */
+  getPatientBrief: async (id: string): Promise<NakesPatientBrief> => {
+    if (MOCK) return mockNakesPatientBrief(id)
+    const res = await request<ApiEnvelope<NakesPatientBrief>>(`/api/v1/nakes/patients/${id}/brief`)
+    return res.data
+  },
+
+  /** GET /api/v1/nakes/patients/:id/brief/report — laporan HTML siap cetak (reuse pipeline brief) */
+  getPatientBriefReport: async (id: string): Promise<string> => {
+    if (MOCK) return mockNakesPatientBriefReportHtml(id)
+    // Sukses = body HTML mentah (bukan JSON) — parseBody() gagal JSON.parse lalu fallback ke { message: text },
+    // sehingga request<T>() tetap bisa dipakai apa adanya (error tetap JSON seperti endpoint lain).
+    const res = await request<{ message: string }>(`/api/v1/nakes/patients/${id}/brief/report`)
+    return res.message
   },
 
   /** GET /api/v1/nakes/escalations — escalation queue (acute_today first), with filters */
