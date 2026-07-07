@@ -280,13 +280,12 @@ export default function NakesTab({
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#636B78', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Role</label>
-                  <select
-                    value={newDrRole}
-                    onChange={e => setNewDrRole(e.target.value as NakesRole)}
-                    style={{ width: '100%', padding: '10px 34px 10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: `rgba(255,255,255,0.6) url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%2364748B'%20stroke-width='2.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E") no-repeat right 12px center`, backgroundSize: '13px', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}
-                  >
-                    <option value="dokter">Dokter</option>
-                  </select>
+                  <input
+                    type="text"
+                    value="Dokter"
+                    disabled
+                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#8A93A1', background: '#F1F5F9', outline: 'none', boxSizing: 'border-box', cursor: 'not-allowed' }}
+                  />
                 </div>
               </div>
               {newDrRole === 'dokter' && (

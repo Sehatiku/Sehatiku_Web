@@ -27,8 +27,6 @@ export default function OperasionalTab({
   setActiveTab,
   showToastMsg,
   faskesName,
-  nakesItems = [],
-  nakesLoading = false,
 }: OperasionalTabProps) {
   // Phase Operasional States
   const [patients, setPatients] = useState<Patient[]>([])
@@ -641,92 +639,7 @@ export default function OperasionalTab({
 
           </div>
 
-          {/* Team Collaboration: Active Doctors & Kader (Donezo style) */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(18px) saturate(1.6)',
-            WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
-            borderRadius: 18,
-            padding: 18,
-            boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
-            border: '1px solid rgba(255, 255, 255, 0.7)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#0F172A' }}>Tim Medis & Nakes Aktif</div>
-                <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>Nakes penanggung jawab prolanis & kader pemantauan lapangan</div>
-              </div>
-              <button
-                onClick={() => setActiveTab('dokter')}
-                style={{
-                  background: '#EEF0FF', border: 'none', borderRadius: 8, color: '#5B6BF0',
-                  fontSize: 12, padding: '6px 12px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
-                onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
-              >
-                + Tambah Nakes
-              </button>
-            </div>
 
-            {/* List of active nakes — driven by real data (no dummy) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {nakesLoading ? (
-                // Loading skeletons
-                [0, 1, 2].map(i => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #ECEEF3' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#E9EDF3' }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ width: '40%', height: 11, borderRadius: 5, background: '#E9EDF3' }} />
-                      <div style={{ width: '65%', height: 9, borderRadius: 5, background: '#EEF1F6', marginTop: 7 }} />
-                    </div>
-                  </div>
-                ))
-              ) : nakesItems.length === 0 ? (
-                // Empty state — no fabricated names
-                <div style={{ textAlign: 'center', padding: '28px 16px', color: '#94A3B8' }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>Belum ada nakes terdaftar</div>
-                  <div style={{ fontSize: 11.5, marginTop: 4 }}>Tambahkan dokter atau kader untuk mulai memantau pasien prolanis.</div>
-                </div>
-              ) : (
-                nakesItems.slice(0, 5).map(n => {
-                  const isDokter = n.role === 'dokter'
-                  const roleLabel = isDokter ? 'Dokter JP' : n.role === 'kader' ? 'Kader' : 'Admin'
-                  // Real secondary detail: specialization/hospital for dokter, else contact
-                  const detail = isDokter
-                    ? (n.specialization || n.hospital || 'Dokter Penanggung Jawab')
-                    : (n.hospital || 'Kader Pemantauan Lapangan')
-                  const isActive = n.status === 'active'
-                  return (
-                    <div key={n.nakes_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #ECEEF3' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                        <div style={{
-                          width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                          background: isDokter ? '#EEF0FF' : 'rgba(13, 148, 136, 0.08)',
-                          color: isDokter ? '#5B6BF0' : '#0D9488',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12
-                        }}>
-                          {initials(n.full_name)}
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.full_name}</div>
-                          <div style={{ fontSize: 11, color: '#64748B', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            <span style={{ fontWeight: 600, color: isDokter ? '#5B6BF0' : '#0D9488' }}>{roleLabel}</span>
-                            {' • '}{detail}
-                          </div>
-                        </div>
-                      </div>
-                      <span style={{
-                        background: isActive ? '#ECFDF5' : '#F1F5F9',
-                        color: isActive ? '#10B981' : '#64748B',
-                        fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, flexShrink: 0, marginLeft: 10
-                      }}>{isActive ? 'Aktif' : 'Nonaktif'}</span>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          </div>
 
         </div>
 

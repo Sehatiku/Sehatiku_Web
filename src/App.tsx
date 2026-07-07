@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './index.css'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import FaskesDashboardPage from './pages/faskes/FaskesDashboardPage'
@@ -18,6 +18,17 @@ function AppInner() {
   const [loginRole, setLoginRole] = useState<'faskes' | 'dokter'>('faskes')
   // Bump to remount the landing so scroll-reveal animations replay
   const [landingKey, setLandingKey] = useState(0)
+
+  useEffect(() => {
+    if (user?.actor_type === 'faskes' || user?.actor_type === 'nakes') {
+      document.body.classList.add('dashboard-active')
+    } else {
+      document.body.classList.remove('dashboard-active')
+    }
+    return () => {
+      document.body.classList.remove('dashboard-active')
+    }
+  }, [user])
 
   const openLogin = (role: 'faskes' | 'dokter' = 'faskes') => {
     setLoginRole(role)

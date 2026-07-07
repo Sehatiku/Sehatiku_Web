@@ -777,7 +777,6 @@ export default function PendaftaranTab({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Nakes Penanggung Jawab <span style={{ color: '#EF4444' }}>*</span></div>
-              <div style={{ fontSize: 10, color: '#8A93A1', marginTop: 2 }}>Wajib dipilih — dikirim ke API sebagai <code>assigned_nakes_id</code></div>
             </div>
             {selectedDoctorId && (
               <span style={{ background: '#F0FDF8', color: '#1EC8A5', fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, border: '1px solid rgba(30,200,165,0.2)', display: 'flex', alignItems: 'center', gap: 4 }}>

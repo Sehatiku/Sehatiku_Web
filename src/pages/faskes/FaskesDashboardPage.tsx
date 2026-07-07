@@ -156,14 +156,14 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Plus Jakarta Sans, sans-serif', background: '#F4F6FA' }}>
-      <div style={{ flex: 1, display: 'flex', background: '#F4F6FA', padding: 16, gap: 16, overflow: 'hidden', height: '100%', width: '100%' }}>
+      <div style={{ flex: 1, display: 'flex', background: '#F4F6FA', padding: 10, gap: 10, overflow: 'hidden', height: '100%', width: '100%' }}>
 
       {/* ── COLLAPSIBLE SIDEBAR ── */}
       <div style={{
-        width: isSidebarCollapsed ? 88 : 300,
-        minWidth: isSidebarCollapsed ? 88 : 300,
+        width: isSidebarCollapsed ? 68 : 240,
+        minWidth: isSidebarCollapsed ? 68 : 240,
         background: 'linear-gradient(180deg, #1E2775 0%, #161C5C 100%)',
-        borderRadius: 24,
+        borderRadius: 18,
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
@@ -171,15 +171,15 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
         color: '#ffffff',
-        padding: '20px 0 16px',
+        padding: '14px 0 12px',
       }}>
         {/* Header (Branding Box) */}
-        <div style={{ padding: '0 16px 16px' }}>
+        <div style={{ padding: '0 12px 12px' }}>
           <div style={{
             background: isSidebarCollapsed ? 'transparent' : 'rgba(255, 255, 255, 0.06)',
             border: isSidebarCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: 16,
-            padding: isSidebarCollapsed ? 0 : '14px 16px',
+            borderRadius: 12,
+            padding: isSidebarCollapsed ? 0 : '10px 12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
@@ -203,21 +203,21 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               />
             ) : (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
+                    width: 32,
+                    height: 32,
+                    borderRadius: 9,
                     background: 'rgba(255, 255, 255, 0.12)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                    <img src="/logo sehatiku.png" alt="Sehatiku" style={{ height: 26, width: 26, objectFit: 'contain' }} />
+                    <img src="/logo sehatiku.png" alt="Sehatiku" style={{ height: 22, width: 22, objectFit: 'contain' }} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: 16.5, fontWeight: 700, color: '#ffffff', lineHeight: '1.2' }}>Sehatiku</span>
-                    <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.55)', marginTop: 3, fontWeight: 600 }}>Admin Faskes</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', lineHeight: '1.2' }}>Sehatiku</span>
+                    <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.55)', marginTop: 2, fontWeight: 600 }}>Admin Faskes</span>
                   </div>
                 </div>
                 <button
@@ -250,13 +250,13 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
 
         {/* Grouped menu items with dynamic search filtering */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 10px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             {
               title: 'Navigation',
               items: [
                 { id: 'operasional', label: 'Dashboard', icon: TAB_META.operasional.icon },
-                { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon },
+                { id: 'pasien', label: 'Daftar Pasien', icon: TAB_META.pasien.icon },
                 { id: 'eskalasi', label: 'Eskalasi Klinis', icon: TAB_META.eskalasi.icon, badge: escalationCount > 0 ? String(escalationCount) : undefined }
               ]
             },
@@ -264,7 +264,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               title: 'Manajemen',
               items: [
                 { id: 'dokter', label: 'Manajemen Nakes', icon: TAB_META.dokter.icon, badge: nakesItems.length > 0 ? String(nakesItems.length) : undefined },
-                { id: 'pasien', label: 'Daftar Pasien', icon: TAB_META.pasien.icon }
+                { id: 'pendaftaran', label: 'Fase Pendaftaran', icon: TAB_META.pendaftaran.icon }
               ]
             }
           ].map((group, gIdx) => {
@@ -283,12 +283,12 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                 borderTop: gIdx > 0 ? '1px dashed rgba(255, 255, 255, 0.12)' : 'none',
               }}>
                 <div style={{
-                  fontSize: 11.5,
+                  fontSize: 10,
                   fontWeight: 800,
                   color: 'rgba(255, 255, 255, 0.48)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.9px',
-                  padding: '0 8px 6px',
+                  padding: '0 6px 4px',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   opacity: isSidebarCollapsed ? 0 : 1,
@@ -307,9 +307,9 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 13,
-                        padding: '13px 16px',
-                        borderRadius: 14,
+                        gap: 10,
+                        padding: '9px 10px',
+                        borderRadius: 10,
                         cursor: 'pointer',
                         background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                         color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
@@ -340,13 +340,13 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
                         {item.icon}
                       </div>
                       <span style={{
-                        fontSize: 14.5,
+                        fontSize: 13,
                         fontWeight: isSelected ? 700 : 500,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         opacity: isSidebarCollapsed ? 0 : 1,
                         width: isSidebarCollapsed ? 0 : 'auto',
-                        marginLeft: isSidebarCollapsed ? 0 : 4,
+                        marginLeft: isSidebarCollapsed ? 0 : 2,
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         flex: 1,
                       }}>
@@ -373,24 +373,24 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
         </div>
 
         {/* Faskes identity card (which clinic is logged in) */}
-        <div style={{ padding: '12px 16px 0' }}>
+        <div style={{ padding: '8px 10px 0' }}>
           <div style={{
             background: 'rgba(255, 255, 255, 0.06)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: 16,
-            padding: isSidebarCollapsed ? 0 : '13px 15px',
+            borderRadius: 12,
+            padding: isSidebarCollapsed ? 0 : '9px 10px',
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            gap: 8,
             justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
-            height: isSidebarCollapsed ? 46 : 'auto',
+            height: isSidebarCollapsed ? 40 : 'auto',
             transition: 'all 0.3s',
             overflow: 'hidden',
           }}>
             <div style={{
-              width: isSidebarCollapsed ? 34 : 38,
-              height: isSidebarCollapsed ? 34 : 38,
-              borderRadius: 11,
+              width: isSidebarCollapsed ? 28 : 32,
+              height: isSidebarCollapsed ? 28 : 32,
+              borderRadius: 9,
               flexShrink: 0,
               background: 'rgba(13, 148, 136, 0.18)',
               color: '#2DD4BF',
@@ -409,10 +409,10 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               width: isSidebarCollapsed ? 0 : 'auto',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'capitalize' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'capitalize' }}>
                 {faskesName}
               </div>
-              <div style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.45)', marginTop: 2, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.45)', marginTop: 2, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 Kode: {profile?.faskes_id ?? '—'}
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
 
         {/* Pinned Logout Action (pinned bottom) */}
         <div style={{
-          padding: '16px 0 0',
+          padding: '10px 0 0',
           borderTop: '1px dashed rgba(255, 255, 255, 0.12)',
           display: 'flex',
           justifyContent: 'center',
@@ -432,14 +432,14 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 13,
-              padding: '13px 16px',
-              borderRadius: 14,
+              gap: 10,
+              padding: '9px 10px',
+              borderRadius: 10,
               cursor: 'pointer',
               background: 'rgba(239, 68, 68, 0.08)',
               color: '#EF4444',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              width: isSidebarCollapsed ? 38 : 'calc(100% - 32px)',
+              width: isSidebarCollapsed ? 36 : 'calc(100% - 20px)',
               justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
               margin: '0 auto',
               border: '1px solid rgba(239, 68, 68, 0.25)',
@@ -460,7 +460,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
               </svg>
             </div>
             <span style={{
-              fontSize: 14.5,
+              fontSize: 13,
               fontWeight: 700,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -473,16 +473,16 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
           </div>
         </div>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, background: '#ffffff', borderRadius: 24, boxShadow: '0 8px 30px rgba(15, 36, 68, 0.04)', border: '1px solid #E2E8F0' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, background: '#ffffff', borderRadius: 18, boxShadow: '0 8px 30px rgba(15, 36, 68, 0.04)', border: '1px solid #E2E8F0' }}>
 
         {/* ── TOP HEADER BAR ── */}
         <header style={{
-          height: 58, background: '#fff', borderBottom: '1px solid #ECEEF3', flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px',
+          height: 48, background: '#fff', borderBottom: '1px solid #ECEEF3', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px',
         }}>
           {/* Left: title */}
           <div>
-            <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#0F172A', fontFamily: 'Plus Jakarta Sans, sans-serif', letterSpacing: '-0.3px' }}>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0F172A', fontFamily: 'Plus Jakarta Sans, sans-serif', letterSpacing: '-0.3px' }}>
               {activeTab === 'operasional' ? 'Dashboard' : currentTab.title}
             </p>
           </div>
@@ -518,7 +518,7 @@ export default function FaskesDashboardPage({ onLogout }: { onLogout: () => void
         </header>
 
         {/* ── SCROLLABLE TAB CONTENTS ── */}
-        <div className="aurora-field" style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+        <div className="aurora-field" style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
 
           {activeTab === 'pendaftaran' && (
             <PendaftaranTab

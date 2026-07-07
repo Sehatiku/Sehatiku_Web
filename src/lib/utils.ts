@@ -57,3 +57,15 @@ export function isValidPhone(phone: string): boolean {
 export function isValidNik(nik: string): boolean {
   return /^\d{16}$/.test(nik)
 }
+
+export function escalationStatusIsPending(status?: string): status is 'sent' | 'viewed' {
+  return status === 'sent' || status === 'viewed'
+}
+
+export function escalationStatusIsDone(status?: string): status is 'acted' | 'dismissed' {
+  return status === 'acted' || status === 'dismissed'
+}
+
+export function escalationItemIsDone(item: { status?: string; acted_at?: string | null }): boolean {
+  return escalationStatusIsDone(item.status) || Boolean(item.acted_at)
+}

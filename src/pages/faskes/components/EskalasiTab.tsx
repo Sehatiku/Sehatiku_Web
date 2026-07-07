@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { faskesApi } from '../../../lib/api'
 import type { EscalationItem } from '../../../lib/types'
-import { formatDate } from '../../../lib/utils'
+import { escalationItemIsDone, escalationStatusIsPending, formatDate } from '../../../lib/utils'
 
 interface EskalasiTabProps {
   showToastMsg: (msg: string) => void
@@ -43,7 +43,10 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
   }, [])
 
   useEffect(() => {
-    fetchEscalations()
+    const load = async () => {
+      await fetchEscalations()
+    }
+    load()
     // Auto-refresh tiap 60 detik (konsisten dengan antrean eskalasi nakes)
     intervalRef.current = setInterval(fetchEscalations, 60_000)
     return () => {
@@ -79,7 +82,7 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
     return '#EF4444'
   }
 
-  const openCount = escalations.filter(e => e.status === 'sent' || e.status === 'viewed').length
+  const openCount = escalations.filter(e => escalationStatusIsPending(e.status) && !e.acted_at).length
 
   return (
     <div className="anim-fadein">
@@ -112,7 +115,7 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
         )}
 
         {!loading && !error && escalations.map(alert => {
-          const isDone = alert.status === 'acted' || alert.status === 'dismissed'
+          const isDone = escalationItemIsDone(alert)
           const score = alert.risk_score
           const alertColor = getHealthColor(score)
           const alertBg = score < 40 ? '#FFF5F5' : (score < 70 ? '#FFFDF0' : '#F0FDF8')
