@@ -37,6 +37,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [detailLoading, setDetailLoading] = useState(false)
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [escalationCount, setEscalationCount] = useState(0)
 
 
   // Doctor profile states
@@ -131,15 +132,28 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
     }
   }, [fetchData, showToast])
 
+  const fetchEscalationCount = useCallback(async () => {
+    try {
+      const res = await nakesApi.getEscalations({ page: 1, size: 100 })
+      setEscalationCount(res.data.filter(e => e.status === 'sent' || e.status === 'viewed').length)
+    } catch {
+      /* badge stays 0 if fail */
+    }
+  }, [])
+
   useEffect(() => {
     fetchData()
     fetchDoctorProfile()
-    intervalRef.current = setInterval(fetchData, 60_000)
+    fetchEscalationCount()
+    intervalRef.current = setInterval(() => {
+      fetchData()
+      fetchEscalationCount()
+    }, 60_000)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
     }
-  }, [fetchData, fetchDoctorProfile])
+  }, [fetchData, fetchDoctorProfile, fetchEscalationCount])
 
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
@@ -320,7 +334,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                 {
                   title: 'Sistem',
                   items: [
-                    { id: 'notif', label: 'Notifikasi', icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg> },
+                    { id: 'notif', label: 'Notifikasi', count: escalationCount, icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg> },
                     { id: 'profil', label: 'Profil Saya', icon: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 8v4" /><path d="M12 16h.01" /></svg> }
                   ]
                 }
@@ -413,7 +427,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                         </span>
                         {item.count !== undefined && item.count > 0 && !isSidebarCollapsed && (
                           <span style={{
-                            background: item.id === 'keluhan' ? '#F59E0B' : '#0D9488',
+                            background: item.id === 'notif' ? '#EF4444' : item.id === 'keluhan' ? '#F59E0B' : '#0D9488',
                             color: '#ffffff',
                             fontSize: 11,
                             fontWeight: 800,
@@ -573,13 +587,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              {bahayaCount > 0 && (
+              {escalationCount > 0 && (
                 <span style={{
                   position: 'absolute', top: 0, right: 0, width: 14, height: 14,
-                  background: '#895CF6', borderRadius: '50%', fontSize: 9, fontWeight: 700,
+                  background: '#EF4444', borderRadius: '50%', fontSize: 9, fontWeight: 700,
                   color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {bahayaCount}
+                  {escalationCount}
                 </span>
               )}
             </button>
@@ -645,8 +659,8 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
           {/* ── VIEW: Notifikasi & Eskalasi ─────────────────────────────────────
               Selalu di-mount (disembunyikan via CSS, bukan unmount) agar data
               sudah siap saat tab dibuka — tidak perlu fetch ulang tiap switch. */}
-          <div style={{ display: !fetchError && activeView === 'notif' ? 'flex' : 'none', flex: 1, flexDirection: 'column', overflow: 'hidden' }}>
-            <NotifikasiView showToast={showToast} />
+          <div style={{ display: !fetchError && activeView === 'notif' ? 'flex' : 'none', flex: 1, minHeight: 0, flexDirection: 'column', overflow: 'hidden' }}>
+            <NotifikasiView showToast={showToast} onUpdateEscalationCount={setEscalationCount} />
           </div>
 
           {/* ── VIEW 4: Profil Saya (sama, tetap ter-mount) ─────────────────── */}

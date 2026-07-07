@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { nakesApi } from '../../../lib/api'
 import type { EscalationItem } from '../../../lib/types'
+import { escalationItemIsDone, escalationStatusIsPending } from '../../../lib/utils'
 import { SkeletonCard } from './Common'
 
 interface NotifikasiViewProps {
   showToast: (msg: string, type: 'ok' | 'err') => void
+  onUpdateEscalationCount?: (count: number) => void
 }
 
 const TIER_LABEL: Record<string, string> = {
@@ -26,7 +28,7 @@ function formatWaktu(iso: string): string {
   }
 }
 
-export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
+export default function NotifikasiView({ showToast, onUpdateEscalationCount }: NotifikasiViewProps) {
   const [escalations, setEscalations] = useState<EscalationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,6 +60,11 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [fetchEscalations])
 
+  useEffect(() => {
+    const pending = escalations.filter(e => escalationStatusIsPending(e.status) && !e.acted_at).length
+    onUpdateEscalationCount?.(pending)
+  }, [escalations, onUpdateEscalationCount])
+
   const handleFollowUp = useCallback(async (e: EscalationItem) => {
     setActingId(e.id)
     try {
@@ -81,18 +88,18 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
 
   // KPI Calculations
   const totalCount = escalations.length
-  const pendingCount = escalations.filter(e => e.status === 'sent' || e.status === 'viewed').length
-  const actedCount = escalations.filter(e => e.status === 'acted' || e.status === 'dismissed').length
+  const pendingCount = escalations.filter(e => escalationStatusIsPending(e.status) && !e.acted_at).length
+  const actedCount = escalations.filter(e => escalationItemIsDone(e)).length
 
   // Filter logic
   const filteredEscalations = escalations.filter(alert => {
-    if (activeTab === 'pending') return alert.status === 'sent' || alert.status === 'viewed'
-    if (activeTab === 'acted') return alert.status === 'acted' || alert.status === 'dismissed'
+    if (activeTab === 'pending') return escalationStatusIsPending(alert.status) && !alert.acted_at
+    if (activeTab === 'acted') return escalationItemIsDone(alert)
     return true
   })
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: 'transparent', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '20px 24px', background: 'transparent', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <style>{`
         @keyframes pulse-red {
           0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
@@ -151,7 +158,7 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
       `}</style>
 
       {/* ── KPI Metrics Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, flexShrink: 0 }}>
         {/* KPI 1: Total Eskalasi */}
         <div style={{ background: 'rgba(255, 255, 255, 0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderRadius: 16, padding: '16px 18px', border: '1px solid rgba(255, 255, 255, 0.6)', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
@@ -226,10 +233,10 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
         borderRadius: 20,
         boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.04)',
         border: '1px solid rgba(255,255,255,0.6)',
-        overflow: 'hidden',
+        overflow: 'visible',
         display: 'flex',
         flexDirection: 'column',
-        flex: 1
+        flexShrink: 0,
       }}>
         {/* Header with Filters */}
         <div style={{
@@ -294,7 +301,7 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
         </div>
 
         {/* Content View */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {loading && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} h={88} />)}
@@ -328,7 +335,7 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
           )}
 
           {!loading && !error && filteredEscalations.map(alert => {
-            const isDone = alert.status === 'acted' || alert.status === 'dismissed'
+            const isDone = escalationItemIsDone(alert)
             const score = alert.risk_score
             const alertColor = getHealthColor(score)
 
@@ -348,10 +355,10 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                   background: cardBg,
                   border: '1px solid rgba(255, 255, 255, 0.45)',
                   borderRadius: 16,
-                  padding: '16px 20px',
+                  padding: '12px 14px',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 16,
+                  alignItems: 'flex-start',
+                  gap: 12,
                   position: 'relative',
                   overflow: 'hidden',
                   boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.03)'
@@ -369,17 +376,19 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
 
                 {/* Left Warning Symbol */}
                 <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
+                  width: 36,
+                  height: 36,
+                  minWidth: 36,
+                  borderRadius: 10,
                   background: iconBg,
                   border: `1px solid ${iconBorder}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  marginTop: 2
                 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={alertColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={alertColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -387,22 +396,22 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                 </div>
 
                 {/* Middle Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 14.5, fontWeight: 700, color: '#1E293B' }}>{alert.patient_name}</span>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1E293B' }}>{alert.patient_name}</span>
 
                     {/* Health Score Pill */}
                     <span style={{
                       background: iconBg,
                       color: alertColor,
-                      fontSize: 10.5,
+                      fontSize: 9.5,
                       fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: 20,
+                      padding: '1px 6px',
+                      borderRadius: 18,
                       border: `1px solid ${iconBorder}`,
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 4
+                      gap: 3
                     }}>
                       <span style={{ width: 5, height: 5, borderRadius: '50%', background: alertColor }} />
                       Health: {score}
@@ -412,14 +421,14 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                     <span style={{
                       background: 'rgba(79, 70, 229, 0.05)',
                       color: '#4F46E5',
-                      fontSize: 10.5,
+                      fontSize: 9.5,
                       fontWeight: 600,
-                      padding: '2px 8px',
-                      borderRadius: 20,
+                      padding: '1px 6px',
+                      borderRadius: 18,
                       border: '1px solid rgba(79, 70, 229, 0.15)',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 4
+                      gap: 3
                     }}>
                       {alert.tier === 'acute_today' ? (
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -441,10 +450,10 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                       <span style={{
                         background: 'rgba(71, 85, 105, 0.05)',
                         color: '#475569',
-                        fontSize: 10.5,
+                        fontSize: 9.5,
                         fontWeight: 600,
-                        padding: '2px 8px',
-                        borderRadius: 20,
+                        padding: '1px 6px',
+                        borderRadius: 18,
                         border: '1px solid rgba(71, 85, 105, 0.15)',
                         textTransform: 'capitalize'
                       }}>
@@ -457,14 +466,14 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                   <div style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 6,
                     background: score < 40 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(245, 158, 11, 0.05)',
-                    padding: '5px 12px',
-                    borderRadius: 8,
-                    fontSize: 12,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
                     fontWeight: 600,
                     color: score < 40 ? '#991B1B' : '#92400E',
-                    marginBottom: 6,
+                    marginBottom: 4,
                     border: `1px solid ${score < 40 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`
                   }}>
                     <span className={score < 40 ? "pulse-red-dot" : "pulse-orange-dot"} />
@@ -472,8 +481,8 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                   </div>
 
                   {/* Footer metadata */}
-                  <div style={{ fontSize: 11, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div style={{ fontSize: 10, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12 6 12 12 16 14" />
                     </svg>
@@ -484,25 +493,25 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                 </div>
 
                 {/* Right Action Button */}
-                <div style={{ flexShrink: 0 }}>
+                <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: 2 }}>
                   {isDone ? (
                     <div style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 6,
+                      gap: 4,
                       background: 'rgba(16, 185, 129, 0.08)',
                       color: '#047857',
-                      borderRadius: 12,
-                      padding: '8px 14px',
-                      fontSize: 12,
+                      borderRadius: 10,
+                      padding: '6px 11px',
+                      fontSize: 11,
                       fontWeight: 700,
                       border: '1px solid rgba(16, 185, 129, 0.25)',
                       whiteSpace: 'nowrap'
                     }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
-                      Sudah Ditindak
+                      Ditindak
                     </div>
                   ) : (
                     <button
@@ -512,12 +521,12 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: 6,
+                        gap: 4,
                         color: '#fff',
                         border: 'none',
-                        borderRadius: 12,
-                        padding: '9px 15px',
-                        fontSize: 12,
+                        borderRadius: 10,
+                        padding: '6px 12px',
+                        fontSize: 11,
                         fontWeight: 700,
                         cursor: actingId === alert.id ? 'wait' : 'pointer',
                         whiteSpace: 'nowrap',
@@ -526,7 +535,7 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                     >
                       {actingId === alert.id ? (
                         <>
-                          <svg style={{ animation: 'spin 1s linear infinite' }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <svg style={{ animation: 'spin 1s linear infinite' }} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <line x1="12" y1="2" x2="12" y2="6" />
                             <line x1="12" y1="18" x2="12" y2="22" />
                             <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
@@ -540,10 +549,10 @@ export default function NotifikasiView({ showToast }: NotifikasiViewProps) {
                         </>
                       ) : (
                         <>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
-                          One-Tap Follow Up
+                          Follow Up
                         </>
                       )}
                     </button>

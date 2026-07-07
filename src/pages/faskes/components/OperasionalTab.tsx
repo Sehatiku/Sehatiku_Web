@@ -27,8 +27,6 @@ export default function OperasionalTab({
   setActiveTab,
   showToastMsg,
   faskesName,
-  nakesItems = [],
-  nakesLoading = false,
 }: OperasionalTabProps) {
   // Phase Operasional States
   const [patients, setPatients] = useState<Patient[]>([])

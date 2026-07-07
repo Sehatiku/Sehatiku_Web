@@ -1,4 +1,4 @@
-import { useState, type ReactNode, useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import type { PatientQueueItem, ConsultationResult, NakesPatientDetailData } from '../../../lib/types'
 import {
   SkeletonCard,
@@ -14,7 +14,6 @@ import LogCard from './LogCard'
 import TrenView from './TrenView'
 
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
-type ViewMode = 'antrean' | 'tren'
 
 export interface PasienViewProps {
   loading: boolean
@@ -178,8 +177,6 @@ export default function PasienView({
   trenSearch, setTrenSearch,
   patientDetail, detailLoading,
 }: PasienViewProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('antrean')
-
   // Ekstraksi defensif: BE bisa kirim null / bentuk tak terduga → selalu jadikan array aman.
   const dailyLogs = Array.isArray(patientDetail?.daily_logs) ? patientDetail!.daily_logs : []
   const topFactors = Array.isArray(patientDetail?.risk?.top_factors) ? patientDetail!.risk!.top_factors : []
@@ -202,53 +199,12 @@ export default function PasienView({
         @keyframes backdropIn { from { opacity:0 } to { opacity:1 } }
         @keyframes slideInRight { from { opacity:0; transform:translateX(36px) } to { opacity:1; transform:translateX(0) } }
         .queue-row:hover  { background: #F8F9FC !important; }
-        .tren-row:hover   { background: #F8F9FC !important; }
         .contact-btn:hover { background: #17B393 !important; }
         .close-btn:hover  { background: #F3F4F6 !important; border-color: #D1D5DB !important; }
         * { box-sizing: border-box; }
       `}</style>
 
-      {/* ── View Mode Toggle ────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
-        <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 4px 14px rgba(15,36,68,0.05)', borderRadius: 13, padding: 4, gap: 3 }}>
-          {([
-            {
-              id: 'antrean' as ViewMode, label: 'Antrean & Tindakan',
-              icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>,
-            },
-            {
-              id: 'tren' as ViewMode, label: 'Tren & Riwayat',
-              icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>,
-            },
-          ] as const).map(m => {
-            const active = viewMode === m.id
-            return (
-              <button
-                key={m.id}
-                onClick={() => setViewMode(m.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 7,
-                  padding: '8px 18px', borderRadius: 10, border: 'none',
-                  background: active ? '#fff' : 'transparent',
-                  color: active ? '#1A2066' : '#8A93A1',
-                  fontSize: 13, fontWeight: active ? 700 : 500,
-                  cursor: 'pointer', fontFamily: 'Plus Jakarta Sans, sans-serif',
-                  boxShadow: active ? '0 2px 6px rgba(26,32,102,0.10)' : 'none',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span style={{ color: active ? '#5B6BF0' : '#B0B7C3', display: 'flex', alignItems: 'center' }}>{m.icon}</span>
-                {m.label}
-              </button>
-            )
-          })}
-        </div>
-        <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>
-          {viewMode === 'antrean' ? 'Pantau & lakukan tindakan klinis pada pasien prioritas' : 'Analisis tren kesehatan & lihat riwayat klinis pasien'}
-        </span>
-      </div>
-
-      {/* ── KPI Cards (shared) ─────────────────────────────────────────────── */}
+      {/* ── KPI Cards ─────────────────────────────────────────────────────── */}
       <KpiCards
         loading={loading}
         totalCount={totalCount}
@@ -257,7 +213,7 @@ export default function PasienView({
         amanCount={amanCount}
       />
 
-      {/* ── Toolbar — shared for both modes ────────────────────────────────── */}
+      {/* ── Toolbar ────────────────────────────────────────────────────────── */}
       <div style={{
         background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)',
         borderRadius: 16, padding: '12px 18px',
@@ -274,123 +230,102 @@ export default function PasienView({
         </div>
       </div>
 
-      {/* ── Table: Antrean Mode ────────────────────────────────────────────── */}
-      {viewMode === 'antrean' && (
-        <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
-            {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', ''].map(h => (
-              <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
-            ))}
+      {/* ── Unified Patient List Table ─────────────────────────────────────── */}
+      <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 180px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
+          {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', 'AKSI'].map(h => (
+            <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
+          ))}
+        </div>
+        {loading ? (
+          <div style={{ padding: '12px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} h={56} />)}
           </div>
-          {loading ? (
-            <div style={{ padding: '12px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} h={56} />)}
-            </div>
-          ) : sharedList.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '64px 20px', gap: 8 }}>
-              <span style={{ fontSize: 30 }}>🔍</span>
-              <p style={{ margin: 0, fontSize: 13.5, color: '#9CA3AF' }}>
-                {trenSearch || queueFilter !== 'all' ? 'Pasien tidak ditemukan.' : 'Belum ada pasien terdaftar.'}
-              </p>
-            </div>
-          ) : (
-            sharedList.map((p, idx) => {
-              const hs = p.risk_score // health score (TINGGI = sehat)
-              const status = p.status
-              const risk_label = p.risk_label
-              const c = getSafeRiskColor(risk_label)
-              const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
-              const hasOpenConsult = consultations.some(cx => cx.patient_id === p.patient_id && cx.status === 'open')
-              const needsContact = !contacted.has(p.patient_id) && (status === 'bahaya' || status === 'waswas')
-              return (
-                <div
-                  key={p.patient_id}
-                  className="queue-row"
-                  onClick={() => setSelectedId(p.patient_id)}
-                  style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                    <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: '0 0 3px', fontWeight: 600, fontSize: 13.5, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.full_name}</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 11.5, color: '#9CA3AF' }}>{p.age} tahun</span>
-                        {hasOpenConsult && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 4, padding: '1px 6px', fontSize: 9.5, fontWeight: 700, color: '#D97706' }}>
-                            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#F59E0B' }} />Review
-                          </span>
-                        )}
-                        {needsContact && (
-                          <span style={{ background: '#F5F3FF', border: '1px solid #DDD6FE', borderRadius: 4, padding: '1px 6px', fontSize: 9.5, fontWeight: 700, color: '#7C3AED' }}>⚡ Hubungi</span>
-                        )}
-                      </div>
+        ) : sharedList.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '64px 20px', gap: 8 }}>
+            <span style={{ fontSize: 30 }}>🔍</span>
+            <p style={{ margin: 0, fontSize: 13.5, color: '#9CA3AF' }}>
+              {trenSearch || queueFilter !== 'all' ? 'Pasien tidak ditemukan.' : 'Belum ada pasien terdaftar.'}
+            </p>
+          </div>
+        ) : (
+          sharedList.map((p, idx) => {
+            const hs = p.risk_score // health score (TINGGI = sehat)
+            const status = p.status
+            const risk_label = p.risk_label
+            const c = getSafeRiskColor(risk_label)
+            const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
+            const hasOpenConsult = consultations.some(cx => cx.patient_id === p.patient_id && cx.status === 'open')
+            return (
+              <div
+                key={p.patient_id}
+                className="queue-row"
+                style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 180px', alignItems: 'center', padding: '10px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', transition: 'background 0.1s', background: '#fff' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                  <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: '0 0 3px', fontWeight: 600, fontSize: 13.5, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.full_name}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11.5, color: '#9CA3AF' }}>{p.age} tahun</span>
+                      {hasOpenConsult && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 4, padding: '1px 6px', fontSize: 9.5, fontWeight: 700, color: '#D97706' }}>
+                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#F59E0B' }} />Review
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{DISEASE_LABEL[p.disease_type]}</span>
-                  <div><StatusPill label={status === 'bahaya' ? 'Bahaya' : status === 'waswas' ? 'Waswas' : 'Aman'} risk={risk_label} /></div>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                 </div>
-              )
-            })
-          )}
-        </div>
-      )}
-
-      {/* ── Table: Tren Mode ───────────────────────────────────────────────── */}
-      {viewMode === 'tren' && (
-        <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
-            {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', ''].map(h => (
-              <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
-            ))}
-          </div>
-          {loading ? (
-            <div style={{ padding: '12px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} h={56} />)}
-            </div>
-          ) : sharedList.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 20px', gap: 8 }}>
-              <span style={{ fontSize: 28 }}>📊</span>
-              <p style={{ margin: 0, fontSize: 13.5, color: '#9CA3AF' }}>
-                {queue.length === 0 ? 'Belum ada pasien terdaftar.' : 'Tidak ada pasien yang cocok.'}
-              </p>
-            </div>
-          ) : (
-            sharedList.map((p, idx) => {
-              const hs = p.risk_score // health score (TINGGI = sehat)
-              const status = p.status
-              const risk_label = p.risk_label
-              const c = getSafeRiskColor(risk_label)
-              const hsColor = hs >= 70 ? '#10B981' : hs >= 40 ? '#F59E0B' : '#EF4444'
-              return (
-                <div
-                  key={p.patient_id}
-                  className="tren-row"
-                  onClick={() => setTrenPatientId(p.patient_id)}
-                  style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr 72px 28px', alignItems: 'center', padding: '13px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', cursor: 'pointer', transition: 'background 0.1s', background: '#fff' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                    <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: '0 0 3px', fontWeight: 600, fontSize: 13.5, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.full_name}</p>
-                      <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF' }}>{p.age} tahun</p>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{DISEASE_LABEL[p.disease_type]}</span>
-                  <div><StatusPill label={status === 'bahaya' ? 'Bahaya' : status === 'waswas' ? 'Waswas' : 'Aman'} risk={risk_label} /></div>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{DISEASE_LABEL[p.disease_type]}</span>
+                <div><StatusPill label={status === 'bahaya' ? 'Bahaya' : status === 'waswas' ? 'Waswas' : 'Aman'} risk={risk_label} /></div>
+                <span style={{ fontSize: 15, fontWeight: 800, color: hsColor, fontFamily: 'IBM Plex Mono, monospace' }}>{hs}</span>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    onClick={() => setSelectedId(p.patient_id)}
+                    style={{
+                      background: '#EEF0FF',
+                      color: '#5B6BF0',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '6px 12px',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
+                  >
+                    Tindakan
+                  </button>
+                  <button
+                    onClick={() => setTrenPatientId(p.patient_id)}
+                    style={{
+                      background: '#ECFDF5',
+                      color: '#0D9488',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '6px 12px',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(13,148,136,0.15)'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#ECFDF5'}
+                  >
+                    Tren
+                  </button>
                 </div>
-              )
-            })
-          )}
-        </div>
-      )}
-
+              </div>
+            )
+          })
+        )}
+      </div>
 
       {/* ── Antrean Detail: Modal Popup (center) ───────────────────────────── */}
-      {viewMode === 'antrean' && selectedPatient && (() => {
+      {selectedPatient && (() => {
         // risk_score = health_score (TINGGI = sehat); status/risk_label langsung dari BE.
         const hs = patientDetail?.risk?.score ?? selectedPatient.risk_score
         const calculatedStatus = patientDetail?.risk?.status ?? selectedPatient.status
@@ -483,7 +418,7 @@ export default function PasienView({
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F8FAFC', border: '1px solid #ECEEF3', borderRadius: 10, padding: '10px 14px', marginTop: 16 }}>
                       <span style={{ fontSize: 13 }}>⚠️</span>
                       <p style={{ margin: 0, fontSize: 11, color: '#475569', fontWeight: 500, lineHeight: 1.4 }}>
-                        <strong>Disclaimer Klinis:</strong> Health Score &amp; atribusi faktor di atas bersifat indikatif dari model AI untuk mempermudah monitoring, bukan merupakan pengganti diagnosis medis resmi.
+                        <strong>Disclaimer Klinis:</strong> Health Score &amp; Atribusi Faktor di atas bersifat indikatif dari model AI untuk mempermudah monitoring, bukan merupakan pengganti diagnosis medis resmi.
                       </p>
                     </div>
                   </div>
@@ -500,10 +435,8 @@ export default function PasienView({
           </div>
         )
       })()}
-
       {/* ── Tren Detail: Slide Panel (from right) — real BE data ───────────── */}
-      
-{viewMode === 'tren' && trenPatient && (
+      {trenPatient && (
         <TrenView
           patient={trenPatient}
           patientDetail={patientDetail}
