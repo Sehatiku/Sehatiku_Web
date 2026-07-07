@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { nakesApi } from '../../lib/api'
-import type { PatientQueueItem, NakesDetail, ConsultationResult, NakesPatientDetailData } from '../../lib/types'
+import type { PatientQueueItem, NakesDetail, ConsultationResult, NakesPatientDetailData, NakesPatientBrief } from '../../lib/types'
 
 
 // Subcomponents & Views
@@ -31,6 +31,9 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [chartRange, setChartRange] = useState<7 | 14>(7)
   const [trenPatientId, setTrenPatientId] = useState<string | null>(null)
   const [trenSearch, setTrenSearch] = useState('')
+  const [briefPatientId, setBriefPatientId] = useState<string | null>(null)
+  const [brief, setBrief] = useState<NakesPatientBrief | null>(null)
+  const [briefLoading, setBriefLoading] = useState(false)
 
   // Detail pasien (real BE) — dipakai modal antrean & panel tren
   const [patientDetail, setPatientDetail] = useState<NakesPatientDetailData | null>(null)
@@ -157,6 +160,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
+  const briefPatient = useMemo(() => queue.find(p => p.patient_id === briefPatientId) ?? null, [queue, briefPatientId])
 
   const detailsCacheRef = useRef<Record<string, NakesPatientDetailData>>({})
 
@@ -194,6 +198,40 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
 
     return () => { cancelled = true }
   }, [openPatientId])
+
+  // Pre-Visit Brief — cache & fetch terpisah dari detailsCacheRef (endpoint & lifecycle beda).
+  const briefCacheRef = useRef<Record<string, NakesPatientBrief>>({})
+  useEffect(() => {
+    if (!briefPatientId) { setBrief(null); return }
+    let cancelled = false
+
+    const cached = briefCacheRef.current[briefPatientId]
+    if (cached) {
+      setBrief(cached)
+      setBriefLoading(false)
+    } else {
+      setBriefLoading(true)
+      setBrief(null)
+    }
+
+    nakesApi.getPatientBrief(briefPatientId)
+      .then(b => {
+        if (!cancelled) {
+          briefCacheRef.current[briefPatientId] = b
+          setBrief(b)
+        }
+      })
+      .catch(() => {
+        if (!cancelled && !briefCacheRef.current[briefPatientId]) {
+          setBrief(null)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setBriefLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [briefPatientId])
 
   const handleContact = useCallback((id: string) => {
     setContacted(prev => new Set([...prev, id]))
@@ -644,6 +682,10 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               setTrenSearch={setTrenSearch}
               patientDetail={patientDetail}
               detailLoading={detailLoading}
+              briefPatient={briefPatient}
+              setBriefPatientId={setBriefPatientId}
+              brief={brief}
+              briefLoading={briefLoading}
             />
           )}
 

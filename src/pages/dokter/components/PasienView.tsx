@@ -1,5 +1,5 @@
 import { type ReactNode, useMemo } from 'react'
-import type { PatientQueueItem, ConsultationResult, NakesPatientDetailData } from '../../../lib/types'
+import type { PatientQueueItem, ConsultationResult, NakesPatientDetailData, NakesPatientBrief } from '../../../lib/types'
 import {
   SkeletonCard,
   AvatarCircle,
@@ -12,6 +12,7 @@ import TrendChart from './TrendChart'
 import ShapCard from './ShapCard'
 import LogCard from './LogCard'
 import TrenView from './TrenView'
+import BriefModal from './BriefModal'
 
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 
@@ -41,6 +42,11 @@ export interface PasienViewProps {
   // Detail klinis pasien (real BE) — dipakai modal antrean & panel tren
   patientDetail: NakesPatientDetailData | null
   detailLoading: boolean
+  // Pre-Visit Brief
+  briefPatient: PatientQueueItem | null
+  setBriefPatientId: (id: string | null) => void
+  brief: NakesPatientBrief | null
+  briefLoading: boolean
 }
 
 const FILTERS: { id: QueueFilter; label: string }[] = [
@@ -176,6 +182,7 @@ export default function PasienView({
   setTrenPatientId, trenPatient,
   trenSearch, setTrenSearch,
   patientDetail, detailLoading,
+  briefPatient, setBriefPatientId, brief, briefLoading,
 }: PasienViewProps) {
   // Ekstraksi defensif: BE bisa kirim null / bentuk tak terduga → selalu jadikan array aman.
   const dailyLogs = Array.isArray(patientDetail?.daily_logs) ? patientDetail!.daily_logs : []
@@ -232,7 +239,7 @@ export default function PasienView({
 
       {/* ── Unified Patient List Table ─────────────────────────────────────── */}
       <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 180px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 270px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
           {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', 'AKSI'].map(h => (
             <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
           ))}
@@ -260,7 +267,7 @@ export default function PasienView({
               <div
                 key={p.patient_id}
                 className="queue-row"
-                style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 180px', alignItems: 'center', padding: '10px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', transition: 'background 0.1s', background: '#fff' }}
+                style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 270px', alignItems: 'center', padding: '10px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', transition: 'background 0.1s', background: '#fff' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                   <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
@@ -316,6 +323,24 @@ export default function PasienView({
                     onMouseLeave={e => e.currentTarget.style.background = '#ECFDF5'}
                   >
                     Tren
+                  </button>
+                  <button
+                    onClick={() => setBriefPatientId(p.patient_id)}
+                    style={{
+                      background: '#EFF6FF',
+                      color: '#2563EB',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '6px 12px',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(37,99,235,0.15)'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#EFF6FF'}
+                  >
+                    Brief Kontrol
                   </button>
                 </div>
               </div>
@@ -442,6 +467,15 @@ export default function PasienView({
           patientDetail={patientDetail}
           loading={detailLoading}
           onClose={() => setTrenPatientId(null)}
+        />
+      )}
+      {/* ── Pre-Visit Brief: Modal lebar (dossier pra-kontrol) ──────────────── */}
+      {briefPatient && (
+        <BriefModal
+          patient={briefPatient}
+          brief={brief}
+          loading={briefLoading}
+          onClose={() => setBriefPatientId(null)}
         />
       )}
     </div>
