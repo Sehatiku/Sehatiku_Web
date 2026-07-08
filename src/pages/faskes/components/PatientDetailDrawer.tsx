@@ -33,6 +33,37 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
+/** Ambil hanya field write-shape dari response baseline — field turunan tidak boleh
+ * di-echo balik ke body request manapun (POST register / POST .../baseline). */
+function toBaselineBody(d: PatientBaselineDetail): PatientBaselineBody {
+  return {
+    bmi: d.bmi,
+    waist_circumference_cm: d.waist_circumference_cm,
+    smoking_status: d.smoking_status,
+    alcohol_use: d.alcohol_use,
+    physical_activity: d.physical_activity,
+    family_history_diabetes: d.family_history_diabetes,
+    family_history_cvd: d.family_history_cvd,
+    systolic_bp_mmhg: d.systolic_bp_mmhg,
+    diastolic_bp_mmhg: d.diastolic_bp_mmhg,
+    fasting_glucose_mgdl: d.fasting_glucose_mgdl,
+    hba1c_pct: d.hba1c_pct,
+    total_cholesterol_mgdl: d.total_cholesterol_mgdl,
+    hdl_mgdl: d.hdl_mgdl,
+    ldl_mgdl: d.ldl_mgdl,
+    triglycerides_mgdl: d.triglycerides_mgdl,
+    cvd_risk_10yr_pct: d.cvd_risk_10yr_pct,
+    cvd_risk_category: d.cvd_risk_category,
+    on_antihypertensive: d.on_antihypertensive,
+    on_antidiabetic: d.on_antidiabetic,
+    on_statin: d.on_statin,
+    target_risk: d.target_risk as PatientBaselineBody['target_risk'],
+    egfr: d.egfr,
+    uacr: d.uacr,
+    diagnosis: d.diagnosis,
+  }
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div style={{ marginBottom: 12, background: '#ffffff', border: '1px solid #E5E7EB', borderRadius: 14, padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.01)' }}>
@@ -79,12 +110,8 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
         setNakesList(nakesRes.filter((n: NakesItem) => n.status === 'active' && n.role === 'dokter'))
 
         const defaultBaseline: PatientBaselineBody = {
-          age_years: detail.age,
-          sex: detail.sex,
           bmi: 22.0,
-          bmi_category: 'normal',
           waist_circumference_cm: 80,
-          central_obesity: false,
           smoking_status: 'never',
           alcohol_use: false,
           physical_activity: 'moderate',
@@ -92,10 +119,8 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
           family_history_cvd: false,
           systolic_bp_mmhg: 120,
           diastolic_bp_mmhg: 80,
-          hypertension_status: 'normal',
           fasting_glucose_mgdl: 90,
           hba1c_pct: 5.5,
-          diabetes_status: 'none',
           total_cholesterol_mgdl: 180,
           hdl_mgdl: 50,
           ldl_mgdl: 110,
@@ -105,22 +130,15 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
           on_antihypertensive: false,
           on_antidiabetic: false,
           on_statin: false,
-          target_risk: 'Menjaga pola hidup sehat',
+          target_risk: 'low',
           egfr: 90,
           uacr: 10,
-          cluster_id: null,
-          diagnosis_cluster: null,
-          clinical_group: null
+          diagnosis: null,
         }
 
-        if (latestRes) {
-          // Pre-fill form fields
-          const { id, patient_id, recorded_at, recorded_by_nakes_id, recorded_by_nakes_name, notes, ...rest } = latestRes
-          setFormData({ ...defaultBaseline, ...rest })
-        } else {
-          // Set clean default form
-          setFormData(defaultBaseline)
-        }
+        // Pre-fill hanya field write-shape — field turunan (bmi_category, hypertension_status,
+        // dll.) di response GET tidak boleh di-echo balik ke body request.
+        setFormData(latestRes ? toBaselineBody(latestRes) : defaultBaseline)
       } catch (err) {
         console.error(err)
       } finally {
@@ -524,20 +542,6 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Kategori BMI</label>
-                      <select
-                        value={formData.bmi_category}
-                        onChange={e => handleInputChange('bmi_category', e.target.value)}
-                        required
-                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none' }}
-                      >
-                        <option value="underweight">Berat Kurang (Underweight)</option>
-                        <option value="normal">Normal</option>
-                        <option value="overweight">Berat Lebih (Overweight)</option>
-                        <option value="obese">Obesitas (Obese)</option>
-                      </select>
-                    </div>
-                    <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Lingkar Pinggang (cm)</label>
                       <input
                         type="number" required
@@ -577,14 +581,6 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#2B2D42', fontWeight: 600, cursor: 'pointer' }}>
                         <input
                           type="checkbox"
-                          checked={formData.central_obesity}
-                          onChange={e => handleInputChange('central_obesity', e.target.checked)}
-                        />
-                        Obesitas Sentral
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#2B2D42', fontWeight: 600, cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
                           checked={formData.alcohol_use}
                           onChange={e => handleInputChange('alcohol_use', e.target.checked)}
                         />
@@ -616,20 +612,6 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Status Hipertensi</label>
-                      <select
-                        value={formData.hypertension_status}
-                        onChange={e => handleInputChange('hypertension_status', e.target.value)}
-                        required
-                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none' }}
-                      >
-                        <option value="normal">Normal</option>
-                        <option value="elevated">Pre-hipertensi</option>
-                        <option value="stage1">Hipertensi Derajat 1</option>
-                        <option value="stage2">Hipertensi Derajat 2</option>
-                      </select>
-                    </div>
-                    <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>eGFR (mL/min/1.73m²)</label>
                       <input
                         type="number" step="0.1" required
@@ -639,11 +621,11 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>UACR (mg/g)</label>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>UACR (mg/g, opsional)</label>
                       <input
-                        type="number" step="0.1" required
-                        value={formData.uacr}
-                        onChange={e => handleInputChange('uacr', parseFloat(e.target.value) || 0)}
+                        type="number" step="0.1"
+                        value={formData.uacr ?? ''}
+                        onChange={e => handleInputChange('uacr', e.target.value === '' ? null : parseFloat(e.target.value))}
                         style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
                       />
                     </div>
@@ -688,21 +670,6 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                         onChange={e => handleInputChange('hba1c_pct', parseFloat(e.target.value) || 0)}
                         style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
                       />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Status Diabetes</label>
-                      <select
-                        value={formData.diabetes_status}
-                        onChange={e => handleInputChange('diabetes_status', e.target.value)}
-                        required
-                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none' }}
-                      >
-                        <option value="none">Tidak ada</option>
-                        <option value="prediabetes">Pre-diabetes</option>
-                        <option value="type2">Diabetes Tipe 2</option>
-                        <option value="controlled">Diabetes Terkontrol</option>
-                        <option value="uncontrolled">Diabetes Tidak Terkontrol</option>
-                      </select>
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Kolesterol Total (mg/dL)</label>
@@ -767,11 +734,11 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                       </label>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Risiko Kardiovaskular (%)</label>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Risiko Kardiovaskular (%, opsional)</label>
                       <input
-                        type="number" step="0.1" required
-                        value={formData.cvd_risk_10yr_pct}
-                        onChange={e => handleInputChange('cvd_risk_10yr_pct', parseFloat(e.target.value) || 0)}
+                        type="number" step="0.1"
+                        value={formData.cvd_risk_10yr_pct ?? ''}
+                        onChange={e => handleInputChange('cvd_risk_10yr_pct', e.target.value === '' ? null : parseFloat(e.target.value))}
                         style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
                       />
                     </div>
@@ -782,28 +749,44 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Kategori Risiko CVD</label>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Kategori Risiko CVD (opsional)</label>
                       <select
-                        value={formData.cvd_risk_category}
-                        onChange={e => handleInputChange('cvd_risk_category', e.target.value)}
-                        required
+                        value={formData.cvd_risk_category ?? ''}
+                        onChange={e => handleInputChange('cvd_risk_category', e.target.value || null)}
                         style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none' }}
                       >
+                        <option value="">Kosongkan jika tidak ada</option>
                         <option value="low">Rendah (Low)</option>
                         <option value="moderate">Sedang (Moderate)</option>
                         <option value="high">Tinggi (High)</option>
                         <option value="very_high">Sangat Tinggi (Very High)</option>
                       </select>
                     </div>
-                    <div style={{ gridColumn: 'span 2' }}>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Target Kontrol / Sasaran Klinis *</label>
-                      <input
-                        type="text" required
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Target Kontrol *</label>
+                      <select
                         value={formData.target_risk}
                         onChange={e => handleInputChange('target_risk', e.target.value)}
-                        placeholder="Mis. Turunkan tensi < 130/80, HbA1c < 6.5%"
-                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none', boxSizing: 'border-box' }}
-                      />
+                        required
+                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none' }}
+                      >
+                        <option value="low">Rendah</option>
+                        <option value="medium">Menengah</option>
+                        <option value="high">Tinggi</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Diagnosis (opsional)</label>
+                      <select
+                        value={formData.diagnosis ?? ''}
+                        onChange={e => handleInputChange('diagnosis', e.target.value || null)}
+                        style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #DCDFE8', borderRadius: 8, fontSize: 13, background: '#F7F8FA', outline: 'none' }}
+                      >
+                        <option value="">Ikuti jenis penyakit pasien</option>
+                        <option value="diabetes">Diabetes</option>
+                        <option value="hipertensi">Hipertensi</option>
+                        <option value="komplikasi">Komplikasi</option>
+                      </select>
                     </div>
                   </div>
 

@@ -344,9 +344,9 @@ export default function PatientDataModal({ patient, patientDetail, loading, onCl
                             borderRadius: 6,
                             fontSize: 11,
                             fontWeight: 700,
-                            ...getCvdBadgeColor(baseline.cvd_risk_category)
+                            ...getCvdBadgeColor(baseline.cvd_risk_category ?? undefined)
                           }}>
-                            {mapCvdRiskCategory(baseline.cvd_risk_category)}
+                            {mapCvdRiskCategory(baseline.cvd_risk_category ?? undefined)}
                           </span>
                         } />
                         <Row label="Riwayat Keluarga Diabetes" value={baseline.family_history_diabetes ? 'Ada' : 'Tidak Ada'} />

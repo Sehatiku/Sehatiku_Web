@@ -115,13 +115,15 @@ export interface RegisterNakesResult {
 
 export type DiseaseType = 'diabetes_t2' | 'hypertension' | 'both'
 
+/**
+ * Body baseline yang DIKIRIM ke BE (POST .../register dan POST .../{id}/baseline).
+ * Field turunan (bmi_category, central_obesity, hypertension_status, diabetes_status,
+ * cluster_id, diagnosis_cluster, clinical_group) TIDAK dikirim — dihitung BE saat submit
+ * dan hanya muncul di response (lihat PatientBaselineDetail).
+ */
 export interface PatientBaselineBody {
-  age_years: number
-  sex: 'male' | 'female'
   bmi: number
-  bmi_category: 'underweight' | 'normal' | 'overweight' | 'obese'
   waist_circumference_cm: number
-  central_obesity: boolean
   smoking_status: 'never' | 'former' | 'current'
   alcohol_use: boolean
   physical_activity: 'sedentary' | 'light' | 'moderate' | 'active'
@@ -129,25 +131,22 @@ export interface PatientBaselineBody {
   family_history_cvd: boolean
   systolic_bp_mmhg: number
   diastolic_bp_mmhg: number
-  hypertension_status: 'normal' | 'elevated' | 'stage1' | 'stage2'
   fasting_glucose_mgdl: number
   hba1c_pct: number
-  diabetes_status: 'none' | 'prediabetes' | 'type2' | 'controlled' | 'uncontrolled'
   total_cholesterol_mgdl: number
   hdl_mgdl: number
   ldl_mgdl: number
   triglycerides_mgdl: number
-  cvd_risk_10yr_pct: number
-  cvd_risk_category: 'low' | 'moderate' | 'high' | 'very_high'
+  cvd_risk_10yr_pct: number | null
+  cvd_risk_category: 'low' | 'moderate' | 'high' | 'very_high' | null
   on_antihypertensive: boolean
   on_antidiabetic: boolean
   on_statin: boolean
-  target_risk: string
+  target_risk: 'low' | 'medium' | 'high'
   egfr: number
-  uacr: number
-  cluster_id: number | null
-  diagnosis_cluster: string | null
-  clinical_group: string | null
+  uacr: number | null
+  /** Opsional; default dari disease_type pasien bila kosong */
+  diagnosis: 'diabetes' | 'hipertensi' | 'komplikasi' | null
 }
 
 export interface RegisterPatientBody {
@@ -202,6 +201,17 @@ export interface OcrKtpResult {
   date_of_birth: string     // YYYY-MM-DD
   sex: 'male' | 'female'
   alamat: string
+}
+
+/** Data hasil ekstraksi POST /api/v1/faskes/patients/register/baseline-ocr.
+ * `baseline` bentuknya identik dengan body baseline REQUEST (PatientBaselineBody) — field
+ * turunan (bmi_category, hypertension_status, dll.) tidak pernah muncul di sini maupun di
+ * request, hanya di response GET/POST .../baseline (lihat PatientBaselineDetail).
+ * `disease_type` diturunkan dari dropdown `diagnosis` yang terbaca di dokumen
+ * (diabetes→diabetes_t2, hipertensi→hypertension, komplikasi→both); "" bila tidak terbaca. */
+export interface BaselineOcrResult {
+  disease_type: DiseaseType | ''
+  baseline: PatientBaselineBody
 }
 
 // ─── Dashboard Nakes ─────────────────────────────────────────────────────────
@@ -523,16 +533,53 @@ export interface NakesReplyBody {
 // ─── Baseline Klinis (Faskes) ─────────────────────────────────────────────────
 
 /**
- * GET/POST /api/v1/faskes/patients/{id}/baseline — full 33-feature baseline row
- * with recording metadata. Field names match the contract exactly.
+ * GET/POST /api/v1/faskes/patients/{id}/baseline — full baseline row with recording
+ * metadata PLUS field turunan (bmi_category, central_obesity, hypertension_status,
+ * diabetes_status, cluster_id, diagnosis_cluster, clinical_group) yang dihitung BE.
+ * TIDAK extends PatientBaselineBody — bentuk request dan response berbeda persis di
+ * field-field turunan ini; jangan echo field turunan balik ke body request manapun.
  */
-export interface PatientBaselineDetail extends PatientBaselineBody {
+export interface PatientBaselineDetail {
   id: string
   patient_id: string
   recorded_at: string
   recorded_by_nakes_id: string | null
   recorded_by_nakes_name: string
   notes: string | null
+
+  age_years: number
+  sex: 'male' | 'female'
+  bmi: number
+  bmi_category: 'underweight' | 'normal' | 'overweight' | 'obese'
+  waist_circumference_cm: number
+  central_obesity: boolean
+  smoking_status: PatientBaselineBody['smoking_status']
+  alcohol_use: boolean
+  physical_activity: PatientBaselineBody['physical_activity']
+  family_history_diabetes: boolean
+  family_history_cvd: boolean
+  systolic_bp_mmhg: number
+  diastolic_bp_mmhg: number
+  hypertension_status: string
+  fasting_glucose_mgdl: number
+  hba1c_pct: number
+  diabetes_status: string
+  total_cholesterol_mgdl: number
+  hdl_mgdl: number
+  ldl_mgdl: number
+  triglycerides_mgdl: number
+  cvd_risk_10yr_pct: number | null
+  cvd_risk_category: PatientBaselineBody['cvd_risk_category']
+  on_antihypertensive: boolean
+  on_antidiabetic: boolean
+  on_statin: boolean
+  target_risk: string
+  egfr: number
+  uacr: number | null
+  diagnosis: PatientBaselineBody['diagnosis']
+  cluster_id: number | null
+  diagnosis_cluster: string | null
+  clinical_group: string | null
 }
 
 /** Body for POST /api/v1/faskes/patients/{id}/baseline (insert-only new version) */
