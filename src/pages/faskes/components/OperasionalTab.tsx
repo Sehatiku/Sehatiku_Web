@@ -330,7 +330,7 @@ export default function OperasionalTab({
                       </td>
                     </tr>
                   )}
-                  {patients.map((p, i) => {
+                  {patients.map((p) => {
                     const style = getStatusStyle(p.status)
                     const color = getHealthColor(p.healthScore)
                     const shadow = getHealthShadow(p.healthScore)
