@@ -12,6 +12,7 @@ import type {
   RegisterFaskesPatientBody,
   RegisterPatientResult,
   OcrKtpResult,
+  BaselineOcrResult,
   DashboardSummary,
   PatientQueueResponse,
   PatientQueueItem,
@@ -262,6 +263,31 @@ let currentMockNakes: NakesItem[] = [
   { nakes_id: 'n4', full_name: 'Admin Nakes', role: 'admin', username: 'admin.faskes', phone_number: '628156789012', status: 'inactive', enrolled_at: '2024-12-01T08:00:00Z' },
 ]
 
+// ponytail: rough mock-only approximation of BE's server-side derivation; real thresholds live in baseline_derivation.go
+function deriveBmiCategory(bmi: number): PatientBaselineDetail['bmi_category'] {
+  if (bmi < 18.5) return 'underweight'
+  if (bmi < 25) return 'normal'
+  if (bmi < 30) return 'overweight'
+  return 'obese'
+}
+
+function deriveCentralObesity(waistCm: number, sex: 'male' | 'female'): boolean {
+  return sex === 'female' ? waistCm >= 80 : waistCm >= 90
+}
+
+function deriveHypertensionStatus(systolic: number, diastolic: number): string {
+  if (systolic >= 140 || diastolic >= 90) return 'stage2'
+  if (systolic >= 130 || diastolic >= 80) return 'stage1'
+  if (systolic >= 120) return 'elevated'
+  return 'normal'
+}
+
+function deriveDiabetesStatus(glucose: number, hba1c: number): string {
+  if (glucose >= 126 || hba1c >= 6.5) return 'uncontrolled'
+  if (glucose >= 100 || hba1c >= 5.7) return 'prediabetes'
+  return 'none'
+}
+
 let mockBaselines: Record<string, PatientBaselineDetail[]> = {
   fp1: [
     {
@@ -297,12 +323,13 @@ let mockBaselines: Record<string, PatientBaselineDetail[]> = {
       on_antihypertensive: true,
       on_antidiabetic: true,
       on_statin: true,
-      target_risk: 'Menurunkan HbA1c ke < 7%',
+      target_risk: 'medium',
       egfr: 82,
       uacr: 15,
+      diagnosis: 'diabetes',
       cluster_id: 2,
       diagnosis_cluster: 'Cluster 2',
-      clinical_group: 'Diabetes T2 Controlled'
+      clinical_group: 'medium'
     }
   ],
   fp2: [
@@ -339,12 +366,13 @@ let mockBaselines: Record<string, PatientBaselineDetail[]> = {
       on_antihypertensive: true,
       on_antidiabetic: false,
       on_statin: true,
-      target_risk: 'Menurunkan tensi ke < 130/80',
+      target_risk: 'high',
       egfr: 75,
       uacr: 8,
+      diagnosis: 'hipertensi',
       cluster_id: 1,
       diagnosis_cluster: 'Cluster 1',
-      clinical_group: 'Hypertension Stage 2'
+      clinical_group: 'high'
     }
   ]
 }
@@ -360,6 +388,38 @@ function mockOcrResult(): OcrKtpResult {
     date_of_birth: '1985-01-01',
     sex: 'male',
     alamat: 'JL. MERDEKA NO. 10 RT 001 RW 002 KEL. SUKAJADI KEC. BANDUNG WETAN KOTA BANDUNG',
+  }
+}
+
+function mockBaselineOcrResult(): BaselineOcrResult {
+  return {
+    disease_type: 'diabetes_t2',
+    baseline: {
+      bmi: 27.4,
+      waist_circumference_cm: 92,
+      smoking_status: 'former',
+      alcohol_use: false,
+      physical_activity: 'light',
+      family_history_diabetes: true,
+      family_history_cvd: false,
+      systolic_bp_mmhg: 138,
+      diastolic_bp_mmhg: 88,
+      fasting_glucose_mgdl: 126,
+      hba1c_pct: 6.8,
+      total_cholesterol_mgdl: 210,
+      hdl_mgdl: 42,
+      ldl_mgdl: 138,
+      triglycerides_mgdl: 165,
+      cvd_risk_10yr_pct: 14.5,
+      cvd_risk_category: null,
+      on_antihypertensive: true,
+      on_antidiabetic: true,
+      on_statin: false,
+      target_risk: 'medium',
+      egfr: 82,
+      uacr: 12,
+      diagnosis: 'diabetes',
+    },
   }
 }
 
@@ -805,8 +865,8 @@ function mockBaselineRecord(patientId: string): PatientBaselineDetail {
     total_cholesterol_mgdl: 232, hdl_mgdl: 38, ldl_mgdl: 154, triglycerides_mgdl: 210,
     cvd_risk_10yr_pct: 22.5, cvd_risk_category: 'high',
     on_antihypertensive: true, on_antidiabetic: true, on_statin: false,
-    target_risk: 'moderate', egfr: 56, uacr: 35,
-    cluster_id: 2, diagnosis_cluster: 'metabolic', clinical_group: 'high_risk',
+    target_risk: 'high', egfr: 56, uacr: 35, diagnosis: 'diabetes',
+    cluster_id: 2, diagnosis_cluster: 'metabolic', clinical_group: 'high',
   }
 }
 
@@ -1223,6 +1283,18 @@ export const faskesApi = {
     return res.data
   },
 
+  /** POST /api/v1/faskes/patients/register/baseline-ocr */
+  ocrBaselinePatient: async (file: File): Promise<BaselineOcrResult> => {
+    if (MOCK) return mockBaselineOcrResult()
+    const form = new FormData()
+    form.append('file', file)
+    const res = await request<ApiEnvelope<BaselineOcrResult>>(
+      '/api/v1/faskes/patients/register/baseline-ocr',
+      { method: 'POST', body: form },
+    )
+    return res.data
+  },
+
   /** POST /api/v1/faskes/patients/register */
   registerPatient: async (body: RegisterFaskesPatientBody): Promise<RegisterPatientResult> => {
     if (MOCK) {
@@ -1287,9 +1359,10 @@ export const faskesApi = {
         on_antihypertensive: false,
         on_antidiabetic: false,
         on_statin: false,
-        target_risk: 'Maintain healthy lifestyle',
+        target_risk: 'low',
         egfr: 95,
         uacr: 10,
+        diagnosis: null,
         cluster_id: null,
         diagnosis_cluster: null,
         clinical_group: null,
@@ -1302,14 +1375,48 @@ export const faskesApi = {
   /** POST /api/v1/faskes/patients/{id}/baseline */
   createPatientBaseline: async (id: string, body: CreatePatientBaselineBody): Promise<PatientBaselineDetail> => {
     if (MOCK) {
+      const patient = mockFaskesPatients(1, 100).data.find(p => p.patient_id === id)
+      const b = body.baseline
       const newBaseline: PatientBaselineDetail = {
-        ...body.baseline,
         id: `b-${Date.now()}`,
         patient_id: id,
         recorded_at: body.recorded_at ? new Date(body.recorded_at).toISOString() : new Date().toISOString(),
         recorded_by_nakes_id: body.recorded_by_nakes_id,
         recorded_by_nakes_name: currentMockNakes.find(n => n.nakes_id === body.recorded_by_nakes_id)?.full_name ?? 'Dr. Andi Wijaya, Sp.PD',
         notes: body.notes ?? null,
+        age_years: patient?.age ?? 0,
+        sex: patient?.sex ?? 'male',
+        bmi: b.bmi,
+        bmi_category: deriveBmiCategory(b.bmi),
+        waist_circumference_cm: b.waist_circumference_cm,
+        central_obesity: deriveCentralObesity(b.waist_circumference_cm, patient?.sex ?? 'male'),
+        smoking_status: b.smoking_status,
+        alcohol_use: b.alcohol_use,
+        physical_activity: b.physical_activity,
+        family_history_diabetes: b.family_history_diabetes,
+        family_history_cvd: b.family_history_cvd,
+        systolic_bp_mmhg: b.systolic_bp_mmhg,
+        diastolic_bp_mmhg: b.diastolic_bp_mmhg,
+        hypertension_status: deriveHypertensionStatus(b.systolic_bp_mmhg, b.diastolic_bp_mmhg),
+        fasting_glucose_mgdl: b.fasting_glucose_mgdl,
+        hba1c_pct: b.hba1c_pct,
+        diabetes_status: deriveDiabetesStatus(b.fasting_glucose_mgdl, b.hba1c_pct),
+        total_cholesterol_mgdl: b.total_cholesterol_mgdl,
+        hdl_mgdl: b.hdl_mgdl,
+        ldl_mgdl: b.ldl_mgdl,
+        triglycerides_mgdl: b.triglycerides_mgdl,
+        cvd_risk_10yr_pct: b.cvd_risk_10yr_pct,
+        cvd_risk_category: b.cvd_risk_category,
+        on_antihypertensive: b.on_antihypertensive,
+        on_antidiabetic: b.on_antidiabetic,
+        on_statin: b.on_statin,
+        target_risk: b.target_risk,
+        egfr: b.egfr,
+        uacr: b.uacr,
+        diagnosis: b.diagnosis,
+        cluster_id: null,
+        diagnosis_cluster: null,
+        clinical_group: b.target_risk,
       }
       if (!mockBaselines[id]) mockBaselines[id] = []
       mockBaselines[id].unshift(newBaseline)
@@ -1342,7 +1449,7 @@ export const faskesApi = {
         systolic_bp_mmhg: b.systolic_bp_mmhg, diastolic_bp_mmhg: b.diastolic_bp_mmhg, hypertension_status: b.hypertension_status,
         fasting_glucose_mgdl: b.fasting_glucose_mgdl, hba1c_pct: b.hba1c_pct, diabetes_status: b.diabetes_status,
         total_cholesterol_mgdl: b.total_cholesterol_mgdl, hdl_mgdl: b.hdl_mgdl, ldl_mgdl: b.ldl_mgdl, triglycerides_mgdl: b.triglycerides_mgdl,
-        cvd_risk_10yr_pct: b.cvd_risk_10yr_pct, cvd_risk_category: b.cvd_risk_category, egfr: b.egfr, uacr: b.uacr,
+        cvd_risk_10yr_pct: b.cvd_risk_10yr_pct ?? 0, cvd_risk_category: b.cvd_risk_category ?? '', egfr: b.egfr, uacr: b.uacr ?? 0,
       }))
       return {
         data: { baseline_history, health_score_history: mockHealthScoreHistory() },

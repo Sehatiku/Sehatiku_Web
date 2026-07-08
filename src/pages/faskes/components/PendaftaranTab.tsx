@@ -15,9 +15,7 @@ interface PendaftaranTabProps {
 
 type BaselineFormState = {
   bmi: string
-  bmi_category: PatientBaselineBody['bmi_category'] | ''
   waist_circumference_cm: string
-  central_obesity: boolean
   smoking_status: PatientBaselineBody['smoking_status'] | ''
   alcohol_use: boolean
   physical_activity: PatientBaselineBody['physical_activity'] | ''
@@ -25,32 +23,26 @@ type BaselineFormState = {
   family_history_cvd: boolean
   systolic_bp_mmhg: string
   diastolic_bp_mmhg: string
-  hypertension_status: PatientBaselineBody['hypertension_status'] | ''
   fasting_glucose_mgdl: string
   hba1c_pct: string
-  diabetes_status: PatientBaselineBody['diabetes_status'] | ''
   total_cholesterol_mgdl: string
   hdl_mgdl: string
   ldl_mgdl: string
   triglycerides_mgdl: string
   cvd_risk_10yr_pct: string
-  cvd_risk_category: PatientBaselineBody['cvd_risk_category'] | ''
+  cvd_risk_category: NonNullable<PatientBaselineBody['cvd_risk_category']> | ''
   on_antihypertensive: boolean
   on_antidiabetic: boolean
   on_statin: boolean
-  target_risk: string
+  target_risk: PatientBaselineBody['target_risk'] | ''
   egfr: string
   uacr: string
-  cluster_id: string
-  diagnosis_cluster: string
-  clinical_group: string
+  diagnosis: NonNullable<PatientBaselineBody['diagnosis']> | ''
 }
 
 const emptyBaseline: BaselineFormState = {
   bmi: '',
-  bmi_category: '',
   waist_circumference_cm: '',
-  central_obesity: false,
   smoking_status: '',
   alcohol_use: false,
   physical_activity: '',
@@ -58,10 +50,8 @@ const emptyBaseline: BaselineFormState = {
   family_history_cvd: false,
   systolic_bp_mmhg: '',
   diastolic_bp_mmhg: '',
-  hypertension_status: '',
   fasting_glucose_mgdl: '',
   hba1c_pct: '',
-  diabetes_status: '',
   total_cholesterol_mgdl: '',
   hdl_mgdl: '',
   ldl_mgdl: '',
@@ -74,9 +64,7 @@ const emptyBaseline: BaselineFormState = {
   target_risk: '',
   egfr: '',
   uacr: '',
-  cluster_id: '',
-  diagnosis_cluster: '',
-  clinical_group: '',
+  diagnosis: '',
 }
 
 const SELECT_CHEVRON =
@@ -120,6 +108,8 @@ export default function PendaftaranTab({
   const [ptRegisterError, setPtRegisterError] = useState<string | null>(null)
   const [ptOcrLoading, setPtOcrLoading] = useState(false)
   const ptOcrRef = useRef<HTMLInputElement>(null)
+  const [ptBaselineOcrLoading, setPtBaselineOcrLoading] = useState(false)
+  const ptBaselineOcrRef = useRef<HTMLInputElement>(null)
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null)
   const [ptSubmitted, setPtSubmitted] = useState(false)
   const [baseline, setBaseline] = useState<BaselineFormState>(emptyBaseline)
@@ -141,7 +131,6 @@ export default function PendaftaranTab({
   }
 
   const toNumber = (value: string) => Number(value.replace(',', '.'))
-  const optionalText = (value: string) => value.trim() ? value.trim() : null
 
   const calculateAgeYears = (dob: string) => {
     if (!dob) return null
@@ -173,6 +162,11 @@ export default function PendaftaranTab({
     return ''
   }
 
+  const validateOptionalNumber = (value: string, label: string, min: number, max?: number) => {
+    if (!value.trim()) return ''
+    return validateNumber(value, label, min, max)
+  }
+
   // Computed validation
   const ptPhoneDigits = normalizePhone(ptPhone)
   const ptCompPhoneDigits = normalizePhone(ptCompanionPhone)
@@ -192,26 +186,23 @@ export default function PendaftaranTab({
     assignedNakes: !selectedDoctorId ? 'Nakes penanggung jawab wajib dipilih' : '',
     baselineAge: ageYears === null || ageYears < 0 || ageYears > 150 ? 'Usia baseline harus 0-150 tahun' : '',
     baselineBmi: validateNumber(baseline.bmi, 'BMI', 5, 100),
-    baselineBmiCategory: !baseline.bmi_category ? 'Kategori BMI wajib dipilih' : '',
     baselineWaist: validateNumber(baseline.waist_circumference_cm, 'Lingkar pinggang', 20, 250),
     baselineSmoking: !baseline.smoking_status ? 'Status merokok wajib dipilih' : '',
     baselineActivity: !baseline.physical_activity ? 'Aktivitas fisik wajib dipilih' : '',
     baselineSystolic: validateInteger(baseline.systolic_bp_mmhg, 'Tensi sistolik', 40, 300),
     baselineDiastolic: validateInteger(baseline.diastolic_bp_mmhg, 'Tensi diastolik', 20, 200),
-    baselineHypertension: !baseline.hypertension_status ? 'Status hipertensi wajib dipilih' : '',
     baselineGlucose: validateNumber(baseline.fasting_glucose_mgdl, 'Gula darah puasa', 20, 1000),
     baselineHba1c: validateNumber(baseline.hba1c_pct, 'HbA1c', 1, 20),
-    baselineDiabetes: !baseline.diabetes_status ? 'Status diabetes wajib dipilih' : '',
     baselineCholesterol: validateNumber(baseline.total_cholesterol_mgdl, 'Kolesterol total', 50, 1000),
     baselineHdl: validateNumber(baseline.hdl_mgdl, 'HDL', 5, 200),
     baselineLdl: validateNumber(baseline.ldl_mgdl, 'LDL', 5, 600),
     baselineTriglycerides: validateNumber(baseline.triglycerides_mgdl, 'Trigliserida', 10, 5000),
-    baselineCvdRisk: validateNumber(baseline.cvd_risk_10yr_pct, 'Risiko CVD 10 tahun', 0, 100),
-    baselineCvdCategory: !baseline.cvd_risk_category ? 'Kategori risiko CVD wajib dipilih' : '',
-    baselineTargetRisk: !baseline.target_risk.trim() ? 'Target risk wajib diisi' : '',
+    baselineCvdRisk: validateOptionalNumber(baseline.cvd_risk_10yr_pct, 'Risiko CVD 10 tahun', 0, 100),
+    baselineCvdCategory: '',
+    baselineTargetRisk: !baseline.target_risk ? 'Target risiko wajib dipilih' : '',
     baselineEgfr: validateNumber(baseline.egfr, 'eGFR', 0, 200),
-    baselineUacr: validateNumber(baseline.uacr, 'UACR', 0),
-    baselineCluster: baseline.cluster_id.trim() && !Number.isInteger(toNumber(baseline.cluster_id)) ? 'Cluster ID harus bilangan bulat atau kosong' : '',
+    baselineUacr: validateOptionalNumber(baseline.uacr, 'UACR', 0),
+    baselineDiagnosis: '',
   }
   const ptHasError = Object.values(ptValidation).some(Boolean)
   const ptErr = (k: keyof typeof ptValidation) => ptSubmitted ? ptValidation[k] : ''
@@ -236,6 +227,50 @@ export default function PendaftaranTab({
     }
   }
 
+  const handlePtBaselineOcrFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setPtBaselineOcrLoading(true)
+    try {
+      const result = await faskesApi.ocrBaselinePatient(file)
+      const b = result.baseline
+      setBaseline(prev => ({
+        ...prev,
+        bmi: String(b.bmi),
+        waist_circumference_cm: String(b.waist_circumference_cm),
+        smoking_status: b.smoking_status,
+        alcohol_use: b.alcohol_use,
+        physical_activity: b.physical_activity,
+        family_history_diabetes: b.family_history_diabetes,
+        family_history_cvd: b.family_history_cvd,
+        systolic_bp_mmhg: String(b.systolic_bp_mmhg),
+        diastolic_bp_mmhg: String(b.diastolic_bp_mmhg),
+        fasting_glucose_mgdl: String(b.fasting_glucose_mgdl),
+        hba1c_pct: String(b.hba1c_pct),
+        total_cholesterol_mgdl: String(b.total_cholesterol_mgdl),
+        hdl_mgdl: String(b.hdl_mgdl),
+        ldl_mgdl: String(b.ldl_mgdl),
+        triglycerides_mgdl: String(b.triglycerides_mgdl),
+        cvd_risk_10yr_pct: b.cvd_risk_10yr_pct !== null ? String(b.cvd_risk_10yr_pct) : '',
+        cvd_risk_category: b.cvd_risk_category ?? '',
+        on_antihypertensive: b.on_antihypertensive,
+        on_antidiabetic: b.on_antidiabetic,
+        on_statin: b.on_statin,
+        target_risk: b.target_risk,
+        egfr: String(b.egfr),
+        uacr: b.uacr !== null ? String(b.uacr) : '',
+        diagnosis: b.diagnosis ?? '',
+      }))
+      if (result.disease_type) setPtDiseaseType(result.disease_type)
+      showToastMsg('✓ OCR Berhasil! Data baseline terisi otomatis dari dokumen template.')
+    } catch {
+      showToastMsg('⚠️ OCR gagal. Pastikan dokumen template baseline jelas (JPG/PNG/PDF) dan coba lagi.')
+    } finally {
+      setPtBaselineOcrLoading(false)
+    }
+  }
+
   const resetPtForm = () => {
     setPtNik(''); setPtName(''); setPtDob(''); setPtSex(''); setPtAlamat('')
     setPtPhone(''); setPtCompanionName(''); setPtCompanionPhone('')
@@ -252,12 +287,8 @@ export default function PendaftaranTab({
     setPtRegisterLoading(true)
     try {
       const baselineBody: PatientBaselineBody = {
-        age_years: ageYears!,
-        sex: ptSex as 'male' | 'female',
         bmi: toNumber(baseline.bmi),
-        bmi_category: baseline.bmi_category as PatientBaselineBody['bmi_category'],
         waist_circumference_cm: toNumber(baseline.waist_circumference_cm),
-        central_obesity: baseline.central_obesity,
         smoking_status: baseline.smoking_status as PatientBaselineBody['smoking_status'],
         alcohol_use: baseline.alcohol_use,
         physical_activity: baseline.physical_activity as PatientBaselineBody['physical_activity'],
@@ -265,25 +296,21 @@ export default function PendaftaranTab({
         family_history_cvd: baseline.family_history_cvd,
         systolic_bp_mmhg: toNumber(baseline.systolic_bp_mmhg),
         diastolic_bp_mmhg: toNumber(baseline.diastolic_bp_mmhg),
-        hypertension_status: baseline.hypertension_status as PatientBaselineBody['hypertension_status'],
         fasting_glucose_mgdl: toNumber(baseline.fasting_glucose_mgdl),
         hba1c_pct: toNumber(baseline.hba1c_pct),
-        diabetes_status: baseline.diabetes_status as PatientBaselineBody['diabetes_status'],
         total_cholesterol_mgdl: toNumber(baseline.total_cholesterol_mgdl),
         hdl_mgdl: toNumber(baseline.hdl_mgdl),
         ldl_mgdl: toNumber(baseline.ldl_mgdl),
         triglycerides_mgdl: toNumber(baseline.triglycerides_mgdl),
-        cvd_risk_10yr_pct: toNumber(baseline.cvd_risk_10yr_pct),
-        cvd_risk_category: baseline.cvd_risk_category as PatientBaselineBody['cvd_risk_category'],
+        cvd_risk_10yr_pct: baseline.cvd_risk_10yr_pct.trim() ? toNumber(baseline.cvd_risk_10yr_pct) : null,
+        cvd_risk_category: baseline.cvd_risk_category || null,
         on_antihypertensive: baseline.on_antihypertensive,
         on_antidiabetic: baseline.on_antidiabetic,
         on_statin: baseline.on_statin,
-        target_risk: baseline.target_risk.trim(),
+        target_risk: baseline.target_risk as PatientBaselineBody['target_risk'],
         egfr: toNumber(baseline.egfr),
-        uacr: toNumber(baseline.uacr),
-        cluster_id: baseline.cluster_id.trim() ? toNumber(baseline.cluster_id) : null,
-        diagnosis_cluster: optionalText(baseline.diagnosis_cluster),
-        clinical_group: optionalText(baseline.clinical_group),
+        uacr: baseline.uacr.trim() ? toNumber(baseline.uacr) : null,
+        diagnosis: baseline.diagnosis || null,
       }
 
       const res = await faskesApi.registerPatient({
@@ -407,6 +434,8 @@ export default function PendaftaranTab({
 
       {/* Hidden OCR input for patient */}
       <input ref={ptOcrRef} type="file" accept="image/jpeg,image/png" style={{ display: 'none' }} onChange={handlePtOcrFileChange} />
+      {/* Hidden OCR input for baseline template */}
+      <input ref={ptBaselineOcrRef} type="file" accept="image/jpeg,image/png,application/pdf" style={{ display: 'none' }} onChange={handlePtBaselineOcrFileChange} />
 
       {/* Error banner */}
       {ptRegisterError && (
@@ -620,14 +649,26 @@ export default function PendaftaranTab({
 
           {/* Card 3: Baseline Klinis ML */}
           <div style={{ order: 3, background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, padding: 22, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F0FDF8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F0FDF8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Baseline Klinis ML</div>
+                  <div style={{ fontSize: 10, color: '#8A93A1' }}>Data awal untuk pemetaan risiko pasien</div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#2B2D42' }}>Baseline Klinis ML</div>
-                <div style={{ fontSize: 10, color: '#8A93A1' }}>Data awal untuk pemetaan risiko pasien</div>
-              </div>
+              <button
+                onClick={() => ptBaselineOcrRef.current?.click()}
+                disabled={ptBaselineOcrLoading}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, background: ptBaselineOcrLoading ? 'rgba(241,245,249,0.75)' : '#F0FDF8', border: '1.5px dashed #10B981', borderRadius: 9, padding: '7px 13px', cursor: ptBaselineOcrLoading ? 'not-allowed' : 'pointer', color: '#10B981', fontSize: 12, fontWeight: 600 }}
+              >
+                {ptBaselineOcrLoading
+                  ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" strokeOpacity="0.25" /><path d="M12 2a10 10 0 0 1 10 10" /></svg>
+                  : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 7H5v3M16 7h3v3M8 17H5v-3M16 17h3v-3" /></svg>}
+                {ptBaselineOcrLoading ? 'Memproses...' : 'Scan Baseline'}
+              </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 14 }}>
@@ -654,12 +695,6 @@ export default function PendaftaranTab({
                 />
               </div>
               {baselineNumber('bmi', 'BMI', 'kg/m2', 'baselineBmi')}
-              {baselineSelect('bmi_category', 'Kategori BMI', 'Pilih kategori', [
-                { value: 'underweight', label: 'Berat badan kurang' },
-                { value: 'normal', label: 'Normal' },
-                { value: 'overweight', label: 'Berat badan berlebih' },
-                { value: 'obese', label: 'Obesitas' },
-              ], 'baselineBmiCategory')}
               {baselineNumber('waist_circumference_cm', 'Lingkar Pinggang', 'cm', 'baselineWaist')}
               {baselineGroupTitle('Gaya hidup & riwayat keluarga')}
               {baselineSelect('smoking_status', 'Status Merokok', 'Pilih status', [
@@ -673,100 +708,49 @@ export default function PendaftaranTab({
                 { value: 'moderate', label: 'Sedang' },
                 { value: 'active', label: 'Aktif' },
               ], 'baselineActivity')}
-              <div />
               {baselineGroupTitle('Tekanan darah & gula darah')}
               {baselineNumber('systolic_bp_mmhg', 'Sistolik', 'mmHg', 'baselineSystolic')}
               {baselineNumber('diastolic_bp_mmhg', 'Diastolik', 'mmHg', 'baselineDiastolic')}
-              {baselineSelect('hypertension_status', 'Status Hipertensi', 'Pilih status', [
-                { value: 'normal', label: 'Normal' },
-                { value: 'elevated', label: 'Meningkat' },
-                { value: 'stage1', label: 'Hipertensi tahap 1' },
-                { value: 'stage2', label: 'Hipertensi tahap 2' },
-              ], 'baselineHypertension')}
               {baselineNumber('fasting_glucose_mgdl', 'Gula darah puasa', 'mg/dL', 'baselineGlucose')}
               {baselineNumber('hba1c_pct', 'HbA1c', '%', 'baselineHba1c')}
-              {baselineSelect('diabetes_status', 'Status Diabetes', 'Pilih status', [
-                { value: 'none', label: 'Tidak ada' },
-                { value: 'prediabetes', label: 'Prediabetes' },
-                { value: 'type2', label: 'Diabetes tipe 2' },
-                { value: 'controlled', label: 'Terkontrol' },
-                { value: 'uncontrolled', label: 'Belum terkontrol' },
-              ], 'baselineDiabetes')}
+              <div />
+              <div />
               {baselineGroupTitle('Profil lipid & risiko kardiovaskular')}
               {baselineNumber('total_cholesterol_mgdl', 'Kolesterol Total', 'mg/dL', 'baselineCholesterol')}
               {baselineNumber('hdl_mgdl', 'HDL', 'mg/dL', 'baselineHdl')}
               {baselineNumber('ldl_mgdl', 'LDL', 'mg/dL', 'baselineLdl')}
               {baselineNumber('triglycerides_mgdl', 'Trigliserida', 'mg/dL', 'baselineTriglycerides')}
-              {baselineNumber('cvd_risk_10yr_pct', 'Risiko CVD 10 tahun', '%', 'baselineCvdRisk')}
-              {baselineSelect('cvd_risk_category', 'Kategori risiko CVD', 'Pilih kategori', [
+              {baselineNumber('cvd_risk_10yr_pct', 'Risiko CVD 10 tahun (opsional)', '%', 'baselineCvdRisk')}
+              {baselineSelect('cvd_risk_category', 'Kategori risiko CVD (opsional)', 'Kosongkan jika tidak ada', [
                 { value: 'low', label: 'Rendah' },
                 { value: 'moderate', label: 'Sedang' },
                 { value: 'high', label: 'Tinggi' },
                 { value: 'very_high', label: 'Sangat tinggi' },
               ], 'baselineCvdCategory')}
-              {baselineGroupTitle('Ginjal & target risiko')}
+              {baselineGroupTitle('Ginjal, target risiko, & diagnosis')}
               {baselineNumber('egfr', 'eGFR', 'mL/min/1.73m2', 'baselineEgfr')}
-              {baselineNumber('uacr', 'UACR', 'mg/g', 'baselineUacr')}
-              <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Target risiko</label>
-                <input
-                  type="text"
-                  value={baseline.target_risk}
-                  onChange={e => setBaselineField('target_risk', e.target.value)}
-                  placeholder="Contoh: moderate"
-                  style={{ width: '100%', padding: '10px 13px', border: fieldBorder(ptErr('baselineTargetRisk')), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
-                />
-                {ptErr('baselineTargetRisk') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('baselineTargetRisk')}</div>}
-              </div>
+              {baselineNumber('uacr', 'UACR (opsional)', 'mg/g', 'baselineUacr')}
+              {baselineSelect('target_risk', 'Target risiko', 'Pilih target', [
+                { value: 'low', label: 'Rendah' },
+                { value: 'medium', label: 'Menengah' },
+                { value: 'high', label: 'Tinggi' },
+              ], 'baselineTargetRisk')}
+              {baselineSelect('diagnosis', 'Diagnosis (opsional)', 'Ikuti jenis penyakit pasien', [
+                { value: 'diabetes', label: 'Diabetes' },
+                { value: 'hipertensi', label: 'Hipertensi' },
+                { value: 'komplikasi', label: 'Komplikasi' },
+              ], 'baselineDiagnosis')}
             </div>
 
-            <div style={{ borderTop: '1px dashed #DCDFE8', paddingTop: 14, marginBottom: 14 }}>
+            <div style={{ borderTop: '1px dashed #DCDFE8', paddingTop: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#2B2D42', marginBottom: 10 }}>Riwayat, kebiasaan, dan terapi berjalan</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-              {baselineToggle('central_obesity', 'Obesitas sentral')}
               {baselineToggle('alcohol_use', 'Konsumsi alkohol')}
               {baselineToggle('family_history_diabetes', 'Riwayat keluarga diabetes')}
               {baselineToggle('family_history_cvd', 'Riwayat keluarga CVD')}
               {baselineToggle('on_antihypertensive', 'Pakai antihipertensi')}
               {baselineToggle('on_antidiabetic', 'Pakai antidiabetik')}
               {baselineToggle('on_statin', 'Pakai statin')}
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px dashed #DCDFE8', paddingTop: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#2B2D42', marginBottom: 10 }}>Data cluster ML opsional</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Cluster ID</label>
-                  <input
-                    type="number"
-                    value={baseline.cluster_id}
-                    onChange={e => setBaselineField('cluster_id', e.target.value)}
-                    placeholder="Kosongkan jika belum ada"
-                    style={{ width: '100%', padding: '10px 13px', border: fieldBorder(ptErr('baselineCluster')), borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box', fontFamily: 'IBM Plex Mono, monospace' }}
-                  />
-                  {ptErr('baselineCluster') && <div style={{ fontSize: 10, color: '#EF4444', marginTop: 3 }}>{ptErr('baselineCluster')}</div>}
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Diagnosis cluster</label>
-                  <input
-                    type="text"
-                    value={baseline.diagnosis_cluster}
-                    onChange={e => setBaselineField('diagnosis_cluster', e.target.value)}
-                    placeholder="Opsional"
-                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#636B78', marginBottom: 5 }}>Kelompok klinis</label>
-                  <input
-                    type="text"
-                    value={baseline.clinical_group}
-                    onChange={e => setBaselineField('clinical_group', e.target.value)}
-                    placeholder="Opsional"
-                    style={{ width: '100%', padding: '10px 13px', border: '1.5px solid #DCDFE8', borderRadius: 9, fontSize: 13, color: '#2B2D42', background: 'rgba(255,255,255,0.6)', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
               </div>
             </div>
           </div>
