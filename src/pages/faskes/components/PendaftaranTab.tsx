@@ -659,16 +659,33 @@ export default function PendaftaranTab({
                   <div style={{ fontSize: 10, color: '#8A93A1' }}>Data awal untuk pemetaan risiko pasien</div>
                 </div>
               </div>
-              <button
-                onClick={() => ptBaselineOcrRef.current?.click()}
-                disabled={ptBaselineOcrLoading}
-                style={{ display: 'flex', alignItems: 'center', gap: 7, background: ptBaselineOcrLoading ? 'rgba(241,245,249,0.75)' : '#F0FDF8', border: '1.5px dashed #10B981', borderRadius: 9, padding: '7px 13px', cursor: ptBaselineOcrLoading ? 'not-allowed' : 'pointer', color: '#10B981', fontSize: 12, fontWeight: 600 }}
-              >
-                {ptBaselineOcrLoading
-                  ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" strokeOpacity="0.25" /><path d="M12 2a10 10 0 0 1 10 10" /></svg>
-                  : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 7H5v3M16 7h3v3M8 17H5v-3M16 17h3v-3" /></svg>}
-                {ptBaselineOcrLoading ? 'Memproses...' : 'Scan Baseline'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {/* Download Template Button */}
+                <a
+                  href="https://drive.google.com/uc?export=download&id=1VVbtCGx1dDcjTi0-txGejNzDNjCgAeJF"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#EFF6FF', border: '1.5px dashed #3B82F6', borderRadius: 9, padding: '7px 13px', cursor: 'pointer', color: '#3B82F6', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Template Baseline
+                </a>
+                {/* Scan Baseline Button */}
+                <button
+                  onClick={() => ptBaselineOcrRef.current?.click()}
+                  disabled={ptBaselineOcrLoading}
+                  style={{ display: 'flex', alignItems: 'center', gap: 7, background: ptBaselineOcrLoading ? 'rgba(241,245,249,0.75)' : '#F0FDF8', border: '1.5px dashed #10B981', borderRadius: 9, padding: '7px 13px', cursor: ptBaselineOcrLoading ? 'not-allowed' : 'pointer', color: '#10B981', fontSize: 12, fontWeight: 600 }}
+                >
+                  {ptBaselineOcrLoading
+                    ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" strokeOpacity="0.25" /><path d="M12 2a10 10 0 0 1 10 10" /></svg>
+                    : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M8 7H5v3M16 7h3v3M8 17H5v-3M16 17h3v-3" /></svg>}
+                  {ptBaselineOcrLoading ? 'Memproses...' : 'Scan Baseline'}
+                </button>
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 14 }}>
