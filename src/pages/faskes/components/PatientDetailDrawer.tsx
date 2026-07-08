@@ -19,26 +19,26 @@ const DISEASE_LABEL: Record<string, string> = {
 }
 
 const DISEASE_COLOR: Record<string, { bg: string; color: string }> = {
-  diabetes_t2: { bg: '#EEEFFE', color: '#5B6BF0' },
-  hypertension: { bg: 'rgba(79,195,247,0.12)', color: '#0277BD' },
-  both: { bg: 'rgba(245,158,11,0.1)', color: '#D97706' },
+  diabetes_t2: { bg: '#F1F5F9', color: '#475569' },
+  hypertension: { bg: '#F1F5F9', color: '#475569' },
+  both: { bg: '#F1F5F9', color: '#475569' },
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid #F4F5F7', gap: 12 }}>
-      <span style={{ fontSize: 11, fontWeight: 600, color: '#8A93A1', textTransform: 'uppercase', letterSpacing: '0.4px', flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: 13, color: '#2B2D42', fontWeight: 500, textAlign: 'right', wordBreak: 'break-word' }}>{value || '—'}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid #F3F4F6', gap: 12 }}>
+      <span style={{ fontSize: 11, fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 13, color: '#334155', fontWeight: 600, textAlign: 'right', wordBreak: 'break-word' }}>{value || '—'}</span>
     </div>
   )
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div style={{ marginBottom: 18, background: 'rgba(255,255,255,0.7)', border: '1px solid #EEF0F4', borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 2px rgba(15,36,68,0.03)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-        <span style={{ width: 3, height: 12, borderRadius: 3, background: 'linear-gradient(180deg, #5B6BF0, #0D9488)' }} />
-        <div style={{ fontSize: 10, fontWeight: 800, color: '#636B78', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{title}</div>
+    <div style={{ marginBottom: 12, background: '#ffffff', border: '1px solid #E5E7EB', borderRadius: 14, padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.01)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, borderBottom: '1px solid #F3F4F6', paddingBottom: 6 }}>
+        <span style={{ width: 3, height: 12, borderRadius: 1.5, background: '#64748B' }} />
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{title}</div>
       </div>
       {children}
     </div>
@@ -174,18 +174,39 @@ export default function PatientDetailDrawer({ detail, loading, onClose, initialT
         <div style={{ padding: '16px 22px', borderBottom: '1px solid #ECEEF3', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#2B2D42' }}>Detail Pasien</div>
-            <div style={{ display: 'flex', background: '#F4F5F7', borderRadius: 8, padding: 3, gap: 2 }}>
+            {/* Tabs Selector */}
+            <div style={{ display: 'flex', gap: 16, marginLeft: 16 }}>
               <button
                 onClick={() => setActiveTab('profile')}
                 disabled={submitting}
-                style={{ border: 'none', background: activeTab === 'profile' ? '#fff' : 'transparent', color: activeTab === 'profile' ? '#1E2330' : '#8A93A1', fontSize: 11.5, fontWeight: 700, padding: '5px 12px', borderRadius: 6, cursor: 'pointer', boxShadow: activeTab === 'profile' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.15s' }}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  color: activeTab === 'profile' ? '#3B82F6' : '#64748B',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: '6px 4px',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  borderBottom: activeTab === 'profile' ? '2px solid #3B82F6' : '2px solid transparent',
+                  transition: 'all 0.15s',
+                }}
               >
                 Profil Umum
               </button>
               <button
                 onClick={() => setActiveTab('baseline')}
                 disabled={submitting}
-                style={{ border: 'none', background: activeTab !== 'profile' ? '#fff' : 'transparent', color: activeTab !== 'profile' ? '#1E2330' : '#8A93A1', fontSize: 11.5, fontWeight: 700, padding: '5px 12px', borderRadius: 6, cursor: 'pointer', boxShadow: activeTab !== 'profile' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.15s' }}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  color: activeTab !== 'profile' ? '#3B82F6' : '#64748B',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: '6px 4px',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  borderBottom: activeTab !== 'profile' ? '2px solid #3B82F6' : '2px solid transparent',
+                  transition: 'all 0.15s',
+                }}
               >
                 Baseline & Kontrol
               </button>

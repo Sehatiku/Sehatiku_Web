@@ -13,6 +13,7 @@ import ShapCard from './ShapCard'
 import LogCard from './LogCard'
 import TrenView from './TrenView'
 import BriefModal from './BriefModal'
+import PatientDataModal from './PatientDataModal'
 
 type QueueFilter = 'all' | 'bahaya' | 'waswas' | 'aman'
 
@@ -47,6 +48,10 @@ export interface PasienViewProps {
   setBriefPatientId: (id: string | null) => void
   brief: NakesPatientBrief | null
   briefLoading: boolean
+  // Pop up data pasien
+  dataPatient: PatientQueueItem | null
+  setDataPatientId: (id: string | null) => void
+  nakesName?: string
 }
 
 const FILTERS: { id: QueueFilter; label: string }[] = [
@@ -183,6 +188,8 @@ export default function PasienView({
   trenSearch, setTrenSearch,
   patientDetail, detailLoading,
   briefPatient, setBriefPatientId, brief, briefLoading,
+  dataPatient, setDataPatientId,
+  nakesName,
 }: PasienViewProps) {
   // Ekstraksi defensif: BE bisa kirim null / bentuk tak terduga → selalu jadikan array aman.
   const dailyLogs = Array.isArray(patientDetail?.daily_logs) ? patientDetail!.daily_logs : []
@@ -210,6 +217,18 @@ export default function PasienView({
         .close-btn:hover  { background: #F3F4F6 !important; border-color: #D1D5DB !important; }
         * { box-sizing: border-box; }
       `}</style>
+
+      {/* Welcome Greeting Row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.4px', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            Selamat datang, {nakesName || 'Dokter'}
+          </h1>
+          <p style={{ margin: '6px 0 0', fontSize: 13.5, color: '#64748B', fontWeight: 500, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            Ringkasan pemantauan klinis pasien hari ini • {new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())}
+          </p>
+        </div>
+      </div>
 
       {/* ── KPI Cards ─────────────────────────────────────────────────────── */}
       <KpiCards
@@ -239,7 +258,7 @@ export default function PasienView({
 
       {/* ── Unified Patient List Table ─────────────────────────────────────── */}
       <div style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(14px) saturate(1.5)', WebkitBackdropFilter: 'blur(14px) saturate(1.5)', borderRadius: 16, boxShadow: '0 8px 24px rgba(15,36,68,0.06)', border: '1px solid rgba(255,255,255,0.75)', overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 270px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2.3fr 1fr 1fr 70px 350px', padding: '10px 22px', gap: 16, background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
           {['NAMA PASIEN', 'PENYAKIT', 'STATUS', 'SKOR', 'AKSI'].map(h => (
             <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#B0B7C3', letterSpacing: '0.7px', textTransform: 'uppercase' }}>{h}</span>
           ))}
@@ -267,7 +286,7 @@ export default function PasienView({
               <div
                 key={p.patient_id}
                 className="queue-row"
-                style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 80px 270px', alignItems: 'center', padding: '10px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', transition: 'background 0.1s', background: '#fff' }}
+                style={{ display: 'grid', gridTemplateColumns: '2.3fr 1fr 1fr 70px 350px', alignItems: 'center', padding: '10px 22px', gap: 16, borderBottom: idx < sharedList.length - 1 ? '1px solid #F5F5F7' : 'none', transition: 'background 0.1s', background: '#fff' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                   <AvatarCircle name={p.full_name} size={36} bg={c.sqBg} />
@@ -291,56 +310,106 @@ export default function PasienView({
                   <button
                     onClick={() => setSelectedId(p.patient_id)}
                     style={{
-                      background: '#EEF0FF',
-                      color: '#5B6BF0',
-                      border: 'none',
+                      background: '#F8FAFC',
+                      color: '#475569',
+                      border: '1px solid #E2E8F0',
                       borderRadius: 8,
-                      padding: '6px 12px',
-                      fontSize: 11.5,
-                      fontWeight: 700,
+                      padding: '5px 10px',
+                      fontSize: 11,
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
+                      transition: 'all 0.15s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(91,107,240,0.18)'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#EEF0FF'}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#F1F5F9'
+                      e.currentTarget.style.color = '#0F172A'
+                      e.currentTarget.style.borderColor = '#CBD5E1'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#F8FAFC'
+                      e.currentTarget.style.color = '#475569'
+                      e.currentTarget.style.borderColor = '#E2E8F0'
+                    }}
                   >
                     Tindakan
                   </button>
                   <button
                     onClick={() => setTrenPatientId(p.patient_id)}
                     style={{
-                      background: '#ECFDF5',
-                      color: '#0D9488',
-                      border: 'none',
+                      background: '#F8FAFC',
+                      color: '#475569',
+                      border: '1px solid #E2E8F0',
                       borderRadius: 8,
-                      padding: '6px 12px',
-                      fontSize: 11.5,
-                      fontWeight: 700,
+                      padding: '5px 10px',
+                      fontSize: 11,
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
+                      transition: 'all 0.15s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(13,148,136,0.15)'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#ECFDF5'}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#F1F5F9'
+                      e.currentTarget.style.color = '#0F172A'
+                      e.currentTarget.style.borderColor = '#CBD5E1'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#F8FAFC'
+                      e.currentTarget.style.color = '#475569'
+                      e.currentTarget.style.borderColor = '#E2E8F0'
+                    }}
                   >
                     Tren
                   </button>
                   <button
                     onClick={() => setBriefPatientId(p.patient_id)}
                     style={{
-                      background: '#EFF6FF',
-                      color: '#2563EB',
-                      border: 'none',
+                      background: '#F8FAFC',
+                      color: '#475569',
+                      border: '1px solid #E2E8F0',
                       borderRadius: 8,
-                      padding: '6px 12px',
-                      fontSize: 11.5,
-                      fontWeight: 700,
+                      padding: '5px 10px',
+                      fontSize: 11,
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
+                      transition: 'all 0.15s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(37,99,235,0.15)'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#EFF6FF'}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#F1F5F9'
+                      e.currentTarget.style.color = '#0F172A'
+                      e.currentTarget.style.borderColor = '#CBD5E1'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#F8FAFC'
+                      e.currentTarget.style.color = '#475569'
+                      e.currentTarget.style.borderColor = '#E2E8F0'
+                    }}
                   >
                     Brief Kontrol
+                  </button>
+                  <button
+                    onClick={() => setDataPatientId(p.patient_id)}
+                    style={{
+                      background: '#F8FAFC',
+                      color: '#475569',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: 8,
+                      padding: '5px 10px',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#F1F5F9'
+                      e.currentTarget.style.color = '#0F172A'
+                      e.currentTarget.style.borderColor = '#CBD5E1'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#F8FAFC'
+                      e.currentTarget.style.color = '#475569'
+                      e.currentTarget.style.borderColor = '#E2E8F0'
+                    }}
+                  >
+                    Data Pasien
                   </button>
                 </div>
               </div>
@@ -476,6 +545,15 @@ export default function PasienView({
           brief={brief}
           loading={briefLoading}
           onClose={() => setBriefPatientId(null)}
+        />
+      )}
+      {/* ── Data Pasien Detail: Modal Popup ────────────────────────────────── */}
+      {dataPatient && (
+        <PatientDataModal
+          patient={dataPatient}
+          patientDetail={patientDetail}
+          loading={detailLoading}
+          onClose={() => setDataPatientId(null)}
         />
       )}
     </div>

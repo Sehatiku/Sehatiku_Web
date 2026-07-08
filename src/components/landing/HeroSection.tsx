@@ -41,12 +41,7 @@ export default function HeroSection({ onLoginClick }: { onLoginClick: () => void
               borderRadius: 24, padding: '7px 15px 7px 11px', marginBottom: 26,
               boxShadow: '0 1px 3px rgba(30,36,51,0.05)',
             }}>
-              <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8 }}>
-                <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: C.teal }} />
-              </span>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: C.tealLabel, letterSpacing: '0.2px' }}>
-                Platform Mitra Prolanis BPJS Kesehatan
-              </span>
+
             </div>
           </Reveal>
 

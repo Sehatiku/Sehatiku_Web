@@ -1,17 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { nakesApi } from '../../../lib/api'
-import type { EscalationItem } from '../../../lib/types'
+import type { EscalationItem, PatientQueueItem } from '../../../lib/types'
 import { escalationItemIsDone, escalationStatusIsPending } from '../../../lib/utils'
-import { SkeletonCard } from './Common'
+import { SkeletonCard, DISEASE_LABEL } from './Common'
 
 interface NotifikasiViewProps {
   showToast: (msg: string, type: 'ok' | 'err') => void
   onUpdateEscalationCount?: (count: number) => void
-}
-
-const TIER_LABEL: Record<string, string> = {
-  acute_today: 'Akut Hari Ini',
-  trend_this_week: 'Tren Pekan Ini',
 }
 
 const TIER_TRIGGER: Record<string, string> = {
@@ -19,17 +14,18 @@ const TIER_TRIGGER: Record<string, string> = {
   trend_this_week: 'Status waswas bertahan beberapa hari terakhir',
 }
 
-function formatWaktu(iso: string): string {
-  if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-  } catch {
-    return iso
+function initials(name: string): string {
+  if (!name) return 'P'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase()
   }
+  return parts[0].slice(0, 2).toUpperCase()
 }
 
 export default function NotifikasiView({ showToast, onUpdateEscalationCount }: NotifikasiViewProps) {
   const [escalations, setEscalations] = useState<EscalationItem[]>([])
+  const [patientQueue, setPatientQueue] = useState<PatientQueueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actingId, setActingId] = useState<string | null>(null)
@@ -56,6 +52,9 @@ export default function NotifikasiView({ showToast, onUpdateEscalationCount }: N
 
   useEffect(() => {
     fetchEscalations()
+    nakesApi.getPatientQueue(1, 100)
+      .then(res => setPatientQueue(res.data))
+      .catch(err => console.error('Gagal memuat queue:', err))
     intervalRef.current = setInterval(fetchEscalations, 60_000)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [fetchEscalations])
@@ -97,6 +96,18 @@ export default function NotifikasiView({ showToast, onUpdateEscalationCount }: N
     if (activeTab === 'acted') return escalationItemIsDone(alert)
     return true
   })
+
+  const sortedEscalations = useMemo<EscalationItem[]>(() => {
+    return [...filteredEscalations].sort((a, b) => {
+      const aDone = escalationItemIsDone(a)
+      const bDone = escalationItemIsDone(b)
+      if (aDone && !bDone) return 1
+      if (!aDone && bDone) return -1
+      const aTime = new Date(a.sent_at || a.created_at).getTime()
+      const bTime = new Date(b.sent_at || b.created_at).getTime()
+      return bTime - aTime
+    })
+  }, [filteredEscalations])
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '20px 24px', background: 'transparent', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -334,227 +345,126 @@ export default function NotifikasiView({ showToast, onUpdateEscalationCount }: N
             </div>
           )}
 
-          {!loading && !error && filteredEscalations.map(alert => {
+          {!loading && !error && sortedEscalations.map(alert => {
             const isDone = escalationItemIsDone(alert)
             const score = alert.risk_score
             const alertColor = getHealthColor(score)
 
-            // Premium glassmorphism card styling colors
-            const cardBg = 'rgba(255, 255, 255, 0.4)'
-            const leftIndicator = alertColor
+            const patient = patientQueue.find(p => p.patient_id === alert.patient_id)
+            const age = patient?.age ?? '—'
+            const disease = patient?.disease_type ? (DISEASE_LABEL[patient.disease_type] || patient.disease_type) : '—'
 
-            // Icon backdrop background (translucent tinted)
-            const iconBg = score < 40 ? 'rgba(239, 68, 68, 0.08)' : (score < 70 ? 'rgba(245, 158, 11, 0.08)' : 'rgba(16, 185, 129, 0.08)')
-            const iconBorder = score < 40 ? 'rgba(239, 68, 68, 0.2)' : (score < 70 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)')
+            // Background according to screenshot (F0F4FF for open/pending, F8FAFC or white for done)
+            const cardBg = isDone ? '#F8FAFC' : '#EEF2FF'
+            const cardBorder = isDone ? '1px solid #E2E8F0' : '1px solid #C7D2FE'
 
             return (
               <div
                 key={alert.id}
-                className="notif-card"
                 style={{
                   background: cardBg,
-                  border: '1px solid rgba(255, 255, 255, 0.45)',
-                  borderRadius: 16,
-                  padding: '12px 14px',
+                  border: cardBorder,
+                  borderRadius: 14,
+                  padding: '14px 18px',
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 12,
+                  alignItems: 'center',
+                  gap: 14,
+                  boxShadow: '0 1px 2px rgba(15,23,42,0.04)',
                   position: 'relative',
-                  overflow: 'hidden',
-                  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.03)'
+                  transition: 'all 0.15s ease'
                 }}
               >
-                {/* Visual Accent Left Edge */}
-                <div style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 5,
-                  background: leftIndicator
-                }} />
 
-                {/* Left Warning Symbol */}
+                {/* Left Circular Initials Avatar bubble */}
                 <div style={{
-                  width: 36,
-                  height: 36,
-                  minWidth: 36,
-                  borderRadius: 10,
-                  background: iconBg,
-                  border: `1px solid ${iconBorder}`,
+                  width: 38,
+                  height: 38,
+                  borderRadius: '50%',
+                  background: alertColor,
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: 13,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0,
-                  marginTop: 2
+                  flexShrink: 0
                 }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={alertColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
+                  {initials(alert.patient_name)}
                 </div>
 
                 {/* Middle Content */}
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1E293B' }}>{alert.patient_name}</span>
-
-                    {/* Health Score Pill */}
-                    <span style={{
-                      background: iconBg,
-                      color: alertColor,
-                      fontSize: 9.5,
-                      fontWeight: 700,
-                      padding: '1px 6px',
-                      borderRadius: 18,
-                      border: `1px solid ${iconBorder}`,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 3
-                    }}>
-                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: alertColor }} />
-                      Health: {score}
-                    </span>
-
-                    {/* Tier Tag with dynamic icons */}
-                    <span style={{
-                      background: 'rgba(79, 70, 229, 0.05)',
-                      color: '#4F46E5',
-                      fontSize: 9.5,
-                      fontWeight: 600,
-                      padding: '1px 6px',
-                      borderRadius: 18,
-                      border: '1px solid rgba(79, 70, 229, 0.15)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 3
-                    }}>
-                      {alert.tier === 'acute_today' ? (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                        </svg>
-                      ) : (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                          <line x1="16" y1="2" x2="16" y2="6" />
-                          <line x1="8" y1="2" x2="8" y2="6" />
-                          <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg>
-                      )}
-                      {TIER_LABEL[alert.tier] ?? alert.tier}
-                    </span>
-
-                    {/* Risk status badge */}
-                    {alert.risk_status && (
-                      <span style={{
-                        background: 'rgba(71, 85, 105, 0.05)',
-                        color: '#475569',
-                        fontSize: 9.5,
-                        fontWeight: 600,
-                        padding: '1px 6px',
-                        borderRadius: 18,
-                        border: '1px solid rgba(71, 85, 105, 0.15)',
-                        textTransform: 'capitalize'
-                      }}>
-                        {alert.risk_status}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Trigger banner block */}
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                  {/* Top Line: Alert Trigger Reason (Meriang style) */}
                   <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    background: score < 40 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(245, 158, 11, 0.05)',
-                    padding: '4px 10px',
-                    borderRadius: 6,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: score < 40 ? '#991B1B' : '#92400E',
-                    marginBottom: 4,
-                    border: `1px solid ${score < 40 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`
+                    fontWeight: 750,
+                    fontSize: 13.5,
+                    color: isDone ? '#475569' : '#1E3A8A',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                    marginBottom: 3
                   }}>
-                    <span className={score < 40 ? "pulse-red-dot" : "pulse-orange-dot"} />
                     {TIER_TRIGGER[alert.tier] ?? 'Eskalasi klinis terdeteksi'}
                   </div>
 
-                  {/* Footer metadata */}
-                  <div style={{ fontSize: 10, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                    <span>{formatWaktu(alert.sent_at || alert.created_at)}</span>
-                    <span>•</span>
-                    <span style={{ textTransform: 'capitalize' }}>Status: {alert.status}</span>
-                  </div>
+                  {/* Bottom Line: Patient Details (Suharto Wibowo · 67 thn · Diabetes) */}
+                  <p style={{
+                    margin: 0,
+                    fontSize: 11.5,
+                    color: '#6B7280',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    fontWeight: 500
+                  }}>
+                    <span style={{ fontWeight: 700, color: isDone ? '#475569' : '#3B4CC0' }}>{alert.patient_name}</span>
+                    {` · ${age} thn · ${disease}`}
+                  </p>
                 </div>
 
-                {/* Right Action Button */}
-                <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: 2 }}>
+                {/* Right Action Button or Done Badge */}
+                <div style={{ flexShrink: 0 }}>
                   {isDone ? (
-                    <div style={{
+                    <span style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 4,
-                      background: 'rgba(16, 185, 129, 0.08)',
-                      color: '#047857',
-                      borderRadius: 10,
-                      padding: '6px 11px',
-                      fontSize: 11,
+                      background: '#ECFDF5',
+                      border: '1px solid #A7F3D0',
+                      borderRadius: 999,
+                      padding: '3px 10px',
+                      fontSize: 10,
                       fontWeight: 700,
-                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      color: '#059669',
                       whiteSpace: 'nowrap'
                     }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      Ditindak
-                    </div>
+                      Selesai
+                    </span>
                   ) : (
                     <button
                       onClick={() => handleFollowUp(alert)}
                       disabled={actingId === alert.id}
-                      className="btn-gradient-red"
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 4,
+                        background: '#DC2626',
                         color: '#fff',
                         border: 'none',
-                        borderRadius: 10,
+                        borderRadius: 8,
                         padding: '6px 12px',
                         fontSize: 11,
                         fontWeight: 700,
                         cursor: actingId === alert.id ? 'wait' : 'pointer',
                         whiteSpace: 'nowrap',
-                        opacity: actingId === alert.id ? 0.75 : 1
+                        opacity: actingId === alert.id ? 0.75 : 1,
+                        transition: 'background 0.15s'
                       }}
+                      onMouseEnter={e => { if (actingId !== alert.id) e.currentTarget.style.background = '#B91C1C' }}
+                      onMouseLeave={e => { if (actingId !== alert.id) e.currentTarget.style.background = '#DC2626' }}
                     >
-                      {actingId === alert.id ? (
-                        <>
-                          <svg style={{ animation: 'spin 1s linear infinite' }} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <line x1="12" y1="2" x2="12" y2="6" />
-                            <line x1="12" y1="18" x2="12" y2="22" />
-                            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
-                            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
-                            <line x1="2" y1="12" x2="6" y2="12" />
-                            <line x1="18" y1="12" x2="22" y2="12" />
-                            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
-                            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
-                          </svg>
-                          Memproses…
-                        </>
-                      ) : (
-                        <>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                          Follow Up
-                        </>
-                      )}
+                      {actingId === alert.id ? 'Memproses…' : 'Follow Up'}
                     </button>
                   )}
                 </div>
