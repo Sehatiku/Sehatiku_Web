@@ -205,139 +205,64 @@ export default function OperasionalTab({
         </div>
       </div>
 
-      {/* 4 Cards Grid (Premium Donezo Style) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 20 }}>
+      {/* 4 Cards Grid (Unified with Doctor's KpiCards style) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 16 }}>
 
         {/* Card 1: Total Pasien (Teal Highlighted Card) */}
         <div style={{
           background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
           borderRadius: 16,
-          padding: 18,
-          boxShadow: '0 10px 25px rgba(13, 148, 136, 0.15)',
-          display: 'flex',
-          flexDirection: 'column',
+          padding: '16px 18px',
+          boxShadow: '0 8px 20px rgba(13, 148, 136, 0.25)',
           position: 'relative',
           overflow: 'hidden',
           color: '#ffffff'
         }}>
-          {/* Top-Right Arrow Accent */}
-          <div style={{
-            position: 'absolute', top: 20, right: 20,
-            width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
+          <div style={{ position: 'absolute', top: -24, right: -24, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'rgba(255,255,255,0.85)', fontWeight: 600, lineHeight: 1.4, flex: 1, paddingRight: 8, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Total Pasien</p>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.15)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+            </div>
           </div>
-
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255, 255, 255, 0.8)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Pasien</div>
-          <div style={{ fontSize: 30, fontWeight: 800, margin: '12px 0 5px 0', lineHeight: 1 }}>
-            {ptSummaryLoading ? '…' : patients.length}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>
-            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: 4 }}>+4 bulan ini</span>
-            <span>Terdaftar Prolanis</span>
-          </div>
+          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#ffffff', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.length}</p>
+          <p style={{ margin: 0, fontSize: 11.5, color: 'rgba(255,255,255,0.7)', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>pasien terdaftar</p>
         </div>
 
         {/* Card 2: Risiko Bahaya */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.6)',
-          backdropFilter: 'blur(18px) saturate(1.6)',
-          WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
-          borderRadius: 18,
-          padding: 18,
-          boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255, 255, 255, 0.7)',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-        }}>
-          <div style={{
-            position: 'absolute', top: 20, right: 20,
-            width: 32, height: 32, borderRadius: '50%', background: '#FFF1F2',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
+        <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', border: '1px solid #ECEEF3', boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: '#64748B', fontWeight: 500, lineHeight: 1.4, flex: 1, paddingRight: 8, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Risiko Bahaya</p>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#FEF2F2', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+            </div>
           </div>
-
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Risiko Bahaya</div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#0F172A', margin: '12px 0 5px 0', lineHeight: 1 }}>
-            {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Parah').length}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#EF4444' }}>
-            <span style={{ background: '#FFF1F2', padding: '2px 6px', borderRadius: 4 }}>Kritis</span>
-            <span>Butuh Tindak Lanjut</span>
-          </div>
+          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#EF4444', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Parah').length}</p>
+          <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>perlu perhatian segera</p>
         </div>
 
-        {/* Card 3: Status Waswas */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.6)',
-          backdropFilter: 'blur(18px) saturate(1.6)',
-          WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
-          borderRadius: 18,
-          padding: 18,
-          boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255, 255, 255, 0.7)',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-        }}>
-          <div style={{
-            position: 'absolute', top: 20, right: 20,
-            width: 32, height: 32, borderRadius: '50%', background: '#FEF3C7',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
+        {/* Card 3: Perlu Pantau */}
+        <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', border: '1px solid #ECEEF3', boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: '#64748B', fontWeight: 500, lineHeight: 1.4, flex: 1, paddingRight: 8, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Perlu Pantau</p>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#FFFBEB', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+            </div>
           </div>
-
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Waswas</div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#0F172A', margin: '12px 0 5px 0', lineHeight: 1 }}>
-            {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Waswas').length}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#D97706' }}>
-            <span style={{ background: '#FEF3C7', padding: '2px 6px', borderRadius: 4 }}>Pantau</span>
-            <span>Rencana Rujukan Dekat</span>
-          </div>
+          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#D97706', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Waswas').length}</p>
+          <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>dalam pengawasan</p>
         </div>
 
-        {/* Card 4: Kondisi Stabil */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.6)',
-          backdropFilter: 'blur(18px) saturate(1.6)',
-          WebkitBackdropFilter: 'blur(18px) saturate(1.6)',
-          borderRadius: 18,
-          padding: 18,
-          boxShadow: '0 10px 30px rgba(24, 39, 105, 0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255, 255, 255, 0.7)',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-        }}>
-          <div style={{
-            position: 'absolute', top: 20, right: 20,
-            width: 32, height: 32, borderRadius: '50%', background: '#ECFDF5',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
+        {/* Card 4: Status Aman */}
+        <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', border: '1px solid #ECEEF3', boxShadow: '0 1px 3px rgba(15,36,68,0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: '#64748B', fontWeight: 500, lineHeight: 1.4, flex: 1, paddingRight: 8, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Status Aman</p>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#ECFDF5', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+            </div>
           </div>
-
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kondisi Stabil</div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#0F172A', margin: '12px 0 5px 0', lineHeight: 1 }}>
-            {ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Sehat').length}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#10B981' }}>
-            <span style={{ background: '#ECFDF5', padding: '2px 6px', borderRadius: 4 }}>Aman</span>
-            <span>Sesuai Batas Medis</span>
-          </div>
+          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#059669', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Sehat').length}</p>
+          <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>kondisi terkontrol</p>
         </div>
 
       </div>
@@ -372,13 +297,13 @@ export default function OperasionalTab({
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
                 <thead>
-                  <tr style={{ background: 'linear-gradient(180deg, rgba(91,107,240,0.06), rgba(91,107,240,0.02))', borderBottom: '1px solid #E6E9F5' }}>
-                    <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px', width: 60 }}>Rank</th>
-                    <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Pasien</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Penyakit</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px', width: 140 }}>Health Score</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Status Risiko</th>
-                    <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Aksi</th>
+                  <tr style={{ background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
+                    <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px', width: 60 }}>Rank</th>
+                    <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Pasien</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Penyakit</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px', width: 140 }}>Health Score</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Status Risiko</th>
+                    <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -433,8 +358,8 @@ export default function OperasionalTab({
                     return (
                       <tr
                         key={p.id}
-                        style={{ borderTop: '1px solid #ECEEF3', transition: 'background 0.15s' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(91,107,240,0.05)')}
+                        style={{ borderTop: '1px solid #EDF0F5', transition: 'background 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#F8F9FC')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>

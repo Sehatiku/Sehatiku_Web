@@ -1,16 +1,28 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { faskesApi } from '../../../lib/api'
-import type { EscalationItem } from '../../../lib/types'
-import { escalationItemIsDone, escalationStatusIsPending, formatDate } from '../../../lib/utils'
+import type { EscalationItem, FaskesPatientItem } from '../../../lib/types'
+import { escalationItemIsDone, escalationStatusIsPending } from '../../../lib/utils'
+
+const DISEASE_LABEL: Record<string, string> = {
+  diabetes_t2: 'Diabetes',
+  hypertension: 'Hipertensi',
+  both: 'Kombinasi (DM & HT)',
+}
+
+function initials(name: string): string {
+  if (!name) return 'P'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }
+  return parts[0].slice(0, 2).toUpperCase()
+}
 
 interface EskalasiTabProps {
   showToastMsg: (msg: string) => void
 }
 
-const TIER_LABEL: Record<string, string> = {
-  acute_today: 'Akut Hari Ini',
-  trend_this_week: 'Tren Pekan Ini',
-}
+
 
 const TIER_TRIGGER: Record<string, string> = {
   acute_today: 'Pembacaan ekstrem / transisi ke status bahaya hari ini',
@@ -19,6 +31,7 @@ const TIER_TRIGGER: Record<string, string> = {
 
 export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
   const [escalations, setEscalations] = useState<EscalationItem[]>([])
+  const [patients, setPatients] = useState<FaskesPatientItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actingId, setActingId] = useState<string | null>(null)
@@ -47,6 +60,9 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
       await fetchEscalations()
     }
     load()
+    faskesApi.getPatients(1, 100)
+      .then(res => setPatients(res.data))
+      .catch(err => console.error(err))
     // Auto-refresh tiap 60 detik (konsisten dengan antrean eskalasi nakes)
     intervalRef.current = setInterval(fetchEscalations, 60_000)
     return () => {
@@ -114,46 +130,135 @@ export default function EskalasiTab({ showToastMsg }: EskalasiTabProps) {
           </div>
         )}
 
-        {!loading && !error && escalations.map(alert => {
+        {!loading && !error && [...escalations].sort((a, b) => {
+          const aDone = escalationItemIsDone(a)
+          const bDone = escalationItemIsDone(b)
+          if (aDone && !bDone) return 1
+          if (!aDone && bDone) return -1
+          const aTime = new Date(a.sent_at || a.created_at).getTime()
+          const bTime = new Date(b.sent_at || b.created_at).getTime()
+          return bTime - aTime
+        }).map(alert => {
           const isDone = escalationItemIsDone(alert)
           const score = alert.risk_score
           const alertColor = getHealthColor(score)
-          const alertBg = score < 40 ? '#FFF5F5' : (score < 70 ? '#FFFDF0' : '#F0FDF8')
-          const alertBorder = score < 40 ? 'rgba(239,68,68,0.15)' : (score < 70 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)')
+
+          const patient = patients.find(p => p.patient_id === alert.patient_id)
+          const age = patient?.age ?? '—'
+          const disease = patient?.disease_type ? (DISEASE_LABEL[patient.disease_type] || patient.disease_type) : '—'
+
+          // Background according to screenshot (F0F4FF for open/pending, F8FAFC or white for done)
+          const cardBg = isDone ? '#F8FAFC' : '#EEF2FF'
+          const cardBorder = isDone ? '1px solid #E2E8F0' : '1px solid #C7D2FE'
 
           return (
-            <div key={alert.id} style={{ padding: '18px 22px', borderBottom: '1px solid #F4F5F7', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 12, background: alertBg, border: `1px solid ${alertBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={alertColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
+            <div
+              key={alert.id}
+              style={{
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                background: cardBg,
+                border: cardBorder,
+                borderRadius: 14,
+                margin: '8px 12px',
+                boxShadow: '0 1px 2px rgba(15,23,42,0.04)',
+                position: 'relative',
+                transition: 'all 0.15s ease'
+              }}
+            >
+
+              {/* Left Circular Initials Avatar bubble */}
+              <div style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: alertColor,
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                {initials(alert.patient_name)}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#2B2D42' }}>{alert.patient_name}</span>
-                  <span style={{ background: alertBg, color: alertColor, fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20, border: `1px solid ${alertBorder}` }}>Health: {score}</span>
-                  <span style={{ background: '#EEEFFE', color: '#5B6BF0', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid rgba(91,107,240,0.12)' }}>{TIER_LABEL[alert.tier] ?? alert.tier}</span>
-                  {alert.risk_status && (
-                    <span style={{ background: '#F7F8FA', color: '#636B78', fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, border: '1px solid #DCDFE8', textTransform: 'capitalize' }}>{alert.risk_status}</span>
-                  )}
+
+              {/* Middle Content */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                {/* Top Line: Alert Trigger Reason (Meriang style) */}
+                <div style={{
+                  fontWeight: 750,
+                  fontSize: 13.5,
+                  color: isDone ? '#475569' : '#1E3A8A',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  marginBottom: 3
+                }}>
+                  {TIER_TRIGGER[alert.tier] ?? 'Eskalasi klinis'}
                 </div>
-                <div style={{ fontSize: 13, color: '#334155', marginBottom: 4, fontWeight: 500 }}>🔴 {TIER_TRIGGER[alert.tier] ?? 'Eskalasi klinis'}</div>
-                <div style={{ fontSize: 11, color: '#8A93A1' }}>{formatDate(alert.sent_at || alert.created_at)} · Status: {alert.status}</div>
+
+                {/* Bottom Line: Patient Details (Suharto Wibowo · 67 thn · Diabetes) */}
+                <p style={{
+                  margin: 0,
+                  fontSize: 11.5,
+                  color: '#6B7280',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontWeight: 500
+                }}>
+                  <span style={{ fontWeight: 700, color: isDone ? '#475569' : '#3B4CC0' }}>{alert.patient_name}</span>
+                  {` · ${age} thn · ${disease}`}
+                </p>
               </div>
+
+              {/* Right Action Button or Done Badge */}
               <div style={{ flexShrink: 0 }}>
                 {isDone ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F0FDFA', color: '#0F766E', borderRadius: 12, padding: '9px 14px', fontSize: 12, fontWeight: 700, border: '1px solid rgba(16,185,129,0.2)', whiteSpace: 'nowrap' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
-                    Sudah Ditindak
-                  </div>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    background: '#ECFDF5',
+                    border: '1px solid #A7F3D0',
+                    borderRadius: 999,
+                    padding: '3px 10px',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#059669',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    Selesai
+                  </span>
                 ) : (
                   <button
                     onClick={() => handleFollowUp(alert)}
                     disabled={actingId === alert.id}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: actingId === alert.id ? '#FCA5A5' : '#EF4444', color: '#fff', border: 'none', borderRadius: 12, padding: '9px 15px', fontSize: 12, fontWeight: 700, cursor: actingId === alert.id ? 'wait' : 'pointer', whiteSpace: 'nowrap', boxShadow: '0 3px 10px rgba(239,68,68,0.25)' }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      background: '#DC2626',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '6px 12px',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: actingId === alert.id ? 'wait' : 'pointer',
+                      whiteSpace: 'nowrap',
+                      opacity: actingId === alert.id ? 0.75 : 1,
+                      transition: 'background 0.15s'
+                    }}
+                    onMouseEnter={e => { if (actingId !== alert.id) e.currentTarget.style.background = '#B91C1C' }}
+                    onMouseLeave={e => { if (actingId !== alert.id) e.currentTarget.style.background = '#DC2626' }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20,6 9,17 4,12" /></svg>
-                    {actingId === alert.id ? 'Memproses…' : 'One-Tap Follow Up'}
+                    {actingId === alert.id ? 'Memproses…' : 'Follow Up'}
                   </button>
                 )}
               </div>

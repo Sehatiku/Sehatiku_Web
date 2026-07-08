@@ -109,9 +109,9 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: 'linear-gradient(180deg, rgba(91,107,240,0.06), rgba(91,107,240,0.02))', borderBottom: '1px solid #E6E9F5' }}>
+                <tr style={{ background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
                   {['Nama Pasien', 'NIK', 'Usia / JK', 'Status Pasien', 'Penyakit', 'Skor Kesehatan', 'Status Risiko', 'Pendamping', 'Terdaftar'].map(h => (
-                    <th key={h} style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: '#5B6BF0', textTransform: 'uppercase', letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '12px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -153,7 +153,7 @@ export default function PasienTab({ showToastMsg }: PasienTabProps) {
                   const riskStyle = p.risk_status ? getRiskStyle(p.risk_status) : null
 
                   return (
-                    <tr key={p.patient_id} onClick={() => handleSelectPatient(p.patient_id)} style={{ borderBottom: '1px solid #F4F5F7', background: idx % 2 === 0 ? '#fff' : '#FAFBFC', opacity: isActive ? 1 : 0.55, cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = '#F0F1FE')} onMouseLeave={e => (e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#FAFBFC')}>
+                    <tr key={p.patient_id} onClick={() => handleSelectPatient(p.patient_id)} style={{ borderBottom: '1px solid #F5F5F7', background: idx % 2 === 0 ? '#fff' : '#FAFBFC', opacity: isActive ? 1 : 0.55, cursor: 'pointer', transition: 'background 0.1s' }} onMouseEnter={e => (e.currentTarget.style.background = '#F8F9FC')} onMouseLeave={e => (e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#FAFBFC')}>
                       <td style={{ padding: '13px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div style={{ width: 34, height: 34, borderRadius: 9, background: dc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: dc.color, flexShrink: 0 }}>{initials(p.full_name)}</div>

@@ -18,7 +18,7 @@ export default function Footer() {
               />
             </div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
-              Terhubung, Terpantau, Terlindungi. Platform predictive monitoring penyakit kronis, mitra Prolanis BPJS Kesehatan.
+              Terhubung, Terpantau, Terlindungi. Platform predictive monitoring penyakit kronis.
             </div>
           </div>
 

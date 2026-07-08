@@ -40,13 +40,13 @@ export default function Navbar({ onLoginClick }: { onLoginClick: () => void }) {
           onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)' }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
         />
-        <span style={{
+        {/* <span style={{
           fontSize: 9, fontWeight: 700, color: C.primary,
           background: 'rgb(238,240,254)',
           border: `1px solid rgba(99,102,241,0.16)`,
           padding: '3px 8px', borderRadius: 20,
           textTransform: 'uppercase', letterSpacing: '0.6px',
-        }}>Prolanis PTM</span>
+        }}>Prolanis PTM</span> */}
       </button>
 
       {/* Nav */}

@@ -32,6 +32,7 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const [trenPatientId, setTrenPatientId] = useState<string | null>(null)
   const [trenSearch, setTrenSearch] = useState('')
   const [briefPatientId, setBriefPatientId] = useState<string | null>(null)
+  const [dataPatientId, setDataPatientId] = useState<string | null>(null)
   const [brief, setBrief] = useState<NakesPatientBrief | null>(null)
   const [briefLoading, setBriefLoading] = useState(false)
 
@@ -161,12 +162,13 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
   const selectedPatient = useMemo(() => queue.find(p => p.patient_id === selectedId) ?? null, [queue, selectedId])
   const trenPatient = useMemo(() => queue.find(p => p.patient_id === trenPatientId) ?? null, [queue, trenPatientId])
   const briefPatient = useMemo(() => queue.find(p => p.patient_id === briefPatientId) ?? null, [queue, briefPatientId])
+  const dataPatient = useMemo(() => queue.find(p => p.patient_id === dataPatientId) ?? null, [queue, dataPatientId])
 
   const detailsCacheRef = useRef<Record<string, NakesPatientDetailData>>({})
 
   // Ambil detail klinis pasien (baseline, log harian, tren skor, faktor risiko) dari BE
   // setiap kali pasien dibuka di modal antrean atau panel tren.
-  const openPatientId = selectedId ?? trenPatientId
+  const openPatientId = selectedId ?? trenPatientId ?? dataPatientId
   useEffect(() => {
     if (!openPatientId) { setPatientDetail(null); return }
     let cancelled = false
@@ -686,6 +688,9 @@ export default function DokterDashboardPage({ onLogout }: { onLogout: () => void
               setBriefPatientId={setBriefPatientId}
               brief={brief}
               briefLoading={briefLoading}
+              dataPatient={dataPatient}
+              setDataPatientId={setDataPatientId}
+              nakesName={doctorProfile?.full_name || user?.name || 'Dokter'}
             />
           )}
 
