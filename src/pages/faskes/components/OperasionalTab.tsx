@@ -50,9 +50,9 @@ export default function OperasionalTab({
           let status = '—'
           if (p.risk_status) {
             const lowerRisk = p.risk_status.toLowerCase()
-            if (lowerRisk === 'bahaya' || lowerRisk === 'kritis') status = 'Parah'
+            if (lowerRisk === 'bahaya' || lowerRisk === 'kritis') status = 'Bahaya'
             else if (lowerRisk === 'waswas' || lowerRisk === 'sedang') status = 'Waswas'
-            else if (lowerRisk === 'aman' || lowerRisk === 'sehat') status = 'Sehat'
+            else if (lowerRisk === 'aman' || lowerRisk === 'sehat') status = 'Aman'
           }
 
           let cause = 'Kondisi Terkontrol'
@@ -150,10 +150,10 @@ export default function OperasionalTab({
   }
 
   const getStatusStyle = (st: string | null) => {
-    if (!st || st === '—') return { color: '#64748B', bg: '#F1F5F9' }
-    if (st === 'Parah') return { color: '#EF4444', bg: 'rgba(239,68,68,0.08)' }
-    if (st === 'Waswas') return { color: '#D97706', bg: 'rgba(245,158,11,0.1)' }
-    return { color: '#10B981', bg: 'rgba(16,185,129,0.08)' }
+    if (!st || st === '—') return { color: '#64748B', bg: '#F1F5F9', border: '#E2E8F0', edge: '#94A3B8' }
+    if (st === 'Bahaya' || st === 'Parah') return { color: '#DC2626', bg: '#FEF2F2', border: '#FECACA', edge: '#EF4444' }
+    if (st === 'Waswas') return { color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', edge: '#F59E0B' }
+    return { color: '#059669', bg: '#F0FDF4', border: '#A7F3D0', edge: '#0D9488' }
   }
 
   const progressPatient = patients.find(p => p.id === progressPatientId)
@@ -237,7 +237,7 @@ export default function OperasionalTab({
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
             </div>
           </div>
-          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#EF4444', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Parah').length}</p>
+          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#EF4444', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Bahaya').length}</p>
           <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>perlu perhatian segera</p>
         </div>
 
@@ -261,7 +261,7 @@ export default function OperasionalTab({
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
             </div>
           </div>
-          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#059669', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Sehat').length}</p>
+          <p style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: '#059669', fontFamily: 'IBM Plex Mono, monospace', lineHeight: 1 }}>{ptSummaryLoading ? '…' : patients.filter(p => p.status === 'Aman').length}</p>
           <p style={{ margin: 0, fontSize: 11.5, color: '#9CA3AF', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>kondisi terkontrol</p>
         </div>
 
@@ -298,21 +298,17 @@ export default function OperasionalTab({
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
                 <thead>
                   <tr style={{ background: 'rgba(248,250,252,0.6)', borderBottom: '1px solid #EDF0F5' }}>
-                    <th style={{ padding: '12px 10px 12px 24px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px', width: 60 }}>Rank</th>
-                    <th style={{ padding: '12px 12px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Pasien</th>
+                    <th style={{ padding: '12px 12px 12px 24px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Pasien</th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Penyakit</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px', width: 140 }}>Health Score</th>
                     <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Status Risiko</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px', width: 140 }}>Health Score</th>
                     <th style={{ padding: '12px 24px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#B0B7C3', textTransform: 'uppercase', letterSpacing: '0.7px' }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ptSummaryLoading && Array.from({ length: 5 }).map((_, i) => (
                     <tr key={`sk-${i}`} style={{ borderTop: '1px solid #ECEEF3' }}>
-                      <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
-                        <div className="sk-shimmer" style={{ width: 26, height: 26, borderRadius: 8, margin: '0 auto' }} />
-                      </td>
-                      <td style={{ padding: '14px 12px' }}>
+                      <td style={{ padding: '14px 12px 14px 24px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div className="sk-shimmer" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0 }} />
                           <div style={{ flex: 1 }}>
@@ -322,14 +318,14 @@ export default function OperasionalTab({
                         </div>
                       </td>
                       <td style={{ padding: '14px 16px' }}><div className="sk-shimmer" style={{ width: 56, height: 18, borderRadius: 6 }} /></td>
+                      <td style={{ padding: '14px 16px', textAlign: 'center' }}><div className="sk-shimmer" style={{ width: 64, height: 20, borderRadius: 20, margin: '0 auto' }} /></td>
                       <td style={{ padding: '14px 16px' }}><div className="sk-shimmer" style={{ width: '100%', height: 18, borderRadius: 6 }} /></td>
-                      <td style={{ padding: '14px 16px' }}><div className="sk-shimmer" style={{ width: 64, height: 20, borderRadius: 20, margin: '0 auto' }} /></td>
                       <td style={{ padding: '14px 24px' }}><div className="sk-shimmer" style={{ width: '100%', height: 26, borderRadius: 8 }} /></td>
                     </tr>
                   ))}
                   {!ptSummaryLoading && patients.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
+                      <td colSpan={5} style={{ padding: '40px 24px', textAlign: 'center', color: '#64748B', fontSize: 13.5 }}>
                         Belum ada data pasien Prolanis terdaftar.
                       </td>
                     </tr>
@@ -339,20 +335,13 @@ export default function OperasionalTab({
                     const color = getHealthColor(p.healthScore)
                     const shadow = getHealthShadow(p.healthScore)
 
-                    let avatarBg = '#EEF0FF'
-                    let avatarColor = '#5B6BF0'
-                    if (p.healthScore === null || p.healthScore === undefined) {
-                      avatarBg = '#F1F5F9'
-                      avatarColor = '#64748B'
-                    } else if (p.healthScore < 40) {
-                      avatarBg = '#FFF1F2'
-                      avatarColor = '#EF4444'
-                    } else if (p.healthScore < 70) {
-                      avatarBg = '#FEF3C7'
-                      avatarColor = '#D97706'
-                    } else {
-                      avatarBg = '#ECFDF5'
-                      avatarColor = '#10B981'
+                    let avatarBg = '#0D9488'
+                    if (p.status === 'Bahaya') {
+                      avatarBg = '#EF4444'
+                    } else if (p.status === 'Waswas') {
+                      avatarBg = '#F59E0B'
+                    } else if (p.status === '—') {
+                      avatarBg = '#64748B'
                     }
 
                     return (
@@ -362,38 +351,37 @@ export default function OperasionalTab({
                         onMouseEnter={e => (e.currentTarget.style.background = '#F8F9FC')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <td style={{ padding: '14px 10px 14px 24px', textAlign: 'center' }}>
-                          <div style={{
-                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: 26, height: 26, borderRadius: 8,
-                            background: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#FFF1F2' : '#F8FAFC',
-                            color: i < 2 && p.healthScore !== null && p.healthScore < 40 ? '#EF4444' : '#64748B',
-                            fontSize: 12, fontWeight: 800
-                          }}>{i + 1}</div>
-                        </td>
-                        <td style={{ padding: '14px 12px' }}>
+                        <td style={{ padding: '14px 12px 14px 24px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <div style={{
                               width: 36, height: 36, borderRadius: '50%',
                               background: avatarBg, display: 'flex', alignItems: 'center',
                               justifyContent: 'center', fontSize: 12.5, fontWeight: 700,
-                              color: avatarColor, flexShrink: 0
+                              color: '#ffffff', flexShrink: 0
                             }}>
                               {initials(p.name)}
                             </div>
                             <div>
                               <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap' }}>{p.name}</div>
-                              <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 1 }}>{p.age} th • {p.patientStatus === 'active' ? 'Aktif' : 'Nonaktif'}</div>
+                              <div style={{ fontSize: 11.5, color: '#9CA3AF', marginTop: 1 }}>{p.age} tahun</div>
                             </div>
                           </div>
                         </td>
                         <td style={{ padding: '14px 16px' }}>
-                          <span style={{
-                            background: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#EEF0FF' : 'rgba(79,195,247,0.1)',
-                            color: p.disease.includes('Diabetes') || p.disease.includes('DM') ? '#5B6BF0' : '#0277BD',
-                            fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap'
-                          }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 500, color: '#4B5563', whiteSpace: 'nowrap' }}>
                             {p.disease}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            background: style.bg, border: `1px solid ${style.border || 'transparent'}`,
+                            color: style.color,
+                            fontSize: 11, fontWeight: 700, padding: '3px 9px',
+                            borderRadius: 20, whiteSpace: 'nowrap'
+                          }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: style.edge || '#64748B', flexShrink: 0 }} />
+                            {p.status}
                           </span>
                         </td>
                         <td style={{ padding: '14px 16px' }}>
@@ -413,13 +401,6 @@ export default function OperasionalTab({
                               </div>
                             </div>
                           </div>
-                        </td>
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          <span style={{
-                            background: style.bg, color: style.color,
-                            fontSize: 11, fontWeight: 700, padding: '4px 10px',
-                            borderRadius: 20, whiteSpace: 'nowrap'
-                          }}>{p.status}</span>
                         </td>
                         <td style={{ padding: '14px 24px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
@@ -599,26 +580,22 @@ export default function OperasionalTab({
                   }}>
                     {progressPatient.disease}
                   </span>
-                  <span style={{
-                    background: getStatusStyle(
-                      (() => {
-                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
-                        return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
-                      })()
-                    ).bg,
-                    color: getStatusStyle(
-                      (() => {
-                        const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
-                        return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
-                      })()
-                    ).color,
-                    fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20
-                  }}>
-                    {(() => {
-                      const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
-                      return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
-                    })()}
-                  </span>
+                  {(() => {
+                    const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
+                    const statusVal = hs >= 70 ? 'Aman' : hs >= 40 ? 'Waswas' : 'Bahaya'
+                    const styleVal = getStatusStyle(statusVal)
+                    return (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        background: styleVal.bg, border: `1px solid ${styleVal.border || 'transparent'}`,
+                        color: styleVal.color,
+                        fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 20
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: styleVal.edge || '#64748B', flexShrink: 0 }} />
+                        {statusVal}
+                      </span>
+                    )
+                  })()}
                 </div>
               </div>
 
@@ -635,7 +612,7 @@ export default function OperasionalTab({
                 <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: 2 }}>
                   {(() => {
                     const hs = progressHistory.length > 0 ? Math.max(0, 100 - (progressHistory[0].cvd_risk_10yr_pct ?? 0)) : (progressPatient.healthScore ?? 0)
-                    return hs >= 70 ? 'Sehat' : hs >= 40 ? 'Waswas' : 'Parah'
+                    return hs >= 70 ? 'Aman' : hs >= 40 ? 'Waswas' : 'Bahaya'
                   })()}
                 </span>
               </div>
